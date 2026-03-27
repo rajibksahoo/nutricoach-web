@@ -14,6 +14,13 @@ export default function NewClientPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ name: "", phone: "", goal: "" });
+
+  const GOALS = [
+    { value: "WEIGHT_LOSS",  label: "Weight loss" },
+    { value: "WEIGHT_GAIN",  label: "Weight gain" },
+    { value: "MUSCLE_GAIN",  label: "Muscle gain" },
+    { value: "MAINTENANCE",  label: "Maintenance" },
+  ];
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   function set(field: string, value: string) {
@@ -34,7 +41,8 @@ export default function NewClientPage() {
     if (!validate()) return;
     setLoading(true);
     try {
-      const res = await api.post("/api/v1/clients", form);
+      const payload = { name: form.name.trim(), phone: form.phone, ...(form.goal && { goal: form.goal }) };
+      const res = await api.post("/api/v1/clients", payload);
       toast.success("Client added!");
       router.push(`/clients/${res.data.data.id}`);
     } catch (err: any) {
@@ -62,7 +70,18 @@ export default function NewClientPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input id="name" label="Full name" placeholder="Priya Sharma" value={form.name} onChange={(e) => set("name", e.target.value)} error={errors.name} />
             <Input id="phone" label="Mobile number" type="tel" placeholder="9876543210" maxLength={10} value={form.phone} onChange={(e) => set("phone", e.target.value.replace(/\D/g, ""))} error={errors.phone} />
-            <Input id="goal" label="Goal (optional)" placeholder="e.g. Weight loss, Muscle gain" value={form.goal} onChange={(e) => set("goal", e.target.value)} />
+            <div className="space-y-1">
+              <label htmlFor="goal" className="block text-sm font-medium text-slate-700">Goal <span className="text-slate-400 font-normal">(optional)</span></label>
+              <select
+                id="goal"
+                value={form.goal}
+                onChange={(e) => set("goal", e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white text-slate-900"
+              >
+                <option value="">Select a goal…</option>
+                {GOALS.map((g) => <option key={g.value} value={g.value}>{g.label}</option>)}
+              </select>
+            </div>
             <Button type="submit" loading={loading} className="w-full">Add Client</Button>
           </form>
         </CardContent>
