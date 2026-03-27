@@ -13,10 +13,13 @@ function OtpForm() {
   const searchParams = useSearchParams();
   const phone = searchParams.get("phone") ?? "";
 
+  const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === "true";
+  const DEV_OTP = "111111";
+
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [resendCountdown, setResendCountdown] = useState(60);
+  const [resendCountdown, setResendCountdown] = useState(isDevMode ? 0 : 60);
   const inputs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
@@ -52,9 +55,9 @@ function OtpForm() {
     setLoading(true);
     try {
       const res = await api.post("/api/v1/auth/otp/verify", { phone, otp: code });
-      const { token, coach } = res.data.data;
-      saveAuth(token, coach);
-      toast.success(`Welcome, ${coach.name}!`);
+      const { token, coachId, phone: coachPhone } = res.data.data;
+      saveAuth(token, { id: coachId, phone: coachPhone, name: "", subscriptionTier: "", subscriptionStatus: "" });
+      toast.success("Login successful!");
       router.push("/dashboard");
     } catch (err: any) {
       setError(err.response?.data?.message ?? "Invalid OTP");
@@ -80,6 +83,21 @@ function OtpForm() {
   return (
     <Card>
       <CardContent className="pt-6">
+        {isDevMode && (
+          <div className="mb-5 px-3 py-2.5 bg-amber-50 border border-amber-200 rounded-lg">
+            <p className="text-xs font-semibold text-amber-700 mb-1">DEV MODE</p>
+            <p className="text-xs text-amber-600">
+              Use OTP <span className="font-mono font-bold">{DEV_OTP}</span> or{" "}
+              <button
+                type="button"
+                onClick={() => setOtp(DEV_OTP.split(""))}
+                className="underline font-medium hover:text-amber-800"
+              >
+                auto-fill
+              </button>
+            </p>
+          </div>
+        )}
         <h2 className="text-lg font-semibold text-slate-900 mb-1">Enter OTP</h2>
         <p className="text-sm text-slate-500 mb-6">Sent to +91 {phone}</p>
         <form onSubmit={handleVerify} className="space-y-5">
