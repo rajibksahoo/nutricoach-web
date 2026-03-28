@@ -55,24 +55,7 @@ function OtpForm() {
     setLoading(true);
     try {
       const res = await api.post("/api/v1/auth/otp/verify", { phone, otp: code });
-      const { token, coachId, phone: coachPhone } = res.data.data;
-
-      // Save token first so the profile fetch is authenticated
-      localStorage.setItem("nc_token", token);
-
-      // Fetch full coach profile for name + subscription info
-      let name = "";
-      let subscriptionTier = "";
-      let subscriptionStatus = "";
-      try {
-        const profileRes = await api.get("/api/v1/coach/me");
-        const p = profileRes.data.data;
-        name = p.name ?? "";
-        subscriptionTier = p.subscriptionTier ?? "";
-        subscriptionStatus = p.subscriptionStatus ?? "";
-      } catch {
-        // Non-fatal — proceed with empty fields, profile can be loaded later
-      }
+      const { token, coachId, phone: coachPhone, name, subscriptionTier, subscriptionStatus } = res.data.data;
 
       saveAuth(token, { id: coachId, phone: coachPhone, name, subscriptionTier, subscriptionStatus });
       toast.success("Login successful!");

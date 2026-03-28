@@ -12,14 +12,23 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Redirect to login on 401
+// Redirect to login on 401; surface upgrade prompt on 402
 api.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401 && typeof window !== "undefined") {
-      localStorage.removeItem("nc_token");
-      localStorage.removeItem("nc_coach");
-      window.location.href = "/login";
+    if (typeof window !== "undefined") {
+      if (err.response?.status === 401) {
+        localStorage.removeItem("nc_token");
+        localStorage.removeItem("nc_coach");
+        window.location.href = "/login";
+      } else if (err.response?.status === 402) {
+        const message: string =
+          err.response?.data?.message ??
+          "You've reached your client limit. Upgrade your plan to add more clients.";
+        window.dispatchEvent(
+          new CustomEvent("nutricoach:upgrade-required", { detail: { message } })
+        );
+      }
     }
     return Promise.reject(err);
   }

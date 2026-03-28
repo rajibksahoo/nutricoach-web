@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import api from "@/lib/api";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Spinner from "@/components/ui/Spinner";
-import { TrendingUp, TrendingDown, Minus, Plus, CheckSquare, Scale } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, Plus, CheckSquare, Scale, Camera, Upload, Trash2 } from "lucide-react";
 
 interface Client {
   id: string;
@@ -34,7 +34,14 @@ interface CheckIn {
   notes: string | null;
 }
 
-const TABS = ["Progress Logs", "Check-ins"] as const;
+interface Photo {
+  id: string;
+  photoType: string;
+  downloadUrl: string;
+  createdAt: string;
+}
+
+const TABS = ["Progress Logs", "Check-ins", "Photos"] as const;
 type Tab = (typeof TABS)[number];
 
 export default function ProgressPage() {
@@ -47,6 +54,9 @@ export default function ProgressPage() {
   const [loadingData, setLoadingData] = useState(false);
   const [showLogForm, setShowLogForm] = useState(false);
   const [showCheckInForm, setShowCheckInForm] = useState(false);
+  const [selectedLogId, setSelectedLogId] = useState<string | null>(null);
+  const [photos, setPhotos] = useState<Photo[]>([]);
+  const [loadingPhotos, setLoadingPhotos] = useState(false);
 
   useEffect(() => {
     api.get("/api/v1/clients")
@@ -60,7 +70,7 @@ export default function ProgressPage() {
   }, []);
 
   useEffect(() => {
-    if (!selectedClient) return;
+    if (!selectedClient || tab === "Photos") return;
     setLoadingData(true);
     const endpoint = tab === "Progress Logs"
       ? `/api/v1/clients/${selectedClient.id}/progress`
@@ -74,6 +84,25 @@ export default function ProgressPage() {
       .catch(() => toast.error("Failed to load data"))
       .finally(() => setLoadingData(false));
   }, [selectedClient, tab]);
+
+  useEffect(() => {
+    if (tab === "Photos" && selectedClient) {
+      setLoadingData(true);
+      api.get(`/api/v1/clients/${selectedClient.id}/progress`)
+        .then((res) => setLogs(res.data.data))
+        .catch(() => toast.error("Failed to load progress logs"))
+        .finally(() => setLoadingData(false));
+    }
+  }, [selectedClient, tab]);
+
+  useEffect(() => {
+    if (!selectedClient || !selectedLogId) return;
+    setLoadingPhotos(true);
+    api.get(`/api/v1/clients/${selectedClient.id}/progress/${selectedLogId}/photos`)
+      .then((res) => setPhotos(res.data.data))
+      .catch(() => toast.error("Failed to load photos"))
+      .finally(() => setLoadingPhotos(false));
+  }, [selectedClient, selectedLogId]);
 
   return (
     <div className="space-y-5">
@@ -136,6 +165,13 @@ export default function ProgressPage() {
                   <Plus className="w-4 h-4 mr-1" /> Add Check-in
                 </Button>
               )}
+              {tab === "Photos" && selectedLogId && selectedClient && (
+                <PhotoUploadButton
+                  clientId={selectedClient.id}
+                  logId={selectedLogId}
+                  onUploaded={(p) => setPhotos((prev) => [...prev, p])}
+                />
+              )}
             </div>
 
             {/* Log progress form */}
@@ -161,8 +197,18 @@ export default function ProgressPage() {
               <div className="flex justify-center py-12"><Spinner className="w-6 h-6" /></div>
             ) : tab === "Progress Logs" ? (
               <ProgressLogList logs={logs} />
-            ) : (
+            ) : tab === "Check-ins" ? (
               <CheckInList checkIns={checkIns} />
+            ) : (
+              <PhotosPanel
+                clientId={selectedClient!.id}
+                logs={logs}
+                selectedLogId={selectedLogId}
+                onSelectLog={(id) => { setSelectedLogId(id); setPhotos([]); }}
+                photos={photos}
+                loadingPhotos={loadingPhotos}
+                onDeletePhoto={(id) => setPhotos((prev) => prev.filter((p) => p.id !== id))}
+              />
             )}
           </div>
         </div>
@@ -479,3 +525,178 @@ function formatDate(dateStr: string) {
 }
 
 const inputCls = "w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500";
+
+/* ── Photos Panel ──────────────────────────────────────────────── */
+
+function PhotosPanel({ clientId, logs, selectedLogId, onSelectLog, photos, loadingPhotos, onDeletePhoto }: {
+  clientId: string;
+  logs: ProgressLog[];
+  selectedLogId: string | null;
+  onSelectLog: (id: string) => void;
+  photos: Photo[];
+  loadingPhotos: boolean;
+  onDeletePhoto: (id: string) => void;
+}) {
+  if (logs.length === 0) {
+    return (
+      <Card>
+        <CardContent className="text-center py-12 text-slate-400 text-sm">
+          Log progress first to attach photos.
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader><p className="text-sm font-semibold text-slate-900">Select a progress log</p></CardHeader>
+        <CardContent>
+          <select
+            value={selectedLogId ?? ""}
+            onChange={(e) => onSelectLog(e.target.value)}
+            className={inputCls}
+          >
+            <option value="">-- Choose a date --</option>
+            {logs.map((l) => (
+              <option key={l.id} value={l.id}>
+                {formatDate(l.loggedDate)}{l.weightKg != null ? ` · ${l.weightKg} kg` : ""}
+              </option>
+            ))}
+          </select>
+        </CardContent>
+      </Card>
+
+      {selectedLogId && (
+        loadingPhotos ? (
+          <div className="flex justify-center py-12"><Spinner className="w-6 h-6" /></div>
+        ) : photos.length === 0 ? (
+          <Card>
+            <CardContent className="text-center py-10 text-slate-400 text-sm">
+              No photos for this log yet. Use "Upload Photo" above to add one.
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-3 gap-3">
+            {photos.map((p) => (
+              <PhotoCard
+                key={p.id}
+                photo={p}
+                clientId={clientId}
+                logId={selectedLogId}
+                onDeleted={() => onDeletePhoto(p.id)}
+              />
+            ))}
+          </div>
+        )
+      )}
+    </div>
+  );
+}
+
+/* ── Photo Card ────────────────────────────────────────────────── */
+
+function PhotoCard({ photo, clientId, logId, onDeleted }: {
+  photo: Photo; clientId: string; logId: string; onDeleted: () => void;
+}) {
+  const [deleting, setDeleting] = useState(false);
+
+  async function handleDelete() {
+    if (!confirm("Delete this photo?")) return;
+    setDeleting(true);
+    try {
+      await api.delete(`/api/v1/clients/${clientId}/progress/${logId}/photos/${photo.id}`);
+      toast.success("Photo deleted");
+      onDeleted();
+    } catch {
+      toast.error("Failed to delete photo");
+      setDeleting(false);
+    }
+  }
+
+  return (
+    <div className="relative rounded-xl overflow-hidden border border-slate-200 bg-slate-50 aspect-square group">
+      <img src={photo.downloadUrl} alt={photo.photoType} className="w-full h-full object-cover" />
+      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
+      <div className="absolute bottom-0 left-0 right-0 p-2 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity">
+        <span className="text-xs font-semibold text-white drop-shadow">{photo.photoType}</span>
+        <button
+          onClick={handleDelete}
+          disabled={deleting}
+          className="p-1 rounded-lg bg-red-500/80 hover:bg-red-600 text-white transition-colors disabled:opacity-50"
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ── Photo Upload Button ────────────────────────────────────────── */
+
+const PHOTO_TYPES = ["FRONT", "SIDE", "BACK"] as const;
+
+function PhotoUploadButton({ clientId, logId, onUploaded }: {
+  clientId: string; logId: string; onUploaded: (p: Photo) => void;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const [photoType, setPhotoType] = useState<"FRONT" | "SIDE" | "BACK">("FRONT");
+  const fileRef = React.useRef<HTMLInputElement>(null);
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      // 1. Get presigned URL
+      const initRes = await api.post(
+        `/api/v1/clients/${clientId}/progress/${logId}/photos`,
+        { photoType, contentType: file.type || "image/jpeg" }
+      );
+      const { photoId, uploadUrl, s3Key } = initRes.data.data;
+
+      // 2. Upload directly to S3
+      await fetch(uploadUrl, {
+        method: "PUT",
+        headers: { "Content-Type": file.type || "image/jpeg" },
+        body: file,
+      });
+
+      // 3. Fetch the photo record with download URL
+      const listRes = await api.get(`/api/v1/clients/${clientId}/progress/${logId}/photos`);
+      const uploaded = (listRes.data.data as Photo[]).find((p) => p.id === photoId);
+      if (uploaded) onUploaded(uploaded);
+
+      toast.success("Photo uploaded");
+    } catch {
+      toast.error("Failed to upload photo");
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <select
+        value={photoType}
+        onChange={(e) => setPhotoType(e.target.value as "FRONT" | "SIDE" | "BACK")}
+        className="px-2 py-1.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+        disabled={uploading}
+      >
+        {PHOTO_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+      </select>
+      <Button size="sm" loading={uploading} onClick={() => fileRef.current?.click()}>
+        <Camera className="w-3.5 h-3.5 mr-1.5" />
+        {uploading ? "Uploading…" : "Upload Photo"}
+      </Button>
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="hidden"
+        onChange={handleFileChange}
+      />
+    </div>
+  );
+}
