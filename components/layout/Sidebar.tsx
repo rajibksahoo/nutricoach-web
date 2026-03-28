@@ -12,6 +12,7 @@ import {
   CreditCard,
   LogOut,
   Leaf,
+  UserCircle,
 } from "lucide-react";
 
 const navItems = [
@@ -20,6 +21,7 @@ const navItems = [
   { href: "/meal-plans", label: "Meal Plans",  icon: UtensilsCrossed },
   { href: "/progress",   label: "Progress",    icon: TrendingUp      },
   { href: "/billing",    label: "Billing",     icon: CreditCard      },
+  { href: "/profile",    label: "Profile",     icon: UserCircle      },
 ];
 
 export default function Sidebar() {

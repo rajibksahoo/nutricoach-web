@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { isAuthenticated } from "@/lib/auth";
 import Sidebar from "@/components/layout/Sidebar";
+import UpgradePrompt from "@/components/ui/UpgradePrompt";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -20,6 +21,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {children}
         </div>
       </main>
+      <UpgradePrompt />
     </div>
   );
 }
