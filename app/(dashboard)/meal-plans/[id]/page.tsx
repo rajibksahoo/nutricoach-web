@@ -10,7 +10,7 @@ import Badge from "@/components/ui/Badge";
 import Spinner from "@/components/ui/Spinner";
 import {
   ArrowLeft, Plus, Trash2, UtensilsCrossed,
-  Search, X, Coffee, Sun, Moon, Apple, Zap,
+  Search, X, Coffee, Sun, Moon, Apple, Zap, MessageCircle,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -129,6 +129,7 @@ export default function MealPlanBuilderPage() {
   const [loading, setLoading] = useState(true);
   const [activeDayId, setActiveDayId] = useState<string | null>(null);
   const [addingDay, setAddingDay] = useState(false);
+  const [sharing, setSharing] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -189,6 +190,18 @@ export default function MealPlanBuilderPage() {
     }
   }
 
+  async function shareWhatsApp() {
+    setSharing(true);
+    try {
+      await api.post(`/api/v1/meal-plans/${planId}/share/whatsapp`);
+      toast.success("Meal plan shared via WhatsApp");
+    } catch {
+      toast.error("Failed to share meal plan");
+    } finally {
+      setSharing(false);
+    }
+  }
+
   function updateDay(updated: PlanDay) {
     setPlan((p) => p ? { ...p, days: p.days.map((d) => d.id === updated.id ? updated : d) } : p);
   }
@@ -235,6 +248,11 @@ export default function MealPlanBuilderPage() {
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
+          {plan.status === "ACTIVE" && (
+            <Button size="sm" variant="secondary" onClick={shareWhatsApp} loading={sharing}>
+              <MessageCircle className="w-3.5 h-3.5 mr-1" /> Share
+            </Button>
+          )}
           {plan.status === "DRAFT" && (
             <Button size="sm" onClick={() => changeStatus("ACTIVE")}>Mark Active</Button>
           )}
