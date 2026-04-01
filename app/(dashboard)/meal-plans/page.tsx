@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Spinner from "@/components/ui/Spinner";
 import Badge from "@/components/ui/Badge";
-import { Plus, UtensilsCrossed, Sparkles, ChevronRight, X, Loader2 } from "lucide-react";
+import { Plus, UtensilsCrossed, Sparkles, ChevronRight, X } from "lucide-react";
 
 interface Client {
   id: string;
@@ -206,64 +206,15 @@ export default function MealPlansPage() {
 
 // ─── AI Generate Modal ────────────────────────────────────────────────────────
 
-type AiJobStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
-
-interface AiJob {
-  id: string;
-  status: AiJobStatus;
-  generatedMealPlanId: string | null;
-  errorMessage: string | null;
-}
-
-function AiGenerateModal({ client, onClose, onGenerated }: {
+function AiGenerateModal({ client, onClose }: {
   client: Client;
   onClose: () => void;
   onGenerated: (planId: string) => void;
 }) {
-  const [phase, setPhase] = useState<"idle" | "generating" | "done" | "error">("idle");
-  const [statusMsg, setStatusMsg] = useState("");
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  function stopPolling() {
-    if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
+  function startGenerate() {
+    toast("AI meal plan generation is not yet implemented", { icon: "🚧" });
+    onClose();
   }
-
-  async function startGenerate() {
-    setPhase("generating");
-    setStatusMsg("Submitting request…");
-    try {
-      const res = await api.post("/api/v1/ai/meal-plans/generate", { clientId: client.id });
-      const jobId: string = res.data.data.id;
-      setStatusMsg("GPT-4o is building your meal plan…");
-
-      pollRef.current = setInterval(async () => {
-        try {
-          const poll = await api.get(`/api/v1/ai/jobs/${jobId}`);
-          const job: AiJob = poll.data.data;
-          if (job.status === "COMPLETED" && job.generatedMealPlanId) {
-            stopPolling();
-            setPhase("done");
-            setStatusMsg("Meal plan ready!");
-            setTimeout(() => onGenerated(job.generatedMealPlanId!), 800);
-          } else if (job.status === "FAILED") {
-            stopPolling();
-            setPhase("error");
-            setStatusMsg(job.errorMessage ?? "Generation failed. Please try again.");
-          }
-        } catch {
-          stopPolling();
-          setPhase("error");
-          setStatusMsg("Error checking job status.");
-        }
-      }, 3000);
-    } catch {
-      setPhase("error");
-      setStatusMsg("Failed to start generation.");
-    }
-  }
-
-  // Cleanup on unmount
-  useEffect(() => () => stopPolling(), []);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
@@ -273,11 +224,9 @@ function AiGenerateModal({ client, onClose, onGenerated }: {
             <Sparkles className="w-5 h-5 text-violet-500" />
             <h2 className="text-base font-bold text-slate-900">AI Meal Plan</h2>
           </div>
-          {phase !== "generating" && (
-            <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">
-              <X className="w-4 h-4" />
-            </button>
-          )}
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">
+            <X className="w-4 h-4" />
+          </button>
         </div>
 
         <div className="bg-slate-50 rounded-xl px-4 py-3">
@@ -290,36 +239,9 @@ function AiGenerateModal({ client, onClose, onGenerated }: {
           GPT-4o will generate a 7-day Indian meal plan tailored to this client&apos;s dietary preferences, goal, and activity level. This takes 30–60 seconds.
         </p>
 
-        {phase === "idle" && (
-          <Button className="w-full" onClick={startGenerate}>
-            <Sparkles className="w-4 h-4 mr-2 text-violet-200" /> Generate Meal Plan
-          </Button>
-        )}
-
-        {phase === "generating" && (
-          <div className="flex flex-col items-center gap-3 py-2">
-            <Loader2 className="w-6 h-6 text-violet-500 animate-spin" />
-            <p className="text-sm text-slate-600 text-center">{statusMsg}</p>
-          </div>
-        )}
-
-        {phase === "done" && (
-          <div className="flex flex-col items-center gap-2 py-2">
-            <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-emerald-600" />
-            </div>
-            <p className="text-sm font-semibold text-emerald-700">{statusMsg}</p>
-          </div>
-        )}
-
-        {phase === "error" && (
-          <div className="space-y-3">
-            <p className="text-sm text-red-600 text-center">{statusMsg}</p>
-            <Button variant="secondary" className="w-full" onClick={() => { setPhase("idle"); setStatusMsg(""); }}>
-              Try Again
-            </Button>
-          </div>
-        )}
+        <Button className="w-full" onClick={startGenerate}>
+          <Sparkles className="w-4 h-4 mr-2 text-violet-200" /> Generate Meal Plan
+        </Button>
       </div>
     </div>
   );

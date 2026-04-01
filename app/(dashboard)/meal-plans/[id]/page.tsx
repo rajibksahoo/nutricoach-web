@@ -129,7 +129,7 @@ export default function MealPlanBuilderPage() {
   const [loading, setLoading] = useState(true);
   const [activeDayId, setActiveDayId] = useState<string | null>(null);
   const [addingDay, setAddingDay] = useState(false);
-  const [sharing, setSharing] = useState(false);
+
 
   useEffect(() => {
     let cancelled = false;
@@ -191,15 +191,7 @@ export default function MealPlanBuilderPage() {
   }
 
   async function shareWhatsApp() {
-    setSharing(true);
-    try {
-      await api.post(`/api/v1/meal-plans/${planId}/share/whatsapp`);
-      toast.success("Meal plan shared via WhatsApp");
-    } catch {
-      toast.error("Failed to share meal plan");
-    } finally {
-      setSharing(false);
-    }
+    toast("WhatsApp sharing is not yet implemented", { icon: "🚧" });
   }
 
   function updateDay(updated: PlanDay) {
@@ -249,7 +241,7 @@ export default function MealPlanBuilderPage() {
         </div>
         <div className="flex items-center gap-2 shrink-0">
           {plan.status === "ACTIVE" && (
-            <Button size="sm" variant="secondary" onClick={shareWhatsApp} loading={sharing}>
+            <Button size="sm" variant="secondary" onClick={shareWhatsApp}>
               <MessageCircle className="w-3.5 h-3.5 mr-1" /> Share
             </Button>
           )}
