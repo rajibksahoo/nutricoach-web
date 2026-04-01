@@ -157,7 +157,13 @@ export default function ProgressPage() {
                 {TABS.map((t) => (
                   <button
                     key={t}
-                    onClick={() => { setTab(t); setShowLogForm(false); setShowCheckInForm(false); }}
+                    onClick={() => {
+                      if (t === "Photos") {
+                        toast("Progress photos are not yet implemented", { icon: "🚧" });
+                        return;
+                      }
+                      setTab(t); setShowLogForm(false); setShowCheckInForm(false);
+                    }}
                     className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
                       tab === t ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
                     }`}
