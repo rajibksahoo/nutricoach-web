@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "gen:api": "openapi-typescript http://localhost:8080/v3/api-docs -o types/api.ts"
   },
   "dependencies": {
     "axios": "^1.13.6",

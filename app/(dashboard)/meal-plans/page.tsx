@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
@@ -206,14 +206,86 @@ export default function MealPlansPage() {
 
 // ─── AI Generate Modal ────────────────────────────────────────────────────────
 
-function AiGenerateModal({ client, onClose }: {
+type AiJobStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
+
+interface AiJobResponse {
+  id: string;
+  clientId: string;
+  status: AiJobStatus;
+  jobType: string;
+  createdAt: string;
+  completedAt: string | null;
+  errorMessage: string | null;
+  generatedMealPlanId: string | null;
+}
+
+const POLL_INTERVAL_MS = 1500;
+const POLL_TIMEOUT_MS = 90_000;
+
+function AiGenerateModal({ client, onClose, onGenerated }: {
   client: Client;
   onClose: () => void;
   onGenerated: (planId: string) => void;
 }) {
-  function startGenerate() {
-    toast("AI meal plan generation is not yet implemented", { icon: "🚧" });
-    onClose();
+  const [status, setStatus] = useState<AiJobStatus | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const cancelledRef = useRef(false);
+
+  useEffect(() => {
+    cancelledRef.current = false;
+    return () => { cancelledRef.current = true; };
+  }, []);
+
+  const isWorking = status === "PENDING" || status === "PROCESSING";
+
+  async function startGenerate() {
+    setError(null);
+    setStatus("PENDING");
+    try {
+      const res = await api.post("/api/v1/ai/meal-plans/generate", { clientId: client.id });
+      const job: AiJobResponse = res.data.data;
+      await pollJob(job.id);
+    } catch (e: unknown) {
+      if (cancelledRef.current) return;
+      const msg =
+        (e as { response?: { data?: { message?: string } } })?.response?.data?.message ??
+        "Failed to start AI generation";
+      setError(msg);
+      setStatus("FAILED");
+    }
+  }
+
+  async function pollJob(jobId: string) {
+    const deadline = Date.now() + POLL_TIMEOUT_MS;
+    while (!cancelledRef.current && Date.now() < deadline) {
+      try {
+        const res = await api.get(`/api/v1/ai/jobs/${jobId}`);
+        const job: AiJobResponse = res.data.data;
+        if (cancelledRef.current) return;
+        setStatus(job.status);
+
+        if (job.status === "COMPLETED" && job.generatedMealPlanId) {
+          toast.success("Meal plan generated");
+          onGenerated(job.generatedMealPlanId);
+          return;
+        }
+        if (job.status === "FAILED") {
+          setError(job.errorMessage ?? "AI generation failed");
+          return;
+        }
+      } catch {
+        if (!cancelledRef.current) {
+          setError("Lost connection while polling job");
+          setStatus("FAILED");
+        }
+        return;
+      }
+      await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+    }
+    if (!cancelledRef.current) {
+      setError("Generation timed out — check again later");
+      setStatus("FAILED");
+    }
   }
 
   return (
@@ -224,7 +296,11 @@ function AiGenerateModal({ client, onClose }: {
             <Sparkles className="w-5 h-5 text-violet-500" />
             <h2 className="text-base font-bold text-slate-900">AI Meal Plan</h2>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">
+          <button
+            onClick={onClose}
+            disabled={isWorking}
+            className="text-slate-400 hover:text-slate-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -239,8 +315,22 @@ function AiGenerateModal({ client, onClose }: {
           GPT-4o will generate a 7-day Indian meal plan tailored to this client&apos;s dietary preferences, goal, and activity level. This takes 30–60 seconds.
         </p>
 
-        <Button className="w-full" onClick={startGenerate}>
-          <Sparkles className="w-4 h-4 mr-2 text-violet-200" /> Generate Meal Plan
+        {isWorking && (
+          <div className="flex items-center gap-2 text-xs text-slate-500 bg-violet-50 border border-violet-100 rounded-lg px-3 py-2">
+            <Spinner className="w-4 h-4 text-violet-500" />
+            {status === "PENDING" ? "Submitting job…" : "Generating plan…"}
+          </div>
+        )}
+
+        {error && (
+          <div className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+            {error}
+          </div>
+        )}
+
+        <Button className="w-full" onClick={startGenerate} loading={isWorking} disabled={isWorking}>
+          <Sparkles className="w-4 h-4 mr-2 text-violet-200" />
+          {error ? "Try Again" : "Generate Meal Plan"}
         </Button>
       </div>
     </div>
