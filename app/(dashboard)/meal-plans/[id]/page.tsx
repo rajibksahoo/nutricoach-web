@@ -191,7 +191,15 @@ export default function MealPlanBuilderPage() {
   }
 
   async function shareWhatsApp() {
-    toast("WhatsApp sharing is not yet implemented", { icon: "🚧" });
+    try {
+      await api.post(`/api/v1/meal-plans/${planId}/share/whatsapp`);
+      toast.success("Meal plan shared via WhatsApp");
+    } catch (e: unknown) {
+      const msg =
+        (e as { response?: { data?: { message?: string } } })?.response?.data?.message ??
+        "Failed to share via WhatsApp";
+      toast.error(msg);
+    }
   }
 
   function updateDay(updated: PlanDay) {
