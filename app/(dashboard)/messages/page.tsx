@@ -13,9 +13,9 @@ interface Conversation {
   clientId: string;
   clientName: string;
   clientPhone: string;
-  lastMessage: string;
-  lastSenderType: "COACH" | "CLIENT";
-  lastMessageAt: string;
+  lastMessage: string | null;
+  lastSenderType: "COACH" | "CLIENT" | null;
+  lastMessageAt: string | null;
   unreadCount: number;
 }
 
@@ -72,11 +72,21 @@ function ConversationItem({
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-1 mb-0.5">
           <span className="text-sm font-semibold text-slate-900 truncate">{conv.clientName}</span>
-          <span className="text-[11px] text-slate-400 shrink-0">{formatTime(conv.lastMessageAt)}</span>
+          <span className="text-[11px] text-slate-400 shrink-0">
+            {conv.lastMessageAt ? formatTime(conv.lastMessageAt) : ""}
+          </span>
         </div>
         <p className="text-xs text-slate-500 truncate">
-          {conv.lastSenderType === "COACH" && <span className="text-emerald-600 font-medium">You: </span>}
-          {conv.lastMessage}
+          {conv.lastMessage ? (
+            <>
+              {conv.lastSenderType === "COACH" && (
+                <span className="text-emerald-600 font-medium">You: </span>
+              )}
+              {conv.lastMessage}
+            </>
+          ) : (
+            <span className="italic text-slate-400">No messages yet</span>
+          )}
         </p>
       </div>
 
@@ -244,7 +254,7 @@ export default function MessagesPage() {
             <div className="text-center py-12 px-4 text-slate-400">
               <MessageSquare className="w-10 h-10 mx-auto mb-3 opacity-30" />
               <p className="text-sm">
-                {search ? "No conversations match your search." : "No conversations yet. Messages sent to clients will appear here."}
+                {search ? "No clients match your search." : "No clients yet. Add clients to start messaging them."}
               </p>
             </div>
           ) : (
