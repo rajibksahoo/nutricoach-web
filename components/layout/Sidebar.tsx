@@ -13,6 +13,7 @@ import {
   LogOut,
   Leaf,
   UserCircle,
+  MessageSquare,
 } from "lucide-react";
 
 const navItems = [
@@ -20,6 +21,7 @@ const navItems = [
   { href: "/clients",    label: "Clients",     icon: Users           },
   { href: "/meal-plans", label: "Meal Plans",  icon: UtensilsCrossed },
   { href: "/progress",   label: "Progress",    icon: TrendingUp      },
+  { href: "/messages",   label: "Messages",    icon: MessageSquare   },
   { href: "/billing",    label: "Billing",     icon: CreditCard      },
   { href: "/profile",    label: "Profile",     icon: UserCircle      },
 ];
