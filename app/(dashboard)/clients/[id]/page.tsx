@@ -129,8 +129,10 @@ export default function ClientDetailPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [coachId, setCoachId] = useState<string | null>(null);
 
   useEffect(() => {
+    setCoachId(getCoach()?.id ?? null);
     let cancelled = false;
     api.get(`/api/v1/clients/${clientId}`)
       .then((res) => { if (!cancelled) setClient(res.data.data); })
@@ -253,21 +255,18 @@ export default function ClientDetailPage() {
         </div>
         {!editing ? (
           <div className="flex gap-2 shrink-0">
-            {process.env.NEXT_PUBLIC_DEV_MODE === "true" && (() => {
-              const coach = getCoach();
-              return coach ? (
-                <a
-                  href={`/portal/login?coach=${coach.id}&phone=${client.phone}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Button size="sm" variant="ghost">
-                    <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
-                    Client View
-                  </Button>
-                </a>
-              ) : null;
-            })()}
+            {process.env.NEXT_PUBLIC_DEV_MODE === "true" && coachId && (
+              <a
+                href={`/portal/login?coach=${coachId}&phone=${client.phone}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Button size="sm" variant="ghost">
+                  <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
+                  Client View
+                </Button>
+              </a>
+            )}
             <Button size="sm" variant="secondary" onClick={startEdit}>
               <Pencil className="w-3.5 h-3.5 mr-1.5" /> Edit
             </Button>
