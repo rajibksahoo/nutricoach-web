@@ -13,8 +13,9 @@ function ClientLoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const coachId = searchParams.get("coach") ?? "";
+  const prefillPhone = searchParams.get("phone") ?? "";
 
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState(prefillPhone);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
