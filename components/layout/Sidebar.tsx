@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
   Users,
-  UtensilsCrossed,
+  BookOpen,
   TrendingUp,
   CreditCard,
   LogOut,
@@ -18,7 +18,7 @@ import {
 const navItems = [
   { href: "/dashboard",  label: "Dashboard",  icon: LayoutDashboard },
   { href: "/clients",    label: "Clients",     icon: Users           },
-  { href: "/meal-plans", label: "Meal Plans",  icon: UtensilsCrossed },
+  { href: "/library",    label: "Library",     icon: BookOpen        },
   { href: "/progress",   label: "Progress",    icon: TrendingUp      },
   { href: "/billing",    label: "Billing",     icon: CreditCard      },
   { href: "/profile",    label: "Profile",     icon: UserCircle      },
