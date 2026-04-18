@@ -13,6 +13,7 @@ import {
   LogOut,
   Leaf,
   UserCircle,
+  MessageCircle,
 } from "lucide-react";
 
 const navItems = [
