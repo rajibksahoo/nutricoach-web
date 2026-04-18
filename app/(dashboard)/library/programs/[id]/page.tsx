@@ -61,7 +61,7 @@ export default function ProgramDetailPage() {
   return (
     <div className="space-y-4">
       <button
-        onClick={() => router.push("/library/fitness/programs")}
+        onClick={() => router.push("/library/programs")}
         className="inline-flex items-center text-sm text-slate-500 hover:text-slate-700"
       >
         <ArrowLeft className="w-4 h-4 mr-1" /> Back to programs

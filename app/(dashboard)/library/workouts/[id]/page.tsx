@@ -65,7 +65,7 @@ export default function WorkoutDetailPage() {
   return (
     <div className="space-y-4">
       <button
-        onClick={() => router.push("/library/fitness/workouts")}
+        onClick={() => router.push("/library/workouts")}
         className="inline-flex items-center text-sm text-slate-500 hover:text-slate-700"
       >
         <ArrowLeft className="w-4 h-4 mr-1" /> Back to workouts
@@ -274,7 +274,7 @@ function AddExerciseForm({
       {exercises.length === 0 ? (
         <p className="text-xs text-slate-500">
           No exercises in your library yet.{" "}
-          <Link href="/library/fitness/exercises" className="text-emerald-600 underline">
+          <Link href="/library/exercises" className="text-emerald-600 underline">
             Create one first
           </Link>.
         </p>

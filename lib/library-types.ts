@@ -13,6 +13,10 @@ export interface Exercise {
   equipment?: string | null;
   videoUrl?: string | null;
   notes?: string | null;
+  tags?: string[] | null;
+  modality?: string | null;
+  movementPattern?: string | null;
+  category?: string | null;
   createdAt: string;
   updatedAt: string;
 }
