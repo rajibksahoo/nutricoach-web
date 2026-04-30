@@ -77,7 +77,7 @@ export function templateToWorkoutState(t: WorkoutTemplate): BuilderInitialWorkou
   };
 }
 
-function ModalShell({
+export function ModalShell({
   open, onClose, width, children, ariaLabel,
 }: {
   open: boolean;
@@ -119,7 +119,7 @@ function ModalShell({
   );
 }
 
-function ModalHeader({ title, subtitle, onClose }: { title: string; subtitle?: string; onClose: () => void }) {
+export function ModalHeader({ title, subtitle, onClose }: { title: string; subtitle?: string; onClose: () => void }) {
   return (
     <div style={{
       padding: "18px 22px", borderBottom: "1px solid var(--border-subtle)",

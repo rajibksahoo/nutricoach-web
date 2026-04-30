@@ -1,5 +1,6 @@
 "use client";
 import * as React from "react";
+import toast from "react-hot-toast";
 import {
   SECTION_PALETTES, SAVED_WORKOUTS, LIBRARY, type SavedWorkout, type LibraryExercise,
 } from "./_components/data";
@@ -10,6 +11,9 @@ import {
   CreateWorkoutChooserModal, ChooseTemplateModal, templateToWorkoutState,
   type BuilderInitialWorkout,
 } from "./_components/create-workout-modals";
+import {
+  AssignWorkoutModal, ScheduleWorkoutModal,
+} from "./_components/assign-schedule-modals";
 
 type Screen = "library" | "builder";
 
@@ -24,6 +28,9 @@ export default function WorkoutBuilderPage() {
   const [templatePickerOpen, setTemplatePickerOpen] = React.useState(false);
   const [builderSeed, setBuilderSeed] = React.useState<BuilderInitialWorkout | undefined>(undefined);
   const [builderKey, setBuilderKey] = React.useState(0);
+  const [assignOpen, setAssignOpen] = React.useState(false);
+  const [scheduleOpen, setScheduleOpen] = React.useState(false);
+  const [actionWorkout, setActionWorkout] = React.useState<SavedWorkout | null>(null);
   const palette = SECTION_PALETTES.cool;
 
   const upsertWorkout = (w: SavedWorkout) => {
@@ -47,6 +54,8 @@ export default function WorkoutBuilderPage() {
     setScreen("builder");
   };
 
+  const builderWorkoutName = builderSeed?.name || "Untitled workout";
+
   return (
     <>
       {screen === "builder" ? (
@@ -55,8 +64,8 @@ export default function WorkoutBuilderPage() {
           palette={palette}
           initialWorkout={builderSeed}
           onBack={() => setScreen("library")}
-          onAssign={() => alert("Assign modal coming soon")}
-          onSchedule={() => alert("Schedule modal coming soon")}
+          onAssign={() => { setActionWorkout(null); setAssignOpen(true); }}
+          onSchedule={() => { setActionWorkout(null); setScheduleOpen(true); }}
           onNewExercise={() => alert("Exercise modal coming soon")}
           dynamicLibrary={library}
         />
@@ -75,6 +84,7 @@ export default function WorkoutBuilderPage() {
             setWorkouts([{ ...w, id: `${w.id}-copy-${Date.now()}`, name: `${w.name} (copy)` }, ...workouts]);
           }}
           onDeleteWorkout={(w) => setWorkouts(workouts.filter(x => x.id !== w.id))}
+          onAssignWorkout={(w) => { setActionWorkout(w); setAssignOpen(true); }}
         />
       )}
       <WorkoutEditorModal
@@ -97,6 +107,25 @@ export default function WorkoutBuilderPage() {
         onSelect={(t) => {
           setTemplatePickerOpen(false);
           goToBuilder(templateToWorkoutState(t));
+        }}
+      />
+      <AssignWorkoutModal
+        open={assignOpen}
+        workoutName={actionWorkout?.name || builderWorkoutName}
+        onClose={() => setAssignOpen(false)}
+        onAssign={(clients) => {
+          setAssignOpen(false);
+          const names = clients.map(c => c.name).join(", ");
+          toast.success(`Assigned to ${clients.length} client${clients.length === 1 ? "" : "s"}: ${names}`);
+        }}
+      />
+      <ScheduleWorkoutModal
+        open={scheduleOpen}
+        workoutName={actionWorkout?.name || builderWorkoutName}
+        onClose={() => setScheduleOpen(false)}
+        onSchedule={(date) => {
+          setScheduleOpen(false);
+          toast.success(`Scheduled for ${date.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}`);
         }}
       />
     </>

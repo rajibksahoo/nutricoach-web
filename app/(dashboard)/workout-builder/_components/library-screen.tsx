@@ -58,7 +58,7 @@ function LibrarySubTabs({
 }
 
 function WorkoutsTab({
-  workouts, palette, onOpenWorkout, onDuplicateWorkout, onDeleteWorkout,
+  workouts, palette, onOpenWorkout, onDuplicateWorkout, onDeleteWorkout, onAssignWorkout,
 }: {
   workouts: SavedWorkout[];
   palette: Palette;
@@ -66,6 +66,7 @@ function WorkoutsTab({
   onOpenWorkout: (w: SavedWorkout) => void;
   onDuplicateWorkout: (w: SavedWorkout) => void;
   onDeleteWorkout: (w: SavedWorkout) => void;
+  onAssignWorkout?: (w: SavedWorkout) => void;
 }) {
   const [q, setQ] = React.useState("");
   const [selected, setSelected] = React.useState<Set<string>>(new Set());
@@ -205,7 +206,7 @@ function WorkoutsTab({
                       }}>
                         <MenuItem Icon={Edit} onClick={() => { setMenuFor(null); onOpenWorkout(w); }}>Edit</MenuItem>
                         <MenuItem Icon={Copy} onClick={() => { setMenuFor(null); onDuplicateWorkout(w); }}>Duplicate</MenuItem>
-                        <MenuItem Icon={Send} onClick={() => setMenuFor(null)}>Assign to client</MenuItem>
+                        <MenuItem Icon={Send} onClick={() => { setMenuFor(null); onAssignWorkout?.(w); }}>Assign to client</MenuItem>
                         <div style={{ height: 1, background: "var(--border-subtle)", margin: "4px 0" }} />
                         <MenuItem Icon={Trash} danger onClick={() => { setMenuFor(null); onDeleteWorkout(w); }}>Delete</MenuItem>
                       </div>
@@ -251,7 +252,7 @@ function WorkoutsTab({
 
 export function LibraryScreen({
   onOpenBuilder, onNewExercise, onEditExercise, dynamicLibrary, workouts,
-  onCreateWorkout, onOpenWorkout, onDuplicateWorkout, onDeleteWorkout, palette, initialTab,
+  onCreateWorkout, onOpenWorkout, onDuplicateWorkout, onDeleteWorkout, onAssignWorkout, palette, initialTab,
 }: {
   onOpenBuilder: () => void;
   onNewExercise: (ex: LibraryExercise | null) => void;
@@ -262,6 +263,7 @@ export function LibraryScreen({
   onOpenWorkout: (w: SavedWorkout) => void;
   onDuplicateWorkout: (w: SavedWorkout) => void;
   onDeleteWorkout: (w: SavedWorkout) => void;
+  onAssignWorkout?: (w: SavedWorkout) => void;
   palette: Palette;
   initialTab?: string;
 }) {
@@ -514,6 +516,7 @@ export function LibraryScreen({
           onOpenWorkout={onOpenWorkout}
           onDuplicateWorkout={onDuplicateWorkout}
           onDeleteWorkout={onDeleteWorkout}
+          onAssignWorkout={onAssignWorkout}
         />
       )}
 
