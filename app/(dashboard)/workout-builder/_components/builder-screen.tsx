@@ -572,7 +572,7 @@ function WorkoutSummary({ workout }: { workout: WorkoutState }) {
 }
 
 export function BuilderScreen({
-  palette, onBack, onAssign, onSchedule, onNewExercise, dynamicLibrary,
+  palette, onBack, onAssign, onSchedule, onNewExercise, dynamicLibrary, initialWorkout,
 }: {
   palette: Palette;
   onBack: () => void;
@@ -580,8 +580,9 @@ export function BuilderScreen({
   onSchedule: () => void;
   onNewExercise: () => void;
   dynamicLibrary?: LibraryExercise[];
+  initialWorkout?: WorkoutState;
 }) {
-  const [workout, setWorkout] = React.useState<WorkoutState>(INITIAL_WORKOUT as WorkoutState);
+  const [workout, setWorkout] = React.useState<WorkoutState>(initialWorkout ?? (INITIAL_WORKOUT as WorkoutState));
   const [librarySidebarOpen, setLibrarySidebarOpen] = React.useState(true);
   const [draggingSectionId, setDraggingSectionId] = React.useState<string | null>(null);
 
