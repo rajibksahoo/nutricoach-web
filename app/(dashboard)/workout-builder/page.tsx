@@ -14,6 +14,7 @@ import {
 import {
   AssignWorkoutModal, ScheduleWorkoutModal,
 } from "./_components/assign-schedule-modals";
+import { ExerciseModal } from "./_components/exercise-modal";
 
 type Screen = "library" | "builder";
 
@@ -21,7 +22,9 @@ export default function WorkoutBuilderPage() {
   const [screen, setScreen] = React.useState<Screen>("library");
   const [initialTab, setInitialTab] = React.useState<string>("exercises");
   const [workouts, setWorkouts] = React.useState<SavedWorkout[]>(SAVED_WORKOUTS);
-  const [library] = React.useState<LibraryExercise[]>(LIBRARY);
+  const [library, setLibrary] = React.useState<LibraryExercise[]>(LIBRARY);
+  const [exerciseModalOpen, setExerciseModalOpen] = React.useState(false);
+  const [exerciseEditing, setExerciseEditing] = React.useState<LibraryExercise | null>(null);
   const [editorOpen, setEditorOpen] = React.useState(false);
   const [editorWorkout, setEditorWorkout] = React.useState<SavedWorkout | null>(null);
   const [chooserOpen, setChooserOpen] = React.useState(false);
@@ -66,15 +69,15 @@ export default function WorkoutBuilderPage() {
           onBack={() => setScreen("library")}
           onAssign={() => { setActionWorkout(null); setAssignOpen(true); }}
           onSchedule={() => { setActionWorkout(null); setScheduleOpen(true); }}
-          onNewExercise={() => alert("Exercise modal coming soon")}
+          onNewExercise={() => { setExerciseEditing(null); setExerciseModalOpen(true); }}
           dynamicLibrary={library}
         />
       ) : (
         <LibraryScreen
           initialTab={initialTab}
           onOpenBuilder={() => goToBuilder(undefined)}
-          onNewExercise={() => alert("Exercise modal coming soon")}
-          onEditExercise={() => alert("Exercise modal coming soon")}
+          onNewExercise={(ex) => { setExerciseEditing(ex); setExerciseModalOpen(true); }}
+          onEditExercise={(ex) => { setExerciseEditing(ex); setExerciseModalOpen(true); }}
           dynamicLibrary={library}
           workouts={workouts}
           palette={palette}
@@ -117,6 +120,22 @@ export default function WorkoutBuilderPage() {
           setAssignOpen(false);
           const names = clients.map(c => c.name).join(", ");
           toast.success(`Assigned to ${clients.length} client${clients.length === 1 ? "" : "s"}: ${names}`);
+        }}
+      />
+      <ExerciseModal
+        open={exerciseModalOpen}
+        exercise={exerciseEditing}
+        onClose={() => setExerciseModalOpen(false)}
+        onSave={(ex) => {
+          setLibrary(prev => {
+            const idx = prev.findIndex(x => x.id === ex.id);
+            if (idx === -1) return [ex, ...prev];
+            const next = prev.slice();
+            next[idx] = ex;
+            return next;
+          });
+          setExerciseModalOpen(false);
+          toast.success(exerciseEditing ? `Updated "${ex.name}"` : `Added "${ex.name}"`);
         }}
       />
       <ScheduleWorkoutModal
