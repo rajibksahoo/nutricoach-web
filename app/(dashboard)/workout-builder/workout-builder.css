@@ -1,0 +1,100 @@
+/* Workout Builder design tokens — scoped to .wb-app */
+
+@font-face { font-family:"Inter"; font-style:normal; font-weight:400; font-display:swap; src:url("/fonts/inter/Inter_18pt-Regular.ttf") format("truetype"); }
+@font-face { font-family:"Inter"; font-style:normal; font-weight:500; font-display:swap; src:url("/fonts/inter/Inter_18pt-Medium.ttf") format("truetype"); }
+@font-face { font-family:"Inter"; font-style:normal; font-weight:600; font-display:swap; src:url("/fonts/inter/Inter_18pt-SemiBold.ttf") format("truetype"); }
+@font-face { font-family:"Inter"; font-style:normal; font-weight:700; font-display:swap; src:url("/fonts/inter/Inter_18pt-Bold.ttf") format("truetype"); }
+@font-face { font-family:"Inter Display"; font-style:normal; font-weight:600; font-display:swap; src:url("/fonts/inter/Inter_24pt-SemiBold.ttf") format("truetype"); }
+@font-face { font-family:"Inter Display"; font-style:normal; font-weight:700; font-display:swap; src:url("/fonts/inter/Inter_24pt-Bold.ttf") format("truetype"); }
+@font-face { font-family:"Inter XL"; font-style:normal; font-weight:600; font-display:swap; src:url("/fonts/inter/Inter_28pt-SemiBold.ttf") format("truetype"); }
+@font-face { font-family:"Inter XL"; font-style:normal; font-weight:700; font-display:swap; src:url("/fonts/inter/Inter_28pt-Bold.ttf") format("truetype"); }
+
+.wb-app {
+  --brand-primary:       #4F46E5;
+  --brand-primary-hover: #4338CA;
+  --brand-primary-50:    #EEF2FF;
+  --brand-primary-100:   #E0E7FF;
+  --brand-primary-200:   #C7D2FE;
+  --brand-primary-500:   #6366F1;
+  --brand-secondary:     #14B8A6;
+  --brand-secondary-50:  #F0FDFA;
+  --brand-secondary-100: #CCFBF1;
+  --brand-secondary-600: #0D9488;
+  --success:   #22C55E;
+  --warning:   #EAB308;
+  --danger:    #EF4444;
+  --info:      #2563EB;
+  --bg:           #F8FAFC;
+  --bg-subtle:    #F1F5F9;
+  --surface:      #FFFFFF;
+  --surface-alt:  #F8FAFC;
+  --sidebar:      #0F172A;
+  --sidebar-hover:#1E293B;
+  --overlay:      rgba(15, 23, 42, 0.40);
+  --border:        #E2E8F0;
+  --border-subtle: #F1F5F9;
+  --border-strong: #CBD5E1;
+  --fg1: #0F172A;
+  --fg2: #475569;
+  --fg3: #64748B;
+  --fg4: #94A3B8;
+  --fg5: #CBD5E1;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Inter Display", "Inter", sans-serif;
+  --font-display-xl: "Inter XL", "Inter Display", "Inter", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+  --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05), 0 1px 3px 0 rgba(15,23,42,0.04);
+  --shadow-md: 0 4px 8px -2px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 12px 24px -8px rgba(15, 23, 42, 0.12), 0 4px 8px -4px rgba(15, 23, 42, 0.06);
+  --shadow-xl: 0 24px 48px -12px rgba(15, 23, 42, 0.18);
+  --ring-focus: 0 0 0 3px rgba(79, 70, 229, 0.30);
+
+  font-family: var(--font-sans);
+  color: var(--fg1);
+  background: var(--bg);
+}
+
+.wb-app *, .wb-app *::before, .wb-app *::after { box-sizing: border-box; }
+.wb-app button { font-family: inherit; }
+
+.wb-app .card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow-sm);
+}
+
+.wb-app .btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 12px; border-radius: 7px; border: 1px solid transparent;
+  font: 500 12.5px var(--font-sans); cursor: pointer; white-space: nowrap;
+  transition: background 100ms, border 100ms, color 100ms;
+  line-height: 1;
+}
+.wb-app .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.wb-app .btn-sm { padding: 5px 9px; font-size: 12px; gap: 5px; }
+.wb-app .btn-primary { background: var(--brand-primary); color: #fff; }
+.wb-app .btn-primary:hover:not(:disabled) { background: var(--brand-primary-hover); }
+.wb-app .btn-secondary { background: #fff; color: var(--fg1); border-color: var(--border); }
+.wb-app .btn-secondary:hover:not(:disabled) { background: var(--bg); border-color: var(--border-strong); }
+.wb-app .btn-ghost { background: transparent; color: var(--fg2); border: none; padding: 5px 8px; }
+.wb-app .btn-ghost:hover:not(:disabled) { background: var(--bg-subtle); color: var(--fg1); }
+.wb-app .btn-soft-primary {
+  display: inline-flex; align-items: center; gap: 6px; justify-content: center;
+  padding: 8px 14px; border-radius: 7px; cursor: pointer; flex: 1;
+  font: 600 12.5px var(--font-sans); line-height: 1; white-space: nowrap;
+  background: var(--brand-primary-50); color: var(--brand-primary);
+  border: 1px dashed var(--brand-primary-200); transition: all 100ms;
+}
+.wb-app .btn-soft-primary:hover { background: var(--brand-primary-100); border-style: solid; }
+.wb-app .btn-sm-soft { padding: 5px 10px; font-size: 12px; flex: none; }
+
+.wb-app input[type="checkbox"] { accent-color: var(--brand-primary); cursor: pointer; }
+.wb-app input:focus, .wb-app select:focus, .wb-app textarea:focus {
+  border-color: var(--brand-primary) !important;
+  box-shadow: var(--ring-focus);
+}
+
+@keyframes wb-fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes wb-slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
