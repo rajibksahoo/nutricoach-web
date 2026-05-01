@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import {
-  WORKOUT_TEMPLATES, TEMPLATE_THUMB_COLOR, LIBRARY, type WorkoutTemplate,
+  TEMPLATE_THUMB_COLOR, LIBRARY, type WorkoutTemplate, type LibraryExercise,
   type SectionType, type SectionExercise, type CategoryKey,
 } from "./data";
 import { X, Search, Plus, Dumbbell } from "./icons";
@@ -30,11 +30,12 @@ function detectSectionType(title: string): SectionType {
   return "main";
 }
 
-function pickLibForName(name: string, thumb: string): string {
+function pickLibForName(name: string, thumb: string, lib: LibraryExercise[]): string {
+  const pool = lib.length > 0 ? lib : LIBRARY;
   const n = name.toLowerCase().trim();
-  const exact = LIBRARY.find(e => e.name.toLowerCase() === n);
+  const exact = pool.find(e => e.name.toLowerCase() === n);
   if (exact) return exact.id;
-  const partial = LIBRARY.find(e => e.name.toLowerCase().includes(n) || n.includes(e.name.toLowerCase()));
+  const partial = pool.find(e => e.name.toLowerCase().includes(n) || n.includes(e.name.toLowerCase()));
   if (partial) return partial.id;
   const cat: CategoryKey =
     thumb === "bodyweight" ? "bodyweight" :
@@ -42,8 +43,8 @@ function pickLibForName(name: string, thumb: string): string {
     thumb === "cardio" ? "cardio" :
     thumb === "amrap" ? "amrap" :
     "strength";
-  const fallback = LIBRARY.find(e => e.cat === cat);
-  return (fallback ?? LIBRARY[0]).id;
+  const fallback = pool.find(e => e.cat === cat);
+  return (fallback ?? pool[0]).id;
 }
 
 function parseRepsOrDuration(reps: string): { reps: number | null; duration: number | null } {
@@ -56,7 +57,7 @@ function parseRepsOrDuration(reps: string): { reps: number | null; duration: num
   return { reps: r ? Number(r[1]) : null, duration: null };
 }
 
-export function templateToWorkoutState(t: WorkoutTemplate): BuilderInitialWorkout {
+export function templateToWorkoutState(t: WorkoutTemplate, lib: LibraryExercise[] = LIBRARY): BuilderInitialWorkout {
   const sections: BuilderSection[] = t.sections.map((s, si) => ({
     id: `s-${Date.now()}-${si}`,
     type: detectSectionType(s.title),
@@ -65,7 +66,7 @@ export function templateToWorkoutState(t: WorkoutTemplate): BuilderInitialWorkou
       const { reps, duration } = parseRepsOrDuration(item.reps);
       return {
         id: `e-${Date.now()}-${si}-${ii}`,
-        libId: pickLibForName(item.name, item.thumb),
+        libId: pickLibForName(item.name, item.thumb, lib),
         sets: 3, reps, duration, rest: 60, weight: "",
         note: item.note || "",
       };
@@ -201,11 +202,12 @@ export function CreateWorkoutChooserModal({
 }
 
 export function ChooseTemplateModal({
-  open, onClose, onSelect,
+  open, onClose, onSelect, templates,
 }: {
   open: boolean;
   onClose: () => void;
   onSelect: (t: WorkoutTemplate) => void;
+  templates: WorkoutTemplate[];
 }) {
   const [q, setQ] = React.useState("");
   const [equip, setEquip] = React.useState<string>("All");
@@ -214,11 +216,11 @@ export function ChooseTemplateModal({
 
   const allEquip = React.useMemo(() => {
     const set = new Set<string>();
-    WORKOUT_TEMPLATES.forEach(t => t.equipment.forEach(e => set.add(e)));
+    templates.forEach(t => t.equipment.forEach(e => set.add(e)));
     return ["All", ...Array.from(set).sort()];
-  }, []);
+  }, [templates]);
 
-  const filtered = WORKOUT_TEMPLATES.filter(t => {
+  const filtered = templates.filter(t => {
     if (equip !== "All" && !t.equipment.includes(equip)) return false;
     if (q.trim()) {
       const needle = q.trim().toLowerCase();
