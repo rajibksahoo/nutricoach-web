@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { CLIENTS, type Client } from "./data";
+import { type Client } from "./data";
 import { Search, ChevLeft, ChevRight } from "./icons";
 import { ModalShell, ModalHeader } from "./create-workout-modals";
 
@@ -31,13 +31,15 @@ function FooterButtons({
 }
 
 export function AssignWorkoutModal({
-  open, onClose, onAssign, workoutName,
+  open, onClose, onAssign, workoutName, clients,
 }: {
   open: boolean;
   onClose: () => void;
   onAssign: (clients: Client[]) => void;
   workoutName?: string;
+  clients: Client[];
 }) {
+  const CLIENTS = clients;
   const [q, setQ] = React.useState("");
   const [selected, setSelected] = React.useState<Set<string>>(new Set());
   const [statusFilter, setStatusFilter] = React.useState<"all" | "ACTIVE">("ACTIVE");
