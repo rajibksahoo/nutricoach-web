@@ -128,7 +128,7 @@ export default function WorkoutBuilderPage() {
     } catch (e) { console.error(e); toast.error("Failed to delete workout"); }
   };
 
-  const handleAssign = async (picked: Client[]) => {
+  const handleAssign = async (picked: Client[], opts: { message: string; notify: boolean }) => {
     setAssignOpen(false);
     const target = actionWorkout;
     if (!target) { toast.error("No workout selected"); return; }
@@ -137,13 +137,14 @@ export default function WorkoutBuilderPage() {
       return;
     }
     try {
-      await assignWorkout(target.id, picked.map(c => c.id));
+      await assignWorkout(target.id, picked.map(c => c.id), opts.message || undefined);
       toast.success(`Assigned "${target.name}" to ${picked.length} client${picked.length === 1 ? "" : "s"}`);
     } catch (e) { console.error(e); toast.error("Failed to assign workout"); }
   };
 
-  const handleSchedule = async (date: Date) => {
+  const handleSchedule = async (date: Date, _opts: { time: string; repeat: string }) => {
     setScheduleOpen(false);
+    void _opts;
     const target = actionWorkout;
     const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
     if (useMockFallback || !target) {
