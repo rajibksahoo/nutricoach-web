@@ -229,6 +229,7 @@ export default function WorkoutBuilderPage() {
         open={templatePickerOpen}
         templates={templates}
         onClose={() => setTemplatePickerOpen(false)}
+        onBack={() => { setTemplatePickerOpen(false); setChooserOpen(true); }}
         onSelect={handlePickTemplate}
       />
       <AssignWorkoutModal
