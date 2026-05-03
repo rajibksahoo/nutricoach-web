@@ -9,7 +9,7 @@ import {
   ArrowR,
 } from "./icons";
 import {
-  ExThumb, CatBadge, CustomBadge, Avatar, FilterChip, MenuItem, Edit, Copy, Trash, Send,
+  ExThumb, CatBadge, CustomBadge, Avatar, FilterChip, LibrarySubTabs, MenuItem, Edit, Copy, Trash, Send,
 } from "./shared";
 
 const th: React.CSSProperties = {
@@ -18,44 +18,6 @@ const th: React.CSSProperties = {
 };
 const td: React.CSSProperties = { padding: "10px 13px", verticalAlign: "middle" };
 const tdTop: React.CSSProperties = { padding: "12px 13px", verticalAlign: "top" };
-
-function LibrarySubTabs({
-  active, onChange, exerciseCount,
-}: {
-  active: string;
-  onChange: (k: string) => void;
-  exerciseCount: number;
-}) {
-  const tabs = [
-    { key: "programs", label: "Programs", count: 12 },
-    { key: "workouts", label: "Workouts", count: 38 },
-    { key: "exercises", label: "Exercises", count: exerciseCount },
-  ];
-  return (
-    <div style={{ display: "flex", gap: 0, borderBottom: "1px solid var(--border)" }}>
-      {tabs.map(t => {
-        const on = active === t.key;
-        return (
-          <button key={t.key} onClick={() => onChange(t.key)} style={{
-            padding: "9px 16px 11px", border: "none", background: "transparent",
-            borderBottom: on ? "2px solid var(--brand-primary)" : "2px solid transparent",
-            marginBottom: -1,
-            color: on ? "var(--fg1)" : "var(--fg3)",
-            font: `${on ? 600 : 500} 13px var(--font-sans)`,
-            cursor: "pointer", display: "flex", alignItems: "center", gap: 6,
-          }}>
-            {t.label}
-            <span style={{
-              fontSize: 10, fontWeight: 600, padding: "1px 6px", borderRadius: 9,
-              background: on ? "var(--brand-primary-50)" : "var(--bg-subtle)",
-              color: on ? "#3730A3" : "var(--fg3)",
-            }}>{t.count.toLocaleString()}</span>
-          </button>
-        );
-      })}
-    </div>
-  );
-}
 
 function WorkoutsTab({
   workouts, palette, onOpenWorkout, onDuplicateWorkout, onDeleteWorkout, onAssignWorkout,
@@ -172,7 +134,24 @@ function WorkoutsTab({
                       })}
                     </div>
                   </td>
-                  <td style={tdTop}><span style={{ color: "var(--fg4)", fontSize: 12 }}>—</span></td>
+                  <td style={tdTop}>
+                    {w.tags && w.tags.length > 0 ? (
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                        {w.tags.slice(0, 3).map((t, i) => (
+                          <span key={i} style={{
+                            fontSize: 10.5, padding: "2px 7px", borderRadius: 99,
+                            background: "var(--bg-subtle)", color: "var(--fg2)",
+                            border: "1px solid var(--border)", whiteSpace: "nowrap",
+                          }}>{t}</span>
+                        ))}
+                        {w.tags.length > 3 && (
+                          <span style={{ fontSize: 10.5, color: "var(--fg4)", padding: "2px 4px" }}>+{w.tags.length - 3}</span>
+                        )}
+                      </div>
+                    ) : (
+                      <span style={{ color: "var(--fg4)", fontSize: 12 }}>—</span>
+                    )}
+                  </td>
                   <td style={tdTop}>
                     <div style={{ display: "flex", flexDirection: "column" }}>
                       <span style={{ fontSize: 13.5, fontWeight: 600, color: "var(--fg1)", display: "flex", alignItems: "center", gap: 5 }}>
@@ -203,6 +182,7 @@ function WorkoutsTab({
                         position: "absolute", top: 30, right: 8, zIndex: 30,
                         background: "#fff", border: "1px solid var(--border)", borderRadius: 8,
                         boxShadow: "var(--shadow-lg)", minWidth: 160, padding: 5,
+                        animation: "wb-slideUp 120ms ease",
                       }}>
                         <MenuItem Icon={Edit} onClick={() => { setMenuFor(null); onOpenWorkout(w); }}>Edit</MenuItem>
                         <MenuItem Icon={Copy} onClick={() => { setMenuFor(null); onDuplicateWorkout(w); }}>Duplicate</MenuItem>
@@ -234,7 +214,7 @@ function WorkoutsTab({
 
       {selected.size > 0 && (
         <div style={{
-          position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)",
+          position: "fixed", bottom: 24, left: "calc(50% + 120px)", transform: "translateX(-50%)",
           background: "var(--sidebar)", color: "#fff", padding: "9px 14px", borderRadius: 11,
           boxShadow: "var(--shadow-lg)", display: "flex", alignItems: "center", gap: 12, zIndex: 50,
         }}>
@@ -279,6 +259,7 @@ export function LibraryScreen({
 
   const lib = dynamicLibrary || LIBRARY;
   const muscles = ["all", ...Array.from(new Set(lib.map(e => e.muscle)))];
+  const equips = ["all", ...Array.from(new Set(lib.map(e => e.equip).filter(Boolean)))];
 
   const filtered = lib.filter(e =>
     (activeCat === "all" || e.cat === activeCat) &&
@@ -354,7 +335,7 @@ export function LibraryScreen({
               marginBottom: -1,
               color: on ? "var(--brand-primary)" : "var(--fg3)",
               font: `${on ? 600 : 500} 13px var(--font-sans)`,
-              cursor: "pointer", display: "flex", alignItems: "center", gap: 7,
+              cursor: on ? "pointer" : "default", display: "flex", alignItems: "center", gap: 7,
             }}>
               <t.Icon size={14} />{t.label}
             </button>
@@ -407,6 +388,18 @@ export function LibraryScreen({
               ))}
               {muscles.length > 9 && (
                 <FilterChip small>+{muscles.length - 9} more <ChevDown size={11} /></FilterChip>
+              )}
+            </div>
+
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+              <span style={{ fontSize: 11, color: "var(--fg4)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", marginRight: 4 }}>Equipment</span>
+              {equips.slice(0, 9).map(eq => (
+                <FilterChip key={eq} active={activeEquip === eq} onClick={() => setActiveEquip(eq)} small>
+                  {eq === "all" ? "All" : eq}
+                </FilterChip>
+              ))}
+              {equips.length > 9 && (
+                <FilterChip small>+{equips.length - 9} more <ChevDown size={11} /></FilterChip>
               )}
             </div>
           </div>
@@ -493,7 +486,7 @@ export function LibraryScreen({
 
           {selected.size > 0 && (
             <div style={{
-              position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)",
+              position: "fixed", bottom: 24, left: "calc(50% + 120px)", transform: "translateX(-50%)",
               background: "var(--sidebar)", color: "#fff", padding: "9px 14px", borderRadius: 11,
               boxShadow: "var(--shadow-lg)", display: "flex", alignItems: "center", gap: 12, zIndex: 50,
             }}>
