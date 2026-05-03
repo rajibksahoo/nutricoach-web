@@ -25,7 +25,27 @@ export interface LibraryExercise {
   pattern: string;
   custom: boolean;
   tags: string[];
+  videoUrl?: string;
+  instructions?: string;
 }
+
+export const MUSCLE_OPTIONS = [
+  "Chest", "Mid back", "Upper back", "Lower back", "Shoulders",
+  "Biceps", "Triceps", "Quads", "Hamstrings", "Glutes",
+  "Hip & groin", "Lower leg", "Core", "Full body",
+];
+
+export const EQUIPMENT_OPTIONS = [
+  "Bodyweight", "Barbell", "Dumbbells", "Kettlebell", "Cable",
+  "Machine", "Resistance band", "Box", "Cardio", "Foam roller", "Skipping rope",
+];
+
+export const PATTERN_OPTIONS = [
+  "Upper body horiz. push", "Upper body horiz. pull",
+  "Upper body vert. push", "Upper body vert. pull",
+  "Lower body push", "Lower body hinge",
+  "Core", "Locomotion", "Mobility", "Recovery", "Compound",
+];
 
 export interface SectionExercise {
   id: string;
