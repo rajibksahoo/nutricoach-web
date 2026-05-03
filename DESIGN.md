@@ -248,6 +248,52 @@ Modal triggered automatically on HTTP 402 responses from the API. Prompts the co
 
 ---
 
+### Modal (form modal pattern)
+
+Used for create/edit forms (e.g. `AddExerciseModal`). **Single-screen, never wizard.** If the form has supporting context (preview, summary, calculation), use a 2-column body with the form on the left and an aside on the right.
+
+**Backdrop & shell**
+- Backdrop: `fixed inset-0 bg-slate-900/55` — clicking it closes the modal
+- Shell: `bg-white rounded-xl shadow-2xl max-h-[calc(100vh-48px)] flex flex-col overflow-hidden`
+- Width: `max-w-3xl` (~768px) for 2-column form modals; `max-w-md` for confirm/single-field modals
+- Click inside the shell does **not** close (`stopPropagation`)
+
+**Sections**
+- Header (`px-6 py-4 border-b border-slate-200`): title `text-[17px] font-semibold tracking-tight`, optional subtitle in `text-xs text-slate-500`, close `X` icon button on the right
+- Body (`px-6 py-5 overflow-y-auto`): form fields in a `flex flex-col gap-4`. For 2-column layouts use `grid grid-cols-[1fr_280px] gap-6`; right column gets `border-l border-slate-200 pl-6`
+- Footer (`px-6 py-3 border-t border-slate-200 bg-slate-50`): keyboard hint on the left, `Cancel` (secondary) + primary action on the right
+
+**Field pattern**
+- Use the local `Field` helper: label `text-[11.5px] font-semibold text-slate-700`, required asterisk in `text-red-500`, hint in `text-[11px] text-slate-400`
+- Inputs: `px-3 py-1.5 text-[13px] border border-slate-200 rounded-md focus:ring-2 focus:ring-emerald-500`
+- Selects use the same `inputCls` for visual consistency
+- Inline icon prefixes (e.g. video link): absolute-positioned `w-3.5 h-3.5 text-slate-400` at `left-3`, input gets `pl-9`
+
+**Tile pickers (e.g. Category)**
+- 5-tile `grid grid-cols-5 gap-1.5`; each tile is `flex flex-col items-center gap-1.5 px-1.5 py-2.5 rounded-lg border`
+- Selected: tinted background + colored text + accent border (e.g. `bg-orange-50 text-orange-700 border-orange-400`)
+- Unselected: `bg-white text-slate-600 border-slate-200 hover:bg-slate-50`
+- Pair with a contextual hint card below in the same tint, explaining what changes when this option is selected
+
+**Preview aside**
+- 280px column with section header `text-[10.5px] font-semibold uppercase tracking-wider text-slate-500`
+- Hero block: `aspect-[4/3] rounded-lg` with category-tinted background and a large icon — replaced by media if a video URL is set
+- Summary block: live name, muscle/equipment line, badges (category + pattern)
+- Bottom callout: tinted info card (e.g. violet "Custom exercise") pinned with `mt-auto`
+
+**Keyboard**
+- `Esc` closes
+- `⌘/Ctrl + Enter` triggers primary action
+- Always autofocus the first text input
+- Show hints in the footer using the `Kbd` helper (`font-mono text-[10px] bg-white border px-1.5 py-0.5 rounded`)
+
+**Don'ts**
+- No multi-step wizards for create/edit forms — show all fields at once
+- No `backdrop-blur` on the overlay — flat translucent `slate-900/55` only
+- No free-text inputs for fields with a known small set (muscle group, equipment, movement pattern) — use `<select>` with the canonical list
+
+---
+
 ## Iconography
 
 Library: **lucide-react** — consistent 24px stroke-based icons.

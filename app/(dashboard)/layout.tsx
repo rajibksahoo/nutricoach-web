@@ -1,25 +1,29 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { isAuthenticated } from "@/lib/auth";
 import Sidebar from "@/components/layout/Sidebar";
 import UpgradePrompt from "@/components/ui/UpgradePrompt";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (!isAuthenticated()) router.push("/login");
   }, [router]);
 
+  // Library owns its own chrome and needs to sit flush against the primary sidebar.
+  const fullBleed = pathname.startsWith("/library");
+
   return (
     <div className="flex h-full">
       <Sidebar />
       <main className="ml-60 flex-1 overflow-y-auto">
-        <div className="max-w-6xl mx-auto px-6 py-8">
-          {children}
-        </div>
+        {fullBleed ? children : (
+          <div className="max-w-6xl mx-auto px-6 py-8">{children}</div>
+        )}
       </main>
       <UpgradePrompt />
     </div>
