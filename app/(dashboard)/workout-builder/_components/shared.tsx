@@ -109,6 +109,44 @@ export function MenuItem({
   );
 }
 
+export function LibrarySubTabs({
+  active, onChange, exerciseCount,
+}: {
+  active: string;
+  onChange: (k: string) => void;
+  exerciseCount: number;
+}) {
+  const tabs = [
+    { key: "programs", label: "Programs", count: 12 },
+    { key: "workouts", label: "Workouts", count: 38 },
+    { key: "exercises", label: "Exercises", count: exerciseCount },
+  ];
+  return (
+    <div style={{ display: "flex", gap: 0, borderBottom: "1px solid var(--border)" }}>
+      {tabs.map(t => {
+        const on = active === t.key;
+        return (
+          <button key={t.key} onClick={() => onChange(t.key)} style={{
+            padding: "9px 16px 11px", border: "none", background: "transparent",
+            borderBottom: on ? "2px solid var(--brand-primary)" : "2px solid transparent",
+            marginBottom: -1,
+            color: on ? "var(--fg1)" : "var(--fg3)",
+            font: `${on ? 600 : 500} 13px var(--font-sans)`,
+            cursor: "pointer", display: "flex", alignItems: "center", gap: 6,
+          }}>
+            {t.label}
+            <span style={{
+              fontSize: 10, fontWeight: 600, padding: "1px 6px", borderRadius: 9,
+              background: on ? "var(--brand-primary-50)" : "var(--bg-subtle)",
+              color: on ? "#3730A3" : "var(--fg3)",
+            }}>{t.count.toLocaleString()}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export const inputStyle: React.CSSProperties = {
   width: "100%", padding: "7px 11px", border: "1px solid var(--border)",
   borderRadius: 7, fontSize: 13, background: "#fff", color: "var(--fg1)",
