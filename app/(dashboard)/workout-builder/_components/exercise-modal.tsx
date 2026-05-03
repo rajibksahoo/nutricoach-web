@@ -1,85 +1,54 @@
 "use client";
 import * as React from "react";
 import {
-  CATEGORIES, LIBRARY, type LibraryExercise, type CategoryKey,
+  CATEGORIES, CAT, MUSCLE_OPTIONS, EQUIPMENT_OPTIONS, PATTERN_OPTIONS,
+  type LibraryExercise, type CategoryKey,
 } from "./data";
-import { X } from "./icons";
-import { ModalShell, ModalHeader } from "./create-workout-modals";
-
-const labelStyle: React.CSSProperties = {
-  fontSize: 11, fontWeight: 600, color: "var(--fg2)",
-  textTransform: "uppercase", letterSpacing: "0.04em",
-  fontFamily: "var(--font-sans)",
-};
+import { X, Video, Sparkles, SaveIcon } from "./icons";
+import { CatBadge, CustomBadge } from "./shared";
 
 const inputStyle: React.CSSProperties = {
-  width: "100%", padding: "8px 10px",
-  border: "1px solid var(--border)", borderRadius: 6,
-  fontSize: 13, fontFamily: "var(--font-sans)", outline: "none",
-  background: "#fff", color: "var(--fg1)",
+  width: "100%", padding: "7px 11px", border: "1px solid var(--border)",
+  borderRadius: 7, fontSize: 13, background: "#fff", color: "var(--fg1)",
+  fontFamily: "var(--font-sans)", outline: "none",
+};
+
+const kbdStyle: React.CSSProperties = {
+  font: "500 10px var(--font-mono)", background: "#fff",
+  border: "1px solid var(--border)", padding: "1px 5px", borderRadius: 4,
 };
 
 function Field({
-  label, children, hint,
-}: { label: string; children: React.ReactNode; hint?: string }) {
+  label, required, hint, children,
+}: { label: string; required?: boolean; hint?: string; children: React.ReactNode }) {
   return (
-    <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-      <span style={labelStyle}>{label}</span>
+    <label style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+      <span style={{ fontSize: 11.5, fontWeight: 600, color: "var(--fg2)", display: "flex", alignItems: "center", gap: 5 }}>
+        {label}{required && <span style={{ color: "var(--danger)" }}>*</span>}
+      </span>
       {children}
       {hint && <span style={{ fontSize: 11, color: "var(--fg4)" }}>{hint}</span>}
     </label>
   );
 }
 
-function TextWithSuggestions({
-  value, onChange, suggestions, placeholder,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  suggestions: string[];
-  placeholder?: string;
-}) {
-  const [focused, setFocused] = React.useState(false);
-  const matches = focused && value
-    ? suggestions.filter(s => s.toLowerCase().includes(value.toLowerCase()) && s.toLowerCase() !== value.toLowerCase()).slice(0, 6)
-    : [];
-  return (
-    <div style={{ position: "relative" }}>
-      <input
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setTimeout(() => setFocused(false), 120)}
-        placeholder={placeholder}
-        style={inputStyle} />
-      {matches.length > 0 && (
-        <div style={{
-          position: "absolute", top: "100%", left: 0, right: 0, zIndex: 5,
-          marginTop: 4, background: "#fff",
-          border: "1px solid var(--border)", borderRadius: 6,
-          boxShadow: "var(--shadow-md)", padding: 4,
-          maxHeight: 180, overflowY: "auto",
-        }}>
-          {matches.map(s => (
-            <button
-              key={s} type="button"
-              onMouseDown={(e) => { e.preventDefault(); onChange(s); }}
-              style={{
-                display: "block", width: "100%", textAlign: "left",
-                padding: "6px 8px", border: "none", background: "transparent",
-                cursor: "pointer", fontSize: 12.5, color: "var(--fg1)",
-                fontFamily: "var(--font-sans)", borderRadius: 4,
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-soft)"}
-              onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
-              {s}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+interface FormState {
+  name: string;
+  cat: CategoryKey;
+  muscle: string;
+  equip: string;
+  pattern: string;
+  videoUrl: string;
+  instructions: string;
+  tags: string[];
+  custom: boolean;
 }
+
+const defaultForm: FormState = {
+  name: "", cat: "strength", muscle: "Chest", equip: "Bodyweight",
+  pattern: "Upper body horiz. push", videoUrl: "", instructions: "",
+  tags: [], custom: true,
+};
 
 export function ExerciseModal({
   open, exercise, onClose, onSave,
@@ -89,166 +58,254 @@ export function ExerciseModal({
   onClose: () => void;
   onSave: (ex: LibraryExercise) => void;
 }) {
-  const isEdit = !!exercise;
-  const [name, setName] = React.useState("");
-  const [cat, setCat] = React.useState<CategoryKey>("strength");
-  const [muscle, setMuscle] = React.useState("");
-  const [equip, setEquip] = React.useState("");
-  const [pattern, setPattern] = React.useState("");
-  const [tags, setTags] = React.useState<string[]>([]);
-  const [tagDraft, setTagDraft] = React.useState("");
+  const isNew = !exercise || !exercise.id;
+  const [form, setForm] = React.useState<FormState>(defaultForm);
 
   React.useEffect(() => {
     if (!open) return;
-    setName(exercise?.name ?? "");
-    setCat(exercise?.cat ?? "strength");
-    setMuscle(exercise?.muscle ?? "");
-    setEquip(exercise?.equip ?? "");
-    setPattern(exercise?.pattern ?? "");
-    setTags(exercise?.tags ?? []);
-    setTagDraft("");
+    setForm({
+      ...defaultForm,
+      ...(exercise ? {
+        name: exercise.name,
+        cat: exercise.cat,
+        muscle: exercise.muscle || "Chest",
+        equip: exercise.equip || "Bodyweight",
+        pattern: exercise.pattern || "Upper body horiz. push",
+        videoUrl: exercise.videoUrl ?? "",
+        instructions: exercise.instructions ?? "",
+        tags: exercise.tags ?? [],
+        custom: exercise.custom,
+      } : {}),
+    });
   }, [open, exercise]);
 
-  const muscles = React.useMemo(() => Array.from(new Set(LIBRARY.map(e => e.muscle).filter(Boolean))).sort(), []);
-  const equips = React.useMemo(() => Array.from(new Set(LIBRARY.map(e => e.equip).filter(Boolean))).sort(), []);
-  const patterns = React.useMemo(() => Array.from(new Set(LIBRARY.map(e => e.pattern).filter(Boolean))).sort(), []);
+  React.useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      else if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+        e.preventDefault();
+        if (form.name.trim()) submit();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, form, onClose]);
 
-  const addTag = () => {
-    const t = tagDraft.trim();
-    if (!t) return;
-    if (!tags.includes(t)) setTags([...tags, t]);
-    setTagDraft("");
-  };
-  const removeTag = (t: string) => setTags(tags.filter(x => x !== t));
+  if (!open) return null;
 
-  const valid = name.trim().length > 0;
+  const set = <K extends keyof FormState>(k: K, v: FormState[K]) =>
+    setForm(f => ({ ...f, [k]: v }));
+  const c = CAT[form.cat];
 
   const submit = () => {
-    if (!valid) return;
+    if (!form.name.trim()) return;
     onSave({
       id: exercise?.id ?? `ex-custom-${Date.now()}`,
-      name: name.trim(),
-      cat, muscle: muscle.trim(), equip: equip.trim(),
-      pattern: pattern.trim(), tags,
+      name: form.name.trim(),
+      cat: form.cat,
+      muscle: form.muscle,
+      equip: form.equip,
+      pattern: form.pattern,
+      videoUrl: form.videoUrl.trim() || undefined,
+      instructions: form.instructions.trim() || undefined,
+      tags: form.tags,
       custom: exercise?.custom ?? true,
     });
   };
 
   return (
-    <ModalShell open={open} onClose={onClose} width={580} ariaLabel={isEdit ? "Edit exercise" : "New exercise"}>
-      <ModalHeader
-        title={isEdit ? "Edit exercise" : "New exercise"}
-        subtitle={isEdit ? "Update the details for this exercise." : "Add a custom exercise to your library."}
-        onClose={onClose} />
-
-      <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 16, overflowY: "auto" }}>
-        <Field label="Name">
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. Bulgarian split squat"
-            autoFocus
-            style={inputStyle} />
-        </Field>
-
-        <Field label="Category">
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 6 }}>
-            {CATEGORIES.map(c => {
-              const active = c.key === cat;
-              const Icon = c.Icon;
-              return (
-                <button
-                  key={c.key}
-                  type="button"
-                  onClick={() => setCat(c.key)}
-                  style={{
-                    padding: "8px 6px", borderRadius: 8, cursor: "pointer",
-                    border: "1px solid " + (active ? c.color : "var(--border)"),
-                    background: active ? c.tint : "#fff",
-                    color: active ? c.color : "var(--fg2)",
-                    display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
-                    fontFamily: "var(--font-sans)",
-                  }}>
-                  <Icon size={16} />
-                  <span style={{ fontSize: 11.5, fontWeight: 600 }}>{c.label}</span>
-                </button>
-              );
-            })}
+    <div onClick={onClose} style={{
+      position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.55)",
+      display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100,
+      padding: 24, animation: "fadeIn 140ms ease",
+    }}>
+      <div onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true"
+        aria-label={isNew ? "New custom exercise" : "Edit exercise"}
+        style={{
+          background: "#fff", borderRadius: 12, width: "100%", maxWidth: 780,
+          maxHeight: "calc(100vh - 48px)", display: "flex", flexDirection: "column",
+          boxShadow: "var(--shadow-xl)", animation: "slideUp 180ms ease",
+        }}>
+        {/* Header */}
+        <div style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "15px 22px", borderBottom: "1px solid var(--border)",
+        }}>
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <h2 style={{ font: "600 17px var(--font-display)", letterSpacing: "-0.01em", margin: 0 }}>
+                {isNew ? "New custom exercise" : `Edit ${form.name}`}
+              </h2>
+              {!isNew && form.custom && <CustomBadge small />}
+            </div>
+            <p style={{ fontSize: 12, color: "var(--fg3)", margin: "3px 0 0" }}>
+              {isNew
+                ? "Create a coach-defined exercise that lives only in your library."
+                : "Custom exercises sync to all your clients."}
+            </p>
           </div>
-        </Field>
-
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <Field label="Primary muscle">
-            <TextWithSuggestions value={muscle} onChange={setMuscle} suggestions={muscles} placeholder="Glutes, Quads…" />
-          </Field>
-          <Field label="Equipment">
-            <TextWithSuggestions value={equip} onChange={setEquip} suggestions={equips} placeholder="Barbell, Dumbbells…" />
-          </Field>
+          <button className="btn btn-ghost btn-sm" onClick={onClose} aria-label="Close">
+            <X size={15} />
+          </button>
         </div>
 
-        <Field label="Movement pattern" hint="Squat, Hinge, Push, Pull, Carry, Locomotion…">
-          <TextWithSuggestions value={pattern} onChange={setPattern} suggestions={patterns} placeholder="e.g. Lower body squat" />
-        </Field>
+        {/* Body */}
+        <div style={{
+          padding: "18px 22px", overflowY: "auto",
+          display: "grid", gridTemplateColumns: "1fr 280px", gap: 22,
+        }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <Field label="Exercise name" required>
+              <input value={form.name} onChange={(e) => set("name", e.target.value)}
+                placeholder="e.g. Banded glute bridge" autoFocus style={inputStyle} />
+            </Field>
 
-        <Field label="Tags">
-          <div style={{
-            display: "flex", flexWrap: "wrap", gap: 6,
-            padding: 6, border: "1px solid var(--border)", borderRadius: 6, background: "#fff",
-          }}>
-            {tags.map(t => (
-              <span
-                key={t}
-                style={{
-                  display: "inline-flex", alignItems: "center", gap: 4,
-                  padding: "3px 4px 3px 9px", borderRadius: 999,
-                  background: "var(--bg-soft)", color: "var(--fg1)",
-                  fontSize: 11.5, fontFamily: "var(--font-sans)",
-                }}>
-                {t}
-                <button
-                  type="button"
-                  onClick={() => removeTag(t)}
-                  aria-label={`Remove ${t}`}
-                  style={{
-                    background: "transparent", border: "none", cursor: "pointer",
-                    padding: 2, color: "var(--fg3)", display: "flex",
-                  }}>
-                  <X size={11} />
-                </button>
-              </span>
-            ))}
-            <input
-              value={tagDraft}
-              onChange={(e) => setTagDraft(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === ",") { e.preventDefault(); addTag(); }
-                else if (e.key === "Backspace" && !tagDraft && tags.length) { setTags(tags.slice(0, -1)); }
-              }}
-              onBlur={addTag}
-              placeholder={tags.length ? "" : "Add tags (Enter to commit)"}
-              style={{
-                flex: 1, minWidth: 120, border: "none", outline: "none",
-                padding: "3px 4px", fontSize: 12.5, color: "var(--fg1)",
-                fontFamily: "var(--font-sans)", background: "transparent",
-              }} />
+            <Field label="Category" required>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 6 }}>
+                {CATEGORIES.map(opt => {
+                  const on = form.cat === opt.key;
+                  const Icon = opt.Icon;
+                  return (
+                    <button key={opt.key} type="button" onClick={() => set("cat", opt.key)} style={{
+                      padding: "10px 6px", borderRadius: 8,
+                      border: `1px solid ${on ? opt.color : "var(--border)"}`,
+                      background: on ? opt.tint : "#fff",
+                      color: on ? opt.color : "var(--fg2)",
+                      cursor: "pointer", display: "flex", flexDirection: "column",
+                      alignItems: "center", gap: 5, transition: "all 100ms",
+                    }}>
+                      <Icon size={16} />
+                      <span style={{ fontSize: 11, fontWeight: on ? 600 : 500 }}>{opt.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              <div style={{
+                marginTop: 8, padding: "7px 10px", background: c.tint, color: c.color,
+                borderRadius: 6, fontSize: 11.5, display: "flex", alignItems: "center", gap: 6,
+              }}>
+                <c.Icon size={12} />
+                Captured fields: <strong>{c.sub}</strong>, sets, rest. Coaches log results in this format.
+              </div>
+            </Field>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <Field label="Muscle group">
+                <select value={form.muscle} onChange={(e) => set("muscle", e.target.value)} style={inputStyle}>
+                  {MUSCLE_OPTIONS.map(m => <option key={m} value={m}>{m}</option>)}
+                </select>
+              </Field>
+              <Field label="Equipment">
+                <select value={form.equip} onChange={(e) => set("equip", e.target.value)} style={inputStyle}>
+                  {EQUIPMENT_OPTIONS.map(m => <option key={m} value={m}>{m}</option>)}
+                </select>
+              </Field>
+            </div>
+
+            <Field label="Movement pattern">
+              <select value={form.pattern} onChange={(e) => set("pattern", e.target.value)} style={inputStyle}>
+                {PATTERN_OPTIONS.map(m => <option key={m} value={m}>{m}</option>)}
+              </select>
+            </Field>
+
+            <Field label="Video URL" hint="YouTube, Vimeo, or a direct link.">
+              <div style={{ position: "relative" }}>
+                <Video size={14} style={{
+                  position: "absolute", left: 11, top: "50%",
+                  transform: "translateY(-50%)", color: "var(--fg4)",
+                }} />
+                <input value={form.videoUrl} onChange={(e) => set("videoUrl", e.target.value)}
+                  placeholder="https://youtube.com/…"
+                  style={{ ...inputStyle, paddingLeft: 32 }} />
+              </div>
+            </Field>
+
+            <Field label="Instructions / cues" hint="Shown to clients when they tap the exercise.">
+              <textarea value={form.instructions} onChange={(e) => set("instructions", e.target.value)}
+                placeholder="Set up shoulder-width, brace your core, drive through the heels…"
+                rows={3}
+                style={{ ...inputStyle, resize: "vertical", minHeight: 72, fontFamily: "var(--font-sans)" }} />
+            </Field>
           </div>
-        </Field>
-      </div>
 
-      <div style={{
-        padding: "12px 22px", borderTop: "1px solid var(--border-subtle)",
-        display: "flex", justifyContent: "flex-end", gap: 8,
-      }}>
-        <button type="button" className="btn btn-ghost" onClick={onClose}>Cancel</button>
-        <button
-          type="button"
-          className="btn btn-primary"
-          onClick={submit}
-          disabled={!valid}
-          style={!valid ? { opacity: 0.5, cursor: "not-allowed" } : undefined}>
-          {isEdit ? "Save changes" : "Add exercise"}
-        </button>
+          {/* Preview pane */}
+          <aside style={{
+            borderLeft: "1px solid var(--border)", paddingLeft: 22,
+            display: "flex", flexDirection: "column", gap: 12,
+          }}>
+            <span style={{
+              fontSize: 10.5, fontWeight: 600, color: "var(--fg3)",
+              textTransform: "uppercase", letterSpacing: "0.06em",
+            }}>Preview</span>
+
+            <div style={{
+              aspectRatio: "4 / 3", borderRadius: 9, background: c.tint,
+              border: `1px solid ${c.color}26`,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              flexDirection: "column", gap: 8,
+            }}>
+              <c.Icon size={36} style={{ color: c.color, strokeWidth: 1.6 }} />
+              <span style={{ fontSize: 11, color: c.color, fontWeight: 500 }}>
+                {form.videoUrl ? "Video attached" : "No video — icon shown"}
+              </span>
+            </div>
+
+            <div style={{ borderTop: "1px solid var(--border-subtle)", paddingTop: 12 }}>
+              <div style={{
+                fontWeight: 600, fontSize: 13.5, color: "var(--fg1)", marginBottom: 2,
+                display: "flex", alignItems: "center", gap: 7,
+              }}>
+                {form.name || (
+                  <span style={{ color: "var(--fg4)", fontStyle: "italic", fontWeight: 400 }}>
+                    Exercise name…
+                  </span>
+                )}
+                {form.custom && <CustomBadge small />}
+              </div>
+              <div style={{ fontSize: 11.5, color: "var(--fg3)", marginBottom: 8 }}>
+                {form.muscle} · {form.equip}
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+                <CatBadge cat={form.cat} size="sm" />
+                <span style={{
+                  fontSize: 10, padding: "1px 6px", borderRadius: 5,
+                  background: "var(--bg-subtle)", color: "var(--fg3)", fontWeight: 500,
+                }}>{form.pattern}</span>
+              </div>
+            </div>
+
+            <div style={{
+              marginTop: "auto", padding: 10, background: "#FAF5FF",
+              border: "1px solid #E9D5FF", borderRadius: 8, fontSize: 11, color: "#581C87",
+            }}>
+              <div style={{
+                display: "flex", alignItems: "center", gap: 5, marginBottom: 3, fontWeight: 600,
+              }}>
+                <Sparkles size={11} />Custom exercise
+              </div>
+              Lives in your library — not the public catalog.
+            </div>
+          </aside>
+        </div>
+
+        {/* Footer */}
+        <div style={{
+          display: "flex", justifyContent: "space-between", alignItems: "center",
+          padding: "13px 22px", borderTop: "1px solid var(--border)", background: "var(--bg)",
+        }}>
+          <span style={{ fontSize: 11.5, color: "var(--fg4)" }}>
+            <kbd style={kbdStyle}>Esc</kbd> close · <kbd style={kbdStyle}>⌘ Enter</kbd> save
+          </span>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
+            <button className="btn btn-primary" disabled={!form.name.trim()} onClick={submit}
+              style={!form.name.trim() ? { opacity: 0.5, cursor: "not-allowed" } : undefined}>
+              <SaveIcon size={13} />{isNew ? "Create exercise" : "Save changes"}
+            </button>
+          </div>
+        </div>
       </div>
-    </ModalShell>
+    </div>
   );
 }

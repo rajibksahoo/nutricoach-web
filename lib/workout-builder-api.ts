@@ -68,6 +68,8 @@ export function mapExercise(e: ApiExercise): LibraryExercise {
     pattern: e.movementPattern ?? "",
     custom: e.custom,
     tags: e.tags ?? [],
+    videoUrl: e.videoUrl,
+    instructions: e.notes,
   };
 }
 
@@ -154,6 +156,8 @@ export async function createExercise(ex: Omit<LibraryExercise, "id" | "custom">)
     category: ex.cat,
     movementPattern: ex.pattern || null,
     tags: ex.tags ?? [],
+    videoUrl: ex.videoUrl || null,
+    notes: ex.instructions || null,
   });
   return mapExercise(data.data);
 }
@@ -166,6 +170,8 @@ export async function updateExercise(id: string, ex: Partial<Omit<LibraryExercis
     category: ex.cat,
     movementPattern: ex.pattern ?? null,
     tags: ex.tags ?? [],
+    videoUrl: ex.videoUrl ?? null,
+    notes: ex.instructions ?? null,
   });
   return mapExercise(data.data);
 }
