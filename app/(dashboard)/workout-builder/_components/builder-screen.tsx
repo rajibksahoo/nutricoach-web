@@ -439,10 +439,17 @@ function LibrarySidebar({
             const meta = SECTION_LABELS[t.type];
             const TIcon = meta.Icon;
             return (
-              <div key={t.id} style={{
-                padding: 10, border: "1px solid var(--border)", borderRadius: 8,
-                background: "#fff", cursor: "grab",
-              }}>
+              <div key={t.id}
+                draggable
+                onDragStart={(ev) => {
+                  ev.dataTransfer.setData("application/x-section-template",
+                    JSON.stringify({ id: t.id, title: t.title, type: t.type }));
+                  ev.dataTransfer.effectAllowed = "copy";
+                }}
+                style={{
+                  padding: 10, border: "1px solid var(--border)", borderRadius: 8,
+                  background: "#fff", cursor: "grab",
+                }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 3 }}>
                   <TIcon size={12} style={{ color: "var(--brand-primary)" }} />
                   <span style={{ fontSize: 12.5, fontWeight: 600, color: "var(--fg1)" }}>{t.title}</span>
@@ -463,8 +470,67 @@ function LibrarySidebar({
   );
 }
 
+function InterSectionSlot({
+  onClick, onTemplateDrop,
+}: {
+  onClick: () => void;
+  onTemplateDrop: (e: React.DragEvent) => boolean;
+}) {
+  const [hot, setHot] = React.useState(false);
+  const [hover, setHover] = React.useState(false);
+  return (
+    <div
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      onDragOver={(e) => {
+        if (e.dataTransfer.types.includes("application/x-section-template")) {
+          e.preventDefault();
+          setHot(true);
+        }
+      }}
+      onDragLeave={() => setHot(false)}
+      onDrop={(e) => { setHot(false); onTemplateDrop(e); }}
+      style={{
+        height: hot || hover ? 26 : 10, transition: "height 120ms",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        cursor: "pointer",
+      }}
+      onClick={onClick}>
+      {(hot || hover) && (
+        <div style={{
+          flex: 1, height: 2, background: hot ? "var(--brand-primary)" : "var(--border)",
+          borderRadius: 99, position: "relative",
+        }}>
+          <div style={{
+            position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)",
+            background: "#fff", border: `1px solid ${hot ? "var(--brand-primary)" : "var(--border)"}`,
+            borderRadius: 999, padding: "1px 8px", fontSize: 10.5,
+            color: hot ? "var(--brand-primary)" : "var(--fg3)",
+            fontFamily: "var(--font-sans)", display: "flex", alignItems: "center", gap: 4,
+          }}>
+            <Plus size={10} />{hot ? "Drop section here" : "Add section"}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function useRelativeTime(ts: number): string {
+  const [, force] = React.useReducer(x => x + 1, 0);
+  React.useEffect(() => {
+    const id = setInterval(force, 5000);
+    return () => clearInterval(id);
+  }, []);
+  const sec = Math.max(1, Math.floor((Date.now() - ts) / 1000));
+  if (sec < 60) return `${sec}s ago`;
+  const min = Math.floor(sec / 60);
+  if (min < 60) return `${min}m ago`;
+  return `${Math.floor(min / 60)}h ago`;
+}
+
 function BuilderHeader({
-  workout, onNameChange, onBack, onSave, onAssign, onSchedule,
+  workout, onNameChange, onBack, onSave, onAssign, onSchedule, savedAt,
 }: {
   workout: WorkoutState;
   onNameChange: (n: string) => void;
@@ -472,8 +538,10 @@ function BuilderHeader({
   onSave: () => void;
   onAssign: () => void;
   onSchedule: () => void;
+  savedAt: number;
 }) {
   const [editingName, setEditingName] = React.useState(false);
+  const rel = useRelativeTime(savedAt);
   return (
     <header style={{
       position: "sticky", top: 0, zIndex: 5,
@@ -513,7 +581,7 @@ function BuilderHeader({
       </div>
 
       <span style={{ fontSize: 11, color: "var(--fg4)", display: "flex", alignItems: "center", gap: 4 }}>
-        <Check size={12} style={{ color: "#10B981" }} />Auto-saved · 2s ago
+        <Check size={12} style={{ color: "#10B981" }} />Auto-saved · {rel}
       </span>
 
       <div style={{ width: 1, height: 22, background: "var(--border)" }} />
@@ -585,9 +653,39 @@ export function BuilderScreen({
   const [workout, setWorkout] = React.useState<WorkoutState>(initialWorkout ?? (INITIAL_WORKOUT as WorkoutState));
   const [librarySidebarOpen, setLibrarySidebarOpen] = React.useState(true);
   const [draggingSectionId, setDraggingSectionId] = React.useState<string | null>(null);
+  const [savedAt, setSavedAt] = React.useState<number>(() => Date.now());
+  const firstRunRef = React.useRef(true);
+
+  React.useEffect(() => {
+    if (firstRunRef.current) { firstRunRef.current = false; return; }
+    const id = setTimeout(() => setSavedAt(Date.now()), 1500);
+    return () => clearTimeout(id);
+  }, [workout]);
 
   const setSections = (fn: (secs: SectionState[]) => SectionState[]) =>
     setWorkout(w => ({ ...w, sections: fn(w.sections) }));
+
+  const insertSectionAt = (idx: number, partial: Partial<SectionState>) =>
+    setSections(secs => {
+      const s: SectionState = {
+        id: `s-${Date.now()}`, type: "main", title: "New section", exercises: [],
+        ...partial,
+      };
+      const next = [...secs];
+      next.splice(idx, 0, s);
+      return next;
+    });
+
+  const handleSectionTemplateDrop = (e: React.DragEvent, idx: number) => {
+    const raw = e.dataTransfer.getData("application/x-section-template");
+    if (!raw) return false;
+    e.preventDefault();
+    try {
+      const t = JSON.parse(raw) as { title: string; type: SectionType };
+      insertSectionAt(idx, { title: t.title, type: t.type });
+    } catch { /* ignore */ }
+    return true;
+  };
 
   const onTitleChange = (sid: string, title: string) =>
     setSections(secs => secs.map(s => s.id === sid ? { ...s, title } : s));
@@ -671,33 +769,43 @@ export function BuilderScreen({
       <BuilderHeader workout={workout}
         onNameChange={(n) => setWorkout({ ...workout, name: n })}
         onBack={onBack} onAssign={onAssign} onSchedule={onSchedule}
-        onSave={onAssign} />
+        onSave={onAssign} savedAt={savedAt} />
 
       <div style={{ display: "flex", flex: 1, alignItems: "flex-start" }}>
         <main style={{ flex: 1, padding: "18px 24px 80px", display: "flex", flexDirection: "column", gap: 14, minWidth: 0 }}>
           <WorkoutSummary workout={workout} />
 
-          {workout.sections.map(s => (
-            <Section key={s.id}
-              section={s} palette={palette}
-              isDraggingSection={draggingSectionId === s.id}
-              onTitleChange={onTitleChange} onTypeChange={onTypeChange}
-              onAddExercise={onAddExercise} onUpdateExercise={onUpdateExercise}
-              onRemoveExercise={onRemoveExercise} onDuplicateExercise={onDuplicateExercise}
-              onRemoveSection={onRemoveSection} onDuplicateSection={onDuplicateSection}
-              onReorderExercises={onReorderExercises}
-              onSectionDragStart={onSectionDragStart}
-              onSectionDragOver={onSectionDragOver}
-              onSectionDrop={onSectionDrop}
-              onDropExternal={onDropExternal} />
+          {workout.sections.map((s, idx) => (
+            <React.Fragment key={s.id}>
+              <InterSectionSlot
+                onClick={() => insertSectionAt(idx, {})}
+                onTemplateDrop={(e) => handleSectionTemplateDrop(e, idx)} />
+              <Section
+                section={s} palette={palette}
+                isDraggingSection={draggingSectionId === s.id}
+                onTitleChange={onTitleChange} onTypeChange={onTypeChange}
+                onAddExercise={onAddExercise} onUpdateExercise={onUpdateExercise}
+                onRemoveExercise={onRemoveExercise} onDuplicateExercise={onDuplicateExercise}
+                onRemoveSection={onRemoveSection} onDuplicateSection={onDuplicateSection}
+                onReorderExercises={onReorderExercises}
+                onSectionDragStart={onSectionDragStart}
+                onSectionDragOver={onSectionDragOver}
+                onSectionDrop={onSectionDrop}
+                onDropExternal={onDropExternal} />
+            </React.Fragment>
           ))}
 
-          <button onClick={onAddSection} style={{
-            background: "transparent", border: "2px dashed var(--border)", borderRadius: 10,
-            padding: "18px", display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-            color: "var(--fg3)", font: "500 13px var(--font-sans)", cursor: "pointer",
-            transition: "all 100ms",
-          }}
+          <button onClick={onAddSection}
+            onDragOver={(e) => {
+              if (e.dataTransfer.types.includes("application/x-section-template")) e.preventDefault();
+            }}
+            onDrop={(e) => handleSectionTemplateDrop(e, workout.sections.length)}
+            style={{
+              background: "transparent", border: "2px dashed var(--border)", borderRadius: 10,
+              padding: "18px", display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+              color: "var(--fg3)", font: "500 13px var(--font-sans)", cursor: "pointer",
+              transition: "all 100ms",
+            }}
             onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--brand-primary)"; e.currentTarget.style.color = "var(--brand-primary)"; e.currentTarget.style.background = "var(--brand-primary-50)"; }}
             onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--fg3)"; e.currentTarget.style.background = "transparent"; }}>
             <Plus size={14} />Add section
