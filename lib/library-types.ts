@@ -32,6 +32,7 @@ export interface SectionExerciseEntry {
   reps?: number | null;
   durationSeconds?: number | null;
   restSeconds?: number | null;
+  weight?: string | null;
   notes?: string | null;
 }
 
