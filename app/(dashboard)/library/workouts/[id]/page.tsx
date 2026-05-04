@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from "react";
 import { useParams, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import {
@@ -253,6 +253,27 @@ export default function WorkoutEditorPage() {
       .catch(() => toast.error("Failed to remove exercise"));
   }
 
+  function patchEntry(sectionId: string, entryId: string, patch: Partial<AddExercisePayload>) {
+    return api
+      .patch(`/api/v1/library/workout-sections/${sectionId}/exercises/${entryId}`, patch)
+      .then(() => load())
+      .catch(() => toast.error("Failed to update exercise"));
+  }
+
+  function reorderEntries(sectionId: string, orderedIds: string[]) {
+    return api
+      .put(`/api/v1/library/workout-sections/${sectionId}/exercises/order`, { orderedIds })
+      .then(() => load())
+      .catch(() => toast.error("Failed to reorder"));
+  }
+
+  function reorderSections(orderedAssignmentIds: string[]) {
+    return api
+      .put(`/api/v1/library/workouts/${id}/sections/order`, { orderedIds: orderedAssignmentIds })
+      .then(() => load())
+      .catch(() => toast.error("Failed to reorder sections"));
+  }
+
   function quickAddFromLibrary(libExercise: Exercise) {
     const target = workout?.sections[workout.sections.length - 1];
     if (!target) {
@@ -421,8 +442,16 @@ export default function WorkoutEditorPage() {
                       <button
                         key={e.id}
                         onClick={() => quickAddFromLibrary(e)}
-                        title="Add to last section"
-                        className="w-full flex items-center gap-2.5 rounded-md hover:bg-slate-50 text-left"
+                        draggable
+                        onDragStart={(ev) => {
+                          ev.dataTransfer.setData(
+                            "application/x-library-exercise",
+                            JSON.stringify({ exerciseId: e.id }),
+                          );
+                          ev.dataTransfer.effectAllowed = "copy";
+                        }}
+                        title="Drag onto a section, or click to add to last section"
+                        className="w-full flex items-center gap-2.5 rounded-md hover:bg-slate-50 text-left cursor-grab active:cursor-grabbing"
                         style={{ padding: "7px 8px", marginBottom: 1 }}
                       >
                         <ExerciseThumb ex={e} size={32} />
@@ -530,10 +559,12 @@ export default function WorkoutEditorPage() {
               />
             ) : (
               <>
-                {workout.sections.map((section) => (
+                {workout.sections.map((section, idx) => (
                   <EditorSection
                     key={section.assignmentId ?? section.id}
                     section={section}
+                    sectionIndex={idx}
+                    allSections={workout.sections}
                     exercises={exercises}
                     onRename={(n, t) => renameSection(section, n, t)}
                     onDetach={() =>
@@ -541,6 +572,24 @@ export default function WorkoutEditorPage() {
                     }
                     onAddExercise={(payload) => addExercise(section.id, payload)}
                     onRemoveEntry={(eid) => removeEntry(section.id, eid)}
+                    onPatchEntry={(eid, patch) => patchEntry(section.id, eid, patch)}
+                    onReorderEntries={(orderedIds) => reorderEntries(section.id, orderedIds)}
+                    onReorderSections={reorderSections}
+                    onDropLibraryExercise={(exerciseId) => {
+                      const lib = exercises.find((x) => x.id === exerciseId);
+                      if (!lib) return;
+                      const c = (lib.category ?? "").toLowerCase();
+                      const isTimed = c === "cardio" || c === "mobility";
+                      addExercise(section.id, {
+                        exerciseId,
+                        sets: isTimed ? 1 : 3,
+                        reps: isTimed ? null : 10,
+                        durationSeconds: isTimed ? 45 : null,
+                        restSeconds: isTimed ? null : 60,
+                        weight: null,
+                        notes: null,
+                      });
+                    }}
                   />
                 ))}
                 <SectionAddButton onClick={() => createNewSection("MAIN")} />
@@ -687,18 +736,30 @@ function SectionAddButton({ onClick }: { onClick: () => void }) {
 /* ───────────── EditorSection ───────────── */
 function EditorSection({
   section,
+  sectionIndex,
+  allSections,
   exercises,
   onRename,
   onDetach,
   onAddExercise,
   onRemoveEntry,
+  onPatchEntry,
+  onReorderEntries,
+  onReorderSections,
+  onDropLibraryExercise,
 }: {
   section: WorkoutSection;
+  sectionIndex: number;
+  allSections: WorkoutSection[];
   exercises: Exercise[];
   onRename: (name: string, type: WorkoutSectionType) => void;
   onDetach: () => void;
   onAddExercise: (payload: AddExercisePayload) => Promise<unknown> | void;
   onRemoveEntry: (entryId: string) => void;
+  onPatchEntry: (entryId: string, patch: Partial<AddExercisePayload>) => Promise<unknown> | void;
+  onReorderEntries: (orderedIds: string[]) => Promise<unknown> | void;
+  onReorderSections: (orderedAssignmentIds: string[]) => Promise<unknown> | void;
+  onDropLibraryExercise: (exerciseId: string) => void;
 }) {
   const meta = SECTION_META[section.sectionType] ?? SECTION_META.MAIN;
   const Icon = meta.Icon;
@@ -706,6 +767,54 @@ function EditorSection({
   const [collapsed, setCollapsed] = useState(false);
   const [titleDraft, setTitleDraft] = useState(section.name);
   const [adding, setAdding] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+
+  function handleSectionDrop(ev: DragEvent) {
+    ev.preventDefault();
+    setDragOver(false);
+    const lib = ev.dataTransfer.getData("application/x-library-exercise");
+    if (lib) {
+      try {
+        const { exerciseId } = JSON.parse(lib);
+        if (exerciseId) onDropLibraryExercise(exerciseId);
+      } catch {}
+      return;
+    }
+    const sec = ev.dataTransfer.getData("application/x-workout-section");
+    if (sec) {
+      try {
+        const { assignmentId: dragged } = JSON.parse(sec);
+        const target = section.assignmentId;
+        if (!dragged || !target || dragged === target) return;
+        const ids = allSections.map((s) => s.assignmentId).filter(Boolean) as string[];
+        const from = ids.indexOf(dragged);
+        const to = ids.indexOf(target);
+        if (from < 0 || to < 0) return;
+        const next = ids.slice();
+        next.splice(from, 1);
+        next.splice(to, 0, dragged);
+        onReorderSections(next);
+      } catch {}
+    }
+  }
+
+  function handleEntryDropOnRow(targetEntryId: string, ev: DragEvent) {
+    ev.preventDefault();
+    const raw = ev.dataTransfer.getData("application/x-section-entry");
+    if (!raw) return;
+    try {
+      const { sectionId: srcSection, entryId: dragged } = JSON.parse(raw);
+      if (srcSection !== section.id || !dragged || dragged === targetEntryId) return;
+      const ids = section.exercises.map((e) => e.id);
+      const from = ids.indexOf(dragged);
+      const to = ids.indexOf(targetEntryId);
+      if (from < 0 || to < 0) return;
+      const next = ids.slice();
+      next.splice(from, 1);
+      next.splice(to, 0, dragged);
+      onReorderEntries(next);
+    } catch {}
+  }
 
   useEffect(() => setTitleDraft(section.name), [section.name]);
 
@@ -722,11 +831,37 @@ function EditorSection({
   }
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+    <div
+      className={cn(
+        "bg-white border rounded-xl overflow-hidden shadow-sm transition-colors",
+        dragOver ? "border-emerald-400 ring-2 ring-emerald-200" : "border-slate-200",
+      )}
+      onDragOver={(ev) => {
+        if (
+          ev.dataTransfer.types.includes("application/x-library-exercise") ||
+          ev.dataTransfer.types.includes("application/x-workout-section")
+        ) {
+          ev.preventDefault();
+          ev.dataTransfer.dropEffect = "copy";
+          setDragOver(true);
+        }
+      }}
+      onDragLeave={() => setDragOver(false)}
+      onDrop={handleSectionDrop}
+    >
       {/* Header */}
       <div
         className={cn("flex items-center gap-2.5 border-b", meta.bg, meta.border)}
         style={{ padding: "8px 14px" }}
+        draggable
+        onDragStart={(ev) => {
+          if (!section.assignmentId) { ev.preventDefault(); return; }
+          ev.dataTransfer.setData(
+            "application/x-workout-section",
+            JSON.stringify({ assignmentId: section.assignmentId }),
+          );
+          ev.dataTransfer.effectAllowed = "move";
+        }}
       >
         <GripVertical className={cn("w-3 h-3 opacity-50 cursor-grab", meta.text)} />
         <div
@@ -851,8 +986,11 @@ function EditorSection({
               <ExerciseRow
                 key={entry.id}
                 entry={entry}
+                sectionId={section.id}
                 lib={lib}
                 onRemove={() => onRemoveEntry(entry.id)}
+                onPatch={(patch) => onPatchEntry(entry.id, patch)}
+                onDropOnRow={(ev) => handleEntryDropOnRow(entry.id, ev)}
               />
             );
           })}
@@ -890,18 +1028,41 @@ function EditorSection({
 /* ───────────── ExerciseRow (read-only display) ───────────── */
 function ExerciseRow({
   entry,
+  sectionId,
   lib,
   onRemove,
+  onPatch,
+  onDropOnRow,
 }: {
   entry: SectionExerciseEntry;
+  sectionId: string;
   lib?: Exercise;
   onRemove: () => void;
+  onPatch: (patch: Partial<AddExercisePayload>) => Promise<unknown> | void;
+  onDropOnRow: (ev: DragEvent) => void;
 }) {
   const cat = getCategory(lib?.category);
   return (
     <div
       className="flex items-start gap-2.5 bg-white border-t border-slate-100 hover:bg-slate-50 group"
       style={{ padding: "9px 12px" }}
+      draggable
+      onDragStart={(ev) => {
+        ev.dataTransfer.setData(
+          "application/x-section-entry",
+          JSON.stringify({ sectionId, entryId: entry.id }),
+        );
+        ev.dataTransfer.effectAllowed = "move";
+        ev.stopPropagation();
+      }}
+      onDragOver={(ev) => {
+        if (ev.dataTransfer.types.includes("application/x-section-entry")) {
+          ev.preventDefault();
+          ev.dataTransfer.dropEffect = "move";
+          ev.stopPropagation();
+        }
+      }}
+      onDrop={onDropOnRow}
     >
       <GripVertical className="w-3 h-3 text-slate-300 cursor-grab" style={{ marginTop: 11 }} />
       {lib ? (
@@ -937,15 +1098,34 @@ function ExerciseRow({
           )}
         </div>
         <div className="flex flex-wrap gap-1.5">
-          <ParamPill label="Sets" value={entry.sets} />
-          <ParamPill label="Reps" value={entry.reps} />
-          {entry.durationSeconds != null && (
-            <ParamPill label="Dur" value={`${entry.durationSeconds}s`} />
-          )}
-          {entry.weight && <ParamPill label="Load" value={entry.weight} />}
-          {entry.restSeconds != null && (
-            <ParamPill label="Rest" value={`${entry.restSeconds}s`} />
-          )}
+          <EditableParamPill
+            label="Sets"
+            value={entry.sets ?? null}
+            onSave={(v) => onPatch({ sets: v as number | null })}
+          />
+          <EditableParamPill
+            label="Reps"
+            value={entry.reps ?? null}
+            onSave={(v) => onPatch({ reps: v as number | null })}
+          />
+          <EditableParamPill
+            label="Dur"
+            value={entry.durationSeconds ?? null}
+            suffix="s"
+            onSave={(v) => onPatch({ durationSeconds: v as number | null })}
+          />
+          <EditableParamPill
+            label="Load"
+            text
+            value={entry.weight ?? null}
+            onSave={(v) => onPatch({ weight: v as string | null })}
+          />
+          <EditableParamPill
+            label="Rest"
+            value={entry.restSeconds ?? null}
+            suffix="s"
+            onSave={(v) => onPatch({ restSeconds: v as number | null })}
+          />
           {entry.notes && (
             <span
               className="bg-slate-50 text-slate-600 border border-slate-200 rounded"
@@ -970,23 +1150,98 @@ function ExerciseRow({
   );
 }
 
-function ParamPill({
+function EditableParamPill({
   label,
   value,
+  suffix,
+  text,
+  onSave,
 }: {
   label: string;
-  value?: number | string | null;
+  value: number | string | null;
+  suffix?: string;
+  text?: boolean;
+  onSave: (v: number | string | null) => Promise<unknown> | void;
 }) {
-  if (value == null || value === "") return null;
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState<string>(value == null ? "" : String(value));
+
+  useEffect(() => {
+    setDraft(value == null ? "" : String(value));
+  }, [value]);
+
+  function commit() {
+    setEditing(false);
+    const trimmed = draft.trim();
+    const next: number | string | null = trimmed === ""
+      ? null
+      : text ? trimmed : Number(trimmed);
+    if (!text && typeof next === "number" && Number.isNaN(next)) return;
+    const same =
+      (value == null && next == null) ||
+      (value != null && next != null && String(value) === String(next));
+    if (same) return;
+    onSave(next);
+  }
+
+  if (!editing) {
+    const empty = value == null || value === "";
+    return (
+      <button
+        type="button"
+        onClick={() => setEditing(true)}
+        className={cn(
+          "inline-flex items-baseline gap-1 border rounded text-left transition-colors",
+          empty
+            ? "bg-white border-dashed border-slate-200 text-slate-300 hover:text-slate-500 hover:border-slate-300"
+            : "bg-slate-50 border-slate-200 text-slate-700 hover:border-emerald-400",
+        )}
+        style={{ padding: "2px 7px", fontSize: 11, fontFamily: "ui-monospace, monospace" }}
+        title="Click to edit"
+      >
+        <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.05em" }} className="text-slate-400">
+          {label.toUpperCase()}
+        </span>
+        <span style={{ fontWeight: 500 }}>
+          {empty ? "—" : `${value}${suffix ?? ""}`}
+        </span>
+      </button>
+    );
+  }
+
   return (
     <span
-      className="inline-flex items-baseline gap-1 bg-slate-50 border border-slate-200 rounded text-slate-700"
-      style={{ padding: "2px 7px", fontSize: 11, fontFamily: "ui-monospace, monospace" }}
+      className="inline-flex items-baseline gap-1 bg-white border border-emerald-400 rounded ring-2 ring-emerald-200"
+      style={{ padding: "1px 5px", fontSize: 11, fontFamily: "ui-monospace, monospace" }}
     >
       <span className="text-slate-400" style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.05em" }}>
         {label.toUpperCase()}
       </span>
-      <span style={{ fontWeight: 500 }}>{value}</span>
+      <input
+        autoFocus
+        type={text ? "text" : "number"}
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") commit();
+          if (e.key === "Escape") {
+            setDraft(value == null ? "" : String(value));
+            setEditing(false);
+          }
+        }}
+        className="bg-transparent outline-none"
+        style={{
+          width: text ? 56 : 38,
+          fontSize: 11,
+          fontFamily: "ui-monospace, monospace",
+          textAlign: text ? "left" : "right",
+          fontWeight: 500,
+        }}
+      />
+      {suffix && (
+        <span className="text-slate-400" style={{ fontSize: 9 }}>{suffix}</span>
+      )}
     </span>
   );
 }
