@@ -71,7 +71,7 @@ function Chip({
       className={cn(
         "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11.5px] font-medium whitespace-nowrap transition-colors",
         active
-          ? cn(tint ?? "bg-emerald-50", color ?? "text-emerald-700", "border-current")
+          ? cn(tint ?? "bg-indigo-50", color ?? "text-indigo-700", "border-current")
           : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
       )}
     >
@@ -199,7 +199,7 @@ export default function ExercisesPage() {
           className="flex items-center gap-2 text-slate-900"
           style={{ fontSize: 24, fontWeight: 700, letterSpacing: "-0.02em", lineHeight: 1.2 }}
         >
-          <Dumbbell className="w-5 h-5 text-emerald-600" />
+          <Dumbbell className="w-5 h-5 text-indigo-600" />
           Exercise Library
         </h1>
         <div className="flex items-center gap-2">
@@ -224,7 +224,7 @@ export default function ExercisesPage() {
           <button
             type="button"
             onClick={() => { setEditing(null); setShowModal(true); }}
-            className="inline-flex items-center gap-1.5 px-3 py-[7px] text-[12.5px] font-semibold text-white bg-emerald-600 rounded-md hover:bg-emerald-700 shadow-sm"
+            className="inline-flex items-center gap-1.5 px-3 py-[7px] text-[12.5px] font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 shadow-sm"
           >
             <Plus className="w-3.5 h-3.5" />
             New exercise
@@ -245,7 +245,7 @@ export default function ExercisesPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search exercise name…"
-              className="w-full bg-white border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full bg-white border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
               style={{ padding: "7px 36px 7px 32px", fontSize: 12.5 }}
             />
             <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 font-mono text-[10px] bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded text-slate-500">
@@ -336,7 +336,7 @@ export default function ExercisesPage() {
                     checked={allChecked}
                     ref={(el) => { if (el) el.indeterminate = someChecked; }}
                     onChange={toggleAll}
-                    className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                    className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                     disabled={visible.length === 0}
                   />
                 </th>
@@ -365,7 +365,7 @@ export default function ExercisesPage() {
                               setActiveMuscle("all");
                               setCustomOnly(false);
                             }}
-                            className="text-emerald-600 font-medium hover:underline"
+                            className="text-indigo-600 font-medium hover:underline"
                           >
                             Clear filters
                           </button>
@@ -385,7 +385,7 @@ export default function ExercisesPage() {
                       onClick={() => { setEditing(ex); setShowModal(true); }}
                       className={cn(
                         "border-t border-slate-100 hover:bg-slate-50/60 transition-colors group cursor-pointer",
-                        checked && "bg-emerald-50/40"
+                        checked && "bg-indigo-50/40"
                       )}
                     >
                       <Td onClick={(e) => e.stopPropagation()}>
@@ -393,7 +393,7 @@ export default function ExercisesPage() {
                           type="checkbox"
                           checked={checked}
                           onChange={() => toggle(ex.id)}
-                          className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                          className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                         />
                       </Td>
                       <Td>
@@ -591,7 +591,7 @@ function RowThumb({ ex }: { ex: Exercise }) {
   const hasVideo = !!ex.videoUrl;
   return (
     <div className="flex items-center justify-center w-9 h-9 rounded-md bg-slate-100 ring-1 ring-slate-200 shrink-0">
-      <Icon className={cn("w-4 h-4", hasVideo ? "text-emerald-600" : "text-slate-500")} />
+      <Icon className={cn("w-4 h-4", hasVideo ? "text-indigo-600" : "text-slate-500")} />
     </div>
   );
 }

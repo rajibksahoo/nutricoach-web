@@ -33,14 +33,14 @@ export default function LibraryOnboardingPill() {
     <div className="fixed bottom-5 right-5 z-40">
       <div className="flex items-center gap-3 pl-4 pr-2 py-2 rounded-full bg-slate-900 text-white shadow-lg ring-1 ring-black/5">
         <div className="flex items-center gap-2">
-          <span className="flex items-center justify-center w-6 h-6 rounded-full bg-emerald-500">
+          <span className="flex items-center justify-center w-6 h-6 rounded-full bg-indigo-500">
             <UserPlus className="w-3.5 h-3.5 text-white" />
           </span>
           <span className="text-sm font-medium">Add your first client</span>
         </div>
         <Link
           href="/clients/new"
-          className="text-xs font-semibold px-3 py-1.5 rounded-full bg-emerald-500 hover:bg-emerald-400 transition-colors"
+          className="text-xs font-semibold px-3 py-1.5 rounded-full bg-indigo-500 hover:bg-indigo-400 transition-colors"
         >
           Start
         </Link>

@@ -71,7 +71,7 @@ export default function ProgramsPage() {
         <div className="space-y-2">
           {programs.map((p) => (
             <Link key={p.id} href={`/library/fitness/programs/${p.id}`}>
-              <Card className="hover:border-emerald-300 hover:shadow transition cursor-pointer">
+              <Card className="hover:border-indigo-300 hover:shadow transition cursor-pointer">
                 <CardContent className="flex items-center gap-3 py-3">
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-slate-900 truncate">{p.name}</h3>
@@ -153,7 +153,7 @@ function ProgramForm({
             <select
               value={durationDays}
               onChange={(e) => setDurationDays(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               <option value="30">30 days</option>
               <option value="45">45 days</option>

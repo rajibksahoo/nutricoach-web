@@ -89,14 +89,14 @@ export default function ProgramDetailPage() {
               onClick={() => setSelectedDay(n)}
               className={`p-2 rounded-lg border text-left transition ${
                 hasWorkout
-                  ? "bg-emerald-50 border-emerald-300 hover:border-emerald-400"
+                  ? "bg-indigo-50 border-indigo-300 hover:border-indigo-400"
                   : "bg-white border-slate-200 hover:border-slate-400"
-              } ${selectedDay === n ? "ring-2 ring-emerald-500" : ""}`}
+              } ${selectedDay === n ? "ring-2 ring-indigo-500" : ""}`}
             >
               <div className="text-[10px] uppercase tracking-wide text-slate-400">Day</div>
               <div className="text-sm font-semibold text-slate-900">{n}</div>
               {hasWorkout ? (
-                <div className="text-[11px] text-emerald-700 truncate mt-0.5 flex items-center">
+                <div className="text-[11px] text-indigo-700 truncate mt-0.5 flex items-center">
                   <Dumbbell className="w-3 h-3 mr-1 shrink-0" />
                   <span className="truncate">{d?.workoutName}</span>
                 </div>

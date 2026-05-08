@@ -333,7 +333,7 @@ export default function AddExerciseModal({
               type="button"
               onClick={save}
               disabled={!canSave || saving}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-sm font-semibold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Save className="w-3.5 h-3.5" />
               {isNew ? "Create exercise" : "Save changes"}
@@ -346,7 +346,7 @@ export default function AddExerciseModal({
 }
 
 const inputCls =
-  "w-full px-3 py-1.5 text-[13px] border border-slate-200 rounded-md bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent";
+  "w-full px-3 py-1.5 text-[13px] border border-slate-200 rounded-md bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent";
 
 function Field({
   label, required, hint, children,

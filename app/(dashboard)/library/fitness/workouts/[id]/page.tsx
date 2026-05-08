@@ -26,7 +26,7 @@ const SECTION_TYPE_LABEL: Record<WorkoutSectionType, string> = {
 
 const SECTION_TYPE_COLOR: Record<WorkoutSectionType, string> = {
   WARM_UP: "bg-amber-50 text-amber-700 border-amber-200",
-  MAIN: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  MAIN: "bg-indigo-50 text-indigo-700 border-indigo-200",
   COOL_DOWN: "bg-sky-50 text-sky-700 border-sky-200",
 };
 
@@ -159,7 +159,7 @@ function SectionCard({
         <div className="flex gap-2 shrink-0">
           <button
             onClick={() => setAdding(!adding)}
-            className="text-xs text-emerald-600 hover:text-emerald-700 inline-flex items-center"
+            className="text-xs text-indigo-600 hover:text-indigo-700 inline-flex items-center"
           >
             <Plus className="w-3.5 h-3.5 mr-0.5" /> Exercise
           </button>
@@ -274,7 +274,7 @@ function AddExerciseForm({
       {exercises.length === 0 ? (
         <p className="text-xs text-slate-500">
           No exercises in your library yet.{" "}
-          <Link href="/library/fitness/exercises" className="text-emerald-600 underline">
+          <Link href="/library/fitness/exercises" className="text-indigo-600 underline">
             Create one first
           </Link>.
         </p>
@@ -284,7 +284,7 @@ function AddExerciseForm({
           <select
             value={exerciseId}
             onChange={(e) => setExerciseId(e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
             required
           >
             <option value="">Select an exercise…</option>
@@ -348,7 +348,7 @@ function AttachSectionPanel({
         <h4 className="font-semibold text-slate-900 text-sm">Attach a section</h4>
         <button
           onClick={() => setCreating(!creating)}
-          className="text-xs text-emerald-600 hover:text-emerald-700 inline-flex items-center"
+          className="text-xs text-indigo-600 hover:text-indigo-700 inline-flex items-center"
         >
           <Plus className="w-3.5 h-3.5 mr-0.5" /> New section
         </button>
@@ -425,7 +425,7 @@ function NewSectionForm({
         <select
           value={sectionType}
           onChange={(e) => setSectionType(e.target.value as WorkoutSectionType)}
-          className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
         >
           <option value="WARM_UP">Warm up</option>
           <option value="MAIN">Main</option>
