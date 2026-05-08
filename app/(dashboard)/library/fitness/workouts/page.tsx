@@ -74,7 +74,7 @@ export default function WorkoutsPage() {
         <div className="space-y-2">
           {workouts.map((w) => (
             <Link key={w.id} href={`/library/fitness/workouts/${w.id}`}>
-              <Card className="hover:border-emerald-300 hover:shadow transition cursor-pointer">
+              <Card className="hover:border-indigo-300 hover:shadow transition cursor-pointer">
                 <CardContent className="flex items-center gap-3 py-3">
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-slate-900 truncate">{w.name}</h3>

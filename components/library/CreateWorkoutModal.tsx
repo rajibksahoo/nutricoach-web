@@ -148,11 +148,11 @@ function ChoiceCard({
   return (
     <button
       onClick={onClick}
-      className="bg-white border border-slate-200 rounded-lg flex flex-col items-center text-center transition-all hover:border-emerald-500 hover:bg-emerald-50/40 hover:-translate-y-px hover:shadow-sm"
+      className="bg-white border border-slate-200 rounded-lg flex flex-col items-center text-center transition-all hover:border-indigo-500 hover:bg-indigo-50/40 hover:-translate-y-px hover:shadow-sm"
       style={{ padding: "24px 16px 20px", gap: 10 }}
     >
       <div
-        className="flex items-center justify-center rounded-md text-emerald-700 bg-emerald-50 border border-emerald-200"
+        className="flex items-center justify-center rounded-md text-indigo-700 bg-indigo-50 border border-indigo-200"
         style={{ width: 44, height: 44 }}
       >
         <Icon className="w-5 h-5" />
@@ -243,7 +243,7 @@ function TemplatePickerCard({
           <div className="flex items-center gap-2 mb-3.5">
             <button
               onClick={onBack}
-              className="flex items-center text-emerald-600 p-0"
+              className="flex items-center text-indigo-600 p-0"
               aria-label="Back"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -262,7 +262,7 @@ function TemplatePickerCard({
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Search workout"
-              className="w-full bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
               style={{ padding: "8px 12px 8px 32px", fontSize: 12.5 }}
             />
           </div>
@@ -292,20 +292,20 @@ function TemplatePickerCard({
                 onClick={() => setPickedId(t.id)}
                 className={cn(
                   "w-full text-left rounded-md transition-colors",
-                  on ? "bg-emerald-50" : "hover:bg-slate-50",
+                  on ? "bg-indigo-50" : "hover:bg-slate-50",
                 )}
                 style={{ padding: "12px 14px", marginBottom: 1 }}
               >
                 <div
                   className={cn(
-                    on ? "text-emerald-700" : "text-slate-900",
+                    on ? "text-indigo-700" : "text-slate-900",
                   )}
                   style={{ fontSize: 14, fontWeight: 600, marginBottom: 2 }}
                 >
                   {t.name}
                 </div>
                 <div
-                  className={cn(on ? "text-emerald-700" : "text-slate-500")}
+                  className={cn(on ? "text-indigo-700" : "text-slate-500")}
                   style={{ fontSize: 11.5 }}
                 >
                   {t.exerciseCount} Exercises • {t.sectionCount} Sections
@@ -334,7 +334,7 @@ function TemplatePickerCard({
           <button
             onClick={handleSelect}
             disabled={creating || !picked}
-            className="bg-emerald-600 text-white rounded-md hover:bg-emerald-700 disabled:opacity-60"
+            className="bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-60"
             style={{ padding: "8px 18px", fontSize: 13, fontWeight: 600 }}
           >
             {creating ? "Creating…" : "Select"}
@@ -421,7 +421,7 @@ function TemplatePreview({ template }: { template: WorkoutTemplate }) {
               <span
                 className={cn(
                   "rounded-full",
-                  isEdge ? "bg-slate-300" : "bg-emerald-600",
+                  isEdge ? "bg-slate-300" : "bg-indigo-600",
                 )}
                 style={{ width: 7, height: 7, flexShrink: 0 }}
               />
@@ -580,7 +580,7 @@ function BlankFormCard({
       <div className="flex items-center gap-2 mb-3.5">
         <button
           onClick={onBack}
-          className="flex items-center text-emerald-600 p-0"
+          className="flex items-center text-indigo-600 p-0"
           aria-label="Back"
         >
           <ChevronLeft className="w-4 h-4" />
@@ -599,7 +599,7 @@ function BlankFormCard({
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Upper-body Strength Day"
-            className="w-full bg-white border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full bg-white border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
             style={{ padding: "8px 12px", fontSize: 13 }}
             autoFocus
             required
@@ -611,7 +611,7 @@ function BlankFormCard({
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
             placeholder="Optional"
-            className="w-full bg-white border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
+            className="w-full bg-white border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
             style={{ padding: "8px 12px", fontSize: 13 }}
           />
         </Field>
@@ -622,7 +622,7 @@ function BlankFormCard({
             value={duration}
             onChange={(e) => setDuration(e.target.value)}
             placeholder="e.g. 60"
-            className="w-full bg-white border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full bg-white border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
             style={{ padding: "8px 12px", fontSize: 13 }}
           />
         </Field>
@@ -638,7 +638,7 @@ function BlankFormCard({
           <button
             type="submit"
             disabled={saving}
-            className="bg-emerald-600 text-white rounded-md hover:bg-emerald-700 disabled:opacity-60"
+            className="bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-60"
             style={{ padding: "8px 18px", fontSize: 13, fontWeight: 600 }}
           >
             {saving ? "Creating…" : "Create"}

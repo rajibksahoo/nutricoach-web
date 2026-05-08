@@ -75,7 +75,7 @@ function initialsOf(name: string): string {
 function Avatar({ name }: { name: string }) {
   return (
     <span
-      className="inline-flex items-center justify-center rounded-full bg-emerald-100 text-emerald-700 shrink-0"
+      className="inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-700 shrink-0"
       style={{ width: 24, height: 24, fontSize: 10.5, fontWeight: 700 }}
     >
       {initialsOf(name)}
@@ -236,7 +236,7 @@ export default function WorkoutsPage() {
           className="flex items-center gap-2 text-slate-900"
           style={{ fontSize: 24, fontWeight: 700, letterSpacing: "-0.02em", lineHeight: 1.2 }}
         >
-          <ClipboardList className="w-5 h-5 text-emerald-600" />
+          <ClipboardList className="w-5 h-5 text-indigo-600" />
           Workouts
         </h1>
         <div className="flex items-center gap-2">
@@ -261,7 +261,7 @@ export default function WorkoutsPage() {
           <button
             type="button"
             onClick={() => setShowModal(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-[7px] text-[12.5px] font-semibold text-white bg-emerald-600 rounded-md hover:bg-emerald-700 shadow-sm"
+            className="inline-flex items-center gap-1.5 px-3 py-[7px] text-[12.5px] font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 shadow-sm"
           >
             <Plus className="w-3.5 h-3.5" />
             New workout
@@ -281,7 +281,7 @@ export default function WorkoutsPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search workout name…"
-            className="w-full bg-white border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full bg-white border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
             style={{ padding: "7px 12px 7px 32px", fontSize: 12.5 }}
           />
         </div>
@@ -314,7 +314,7 @@ export default function WorkoutsPage() {
                     type="checkbox"
                     checked={allChecked}
                     onChange={toggleAll}
-                    className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                    className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                   />
                 </Th>
                 <Th>
@@ -352,7 +352,7 @@ export default function WorkoutsPage() {
                     onClick={() => setSortKey("recent")}
                     className={cn(
                       "inline-flex items-center gap-1 uppercase",
-                      sortKey === "recent" ? "text-emerald-600" : "hover:text-slate-700",
+                      sortKey === "recent" ? "text-indigo-600" : "hover:text-slate-700",
                     )}
                   >
                     <Clock className="w-2.5 h-2.5" />
@@ -381,7 +381,7 @@ export default function WorkoutsPage() {
                     {search && (
                       <button
                         onClick={() => setSearch("")}
-                        className="ml-1 text-emerald-600 font-medium"
+                        className="ml-1 text-indigo-600 font-medium"
                       >
                         Clear search
                       </button>
@@ -397,7 +397,7 @@ export default function WorkoutsPage() {
                     onClick={() => router.push(`/library/workouts/${row.id}`)}
                     className={cn(
                       "border-t border-slate-100 cursor-pointer transition-colors group",
-                      on ? "bg-emerald-50" : "bg-white hover:bg-slate-50",
+                      on ? "bg-indigo-50" : "bg-white hover:bg-slate-50",
                     )}
                     style={{ verticalAlign: "top" }}
                   >
@@ -406,7 +406,7 @@ export default function WorkoutsPage() {
                         type="checkbox"
                         checked={on}
                         onChange={() => {}}
-                        className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                        className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                       />
                     </Td>
                     <Td>

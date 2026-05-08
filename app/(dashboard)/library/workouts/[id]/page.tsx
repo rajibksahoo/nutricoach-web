@@ -64,10 +64,10 @@ const SECTION_META: Record<WorkoutSectionType, SectionPaletteEntry> = {
   },
   MAIN: {
     label: "Main",
-    bg: "bg-emerald-50",
-    border: "border-emerald-200",
-    badgeBg: "bg-emerald-600",
-    text: "text-emerald-800",
+    bg: "bg-indigo-50",
+    border: "border-indigo-200",
+    badgeBg: "bg-indigo-600",
+    text: "text-indigo-800",
     Icon: Dumbbell,
   },
   COOL_DOWN: {
@@ -87,7 +87,7 @@ function exerciseTileColor(ex: Exercise): { bg: string; border: string; fg: stri
     case "mobility":   return { bg: "#F0F9FF", border: "#BAE6FD", fg: "#0284C7" };
     case "plyometric": return { bg: "#FFFBEB", border: "#FDE68A", fg: "#D97706" };
     case "skill":      return { bg: "#F5F3FF", border: "#DDD6FE", fg: "#7C3AED" };
-    default:           return { bg: "#ECFDF5", border: "#A7F3D0", fg: "#047857" };
+    default:           return { bg: "#EEF2FF", border: "#C7D2FE", fg: "#4F46E5" };
   }
 }
 
@@ -368,8 +368,8 @@ export default function WorkoutEditorPage() {
                       className={cn(
                         "flex-1 rounded-md transition-all",
                         on
-                          ? "bg-emerald-600 text-white"
-                          : "text-emerald-700 hover:text-emerald-800",
+                          ? "bg-indigo-600 text-white"
+                          : "text-indigo-700 hover:text-indigo-800",
                       )}
                       style={{
                         padding: "7px 10px",
@@ -396,7 +396,7 @@ export default function WorkoutEditorPage() {
                       ? "Search for your Exercises"
                       : "Search for your Sections"
                   }
-                  className="w-full bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   style={{ padding: "7px 11px 7px 30px", fontSize: 12.5 }}
                 />
               </div>
@@ -484,11 +484,11 @@ export default function WorkoutEditorPage() {
                       key={s.id}
                       onClick={() => attachSection(s.id)}
                       title="Attach to workout"
-                      className="w-full text-left bg-white border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/40 rounded-md transition-all"
+                      className="w-full text-left bg-white border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50/40 rounded-md transition-all"
                       style={{ padding: "10px 11px", marginBottom: 6 }}
                     >
                       <div className="flex items-center gap-1.5" style={{ marginBottom: 2 }}>
-                        <M className="w-3 h-3 text-emerald-600" />
+                        <M className="w-3 h-3 text-indigo-600" />
                         <span
                           className="text-slate-900"
                           style={{ fontSize: 12.5, fontWeight: 600 }}
@@ -695,7 +695,7 @@ function EmptyCanvas({ onAddSection }: { onAddSection: () => void }) {
     >
       <div className="flex items-center gap-2.5">
         <div
-          className="rounded-md border-[1.5px] border-dashed border-slate-300 flex items-center justify-center text-emerald-600"
+          className="rounded-md border-[1.5px] border-dashed border-slate-300 flex items-center justify-center text-indigo-600"
           style={{ width: 46, height: 36 }}
         >
           <Dumbbell className="w-4 h-4" />
@@ -709,7 +709,7 @@ function EmptyCanvas({ onAddSection }: { onAddSection: () => void }) {
       <button
         type="button"
         onClick={onAddSection}
-        className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 rounded-md"
+        className="inline-flex items-center gap-1.5 bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 rounded-md"
         style={{ padding: "7px 14px", fontSize: 12.5, fontWeight: 600 }}
       >
         <Plus className="w-3.5 h-3.5" />
@@ -724,7 +724,7 @@ function SectionAddButton({ onClick }: { onClick: () => void }) {
     <button
       type="button"
       onClick={onClick}
-      className="border-2 border-dashed border-slate-200 hover:border-emerald-400 hover:text-emerald-600 hover:bg-emerald-50/50 text-slate-400 rounded-xl flex items-center justify-center gap-2 transition-all"
+      className="border-2 border-dashed border-slate-200 hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50/50 text-slate-400 rounded-xl flex items-center justify-center gap-2 transition-all"
       style={{ padding: 14, fontSize: 12.5, fontWeight: 500 }}
     >
       <Plus className="w-3.5 h-3.5" />
@@ -834,7 +834,7 @@ function EditorSection({
     <div
       className={cn(
         "bg-white border rounded-xl overflow-hidden shadow-sm transition-colors",
-        dragOver ? "border-emerald-400 ring-2 ring-emerald-200" : "border-slate-200",
+        dragOver ? "border-indigo-400 ring-2 ring-indigo-200" : "border-slate-200",
       )}
       onDragOver={(ev) => {
         if (
@@ -1011,7 +1011,7 @@ function EditorSection({
               <button
                 type="button"
                 onClick={() => setAdding(true)}
-                className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 rounded-md"
+                className="inline-flex items-center gap-1 bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 rounded-md"
                 style={{ padding: "5px 10px", fontSize: 12, fontWeight: 600 }}
               >
                 <Plus className="w-3 h-3" />
@@ -1194,7 +1194,7 @@ function EditableParamPill({
           "inline-flex items-baseline gap-1 border rounded text-left transition-colors",
           empty
             ? "bg-white border-dashed border-slate-200 text-slate-300 hover:text-slate-500 hover:border-slate-300"
-            : "bg-slate-50 border-slate-200 text-slate-700 hover:border-emerald-400",
+            : "bg-slate-50 border-slate-200 text-slate-700 hover:border-indigo-400",
         )}
         style={{ padding: "2px 7px", fontSize: 11, fontFamily: "ui-monospace, monospace" }}
         title="Click to edit"
@@ -1211,7 +1211,7 @@ function EditableParamPill({
 
   return (
     <span
-      className="inline-flex items-baseline gap-1 bg-white border border-emerald-400 rounded ring-2 ring-emerald-200"
+      className="inline-flex items-baseline gap-1 bg-white border border-indigo-400 rounded ring-2 ring-indigo-200"
       style={{ padding: "1px 5px", fontSize: 11, fontFamily: "ui-monospace, monospace" }}
     >
       <span className="text-slate-400" style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.05em" }}>
@@ -1277,7 +1277,7 @@ function AddExerciseInline({
       <select
         value={exerciseId}
         onChange={(e) => setExerciseId(e.target.value)}
-        className="w-full bg-white border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+        className="w-full bg-white border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
         style={{ padding: "6px 10px", fontSize: 12.5 }}
         autoFocus
       >
@@ -1310,7 +1310,7 @@ function AddExerciseInline({
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Coach note…"
-          className="flex-1 bg-white border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          className="flex-1 bg-white border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
           style={{ padding: "5px 9px", fontSize: 11.5, minWidth: 120 }}
         />
         <button
@@ -1335,7 +1335,7 @@ function AddExerciseInline({
               notes: notes || null,
             })
           }
-          className="bg-emerald-600 text-white rounded-md hover:bg-emerald-700 disabled:opacity-50"
+          className="bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50"
           style={{ padding: "6px 14px", fontSize: 12, fontWeight: 600 }}
         >
           Add
@@ -1373,7 +1373,7 @@ function MiniField({
           type={text ? "text" : "number"}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="bg-white border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          className="bg-white border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
           style={{
             width,
             padding: suffix ? "3px 14px 3px 7px" : "3px 7px",
