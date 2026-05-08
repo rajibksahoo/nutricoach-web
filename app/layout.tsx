@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
 
@@ -9,6 +9,13 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-jetbrains-mono",
+  weight: ["400", "500", "600"],
+});
+
 export const metadata: Metadata = {
   title: "NutriCoach",
   description: "Nutrition coaching platform for Indian coaches",
@@ -16,7 +23,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`h-full ${inter.variable}`}>
+    <html lang="en" className={`h-full ${inter.variable} ${jetbrainsMono.variable}`}>
       <body className="h-full antialiased">
         {children}
         <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
