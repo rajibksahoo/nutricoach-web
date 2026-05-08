@@ -1,16 +1,14 @@
-import LibraryTabs from "@/components/library/LibraryTabs";
+import LibrarySidebar from "@/components/library/LibrarySidebar";
 import LibraryOnboardingPill from "@/components/library/LibraryOnboardingPill";
 
 export default function LibraryLayout({ children }: { children: React.ReactNode }) {
   return (
     <div
-      className="min-h-screen"
-      style={{ background: "var(--surface)" }}
+      className="flex min-h-screen"
+      style={{ background: "var(--bg)" }}
     >
-      <div className="px-7 pt-6">
-        <LibraryTabs />
-      </div>
-      <div className="px-7 py-6">{children}</div>
+      <LibrarySidebar />
+      <div className="flex-1 min-w-0 overflow-x-auto">{children}</div>
       <LibraryOnboardingPill />
     </div>
   );

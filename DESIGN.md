@@ -163,18 +163,40 @@ Anti-aliasing: `-webkit-font-smoothing: antialiased` globally.
 7. Billing — `CreditCard`
 8. Profile — `UserCircle` (kept beyond the design — production-only)
 
-### Library — top tabs (locked decision)
+### Library — grouped section pane (matches the design)
 
-The Library section uses **horizontal tabs** at the top of the page (`Fitness · Nutrition · Habits · Forms`), not a section pane. The 11-entry left pane is retired. Tab styling:
+The Library uses a **232px left section pane** with **grouped item lists**, not horizontal tabs. The four groups (`Fitness · Nutrition · Habits · Forms`) appear as uppercase 10.5px headers; their items render as plain rows underneath. Source of truth: `library.jsx` `navGroups`.
 
-- Container: `flex gap-1 border-b border-[var(--border)]`.
-- Tab: `flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors`.
-- Active: `color: var(--brand-primary)`, `border-color: var(--brand-primary)`.
-- Idle: `color: var(--fg3)`, `border-color: transparent` (hover bumps to `--fg2`).
-- Leading lucide icon at `w-4 h-4` (`Dumbbell`, `Apple`, `ListChecks`, `FileText`).
-- Active prefix matching: each tab has a `matchPrefixes` list so legacy `/library/{exercises,workouts,programs,sections,...}` paths still highlight the **Fitness** tab while the migration to `/library/fitness/*` finishes. Same idea for Nutrition and Habits.
+> **Correction (2026-05-09):** an earlier version of this doc claimed Library was migrating to top tabs. That was wrong — the design's library.jsx is a section pane all along. Reverted.
 
-Implemented in `components/library/LibraryTabs.tsx`; mounted at the top of `app/(dashboard)/library/layout.tsx`. The retired section pane (`LibrarySidebar.tsx`) has been deleted. `/library/` redirects to `/library/fitness/`.
+**Pane container**
+- `aside` `width: 232px`, `background: var(--surface)` (white), `border-right: 1px solid var(--border)`.
+- Padding: `22px 0 40px`. Flex column.
+
+**Page title**
+- Outside any group: padding `0 22px 14px`.
+- `h2` in `var(--font-display-xl)` 17px / 700, `letter-spacing: -0.01em`, `color: var(--fg1)`.
+
+**Group**
+- Padding: `4px 10px`. `margin-top: 10px` for groups after the first.
+- Group header: padding `6px 12px 4px`, 10.5px / 700, `color: var(--fg4)`, **uppercase**, `letter-spacing: 0.08em`.
+
+**Item (Link)**
+- `flex items-center justify-between`, padding `8px 12px`, `border-radius: 7px`, font `13px / 500`, `margin-bottom: 1px`.
+- Active: `background: var(--brand-primary-50)`, `color: var(--brand-primary)`, font weight `600`. **No border-l accent.**
+- Idle: `background: transparent`, `color: var(--fg2)`. Hover: `background: var(--bg)`.
+- Active match uses `pathname === href || pathname.startsWith(href + "/")`. Items can declare `matchPrefixes` so legacy + new paths (e.g. `/library/exercises` and `/library/fitness/exercises`) both light up the same row.
+
+**Optional `NEW` pill** (right side of an item)
+- 9px / 700, padding `1px 6px`, `border-radius: 9px`, `background: #7C3AED` (violet), `color: #fff`, `letter-spacing: 0.04em`.
+
+**Groups + items (matches `navGroups` in `library.jsx`):**
+- **Fitness** — Exercises · Workouts · Sections · Programs
+- **Nutrition** — Meal Plan Templates · Recipes · Ingredients · Recipe Books `[NEW]`
+- **Habits** — Tasks · Metric Groups
+- **Forms** — Forms & Questionnaires
+
+Implemented in `components/library/LibrarySidebar.tsx`; mounted in `app/(dashboard)/library/layout.tsx`. `/library/` redirects to `/library/exercises` (Fitness's first item).
 
 ### Section pane (legacy, for sections that aren't Library)
 
