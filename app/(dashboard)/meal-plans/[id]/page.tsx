@@ -214,7 +214,7 @@ export default function MealPlanBuilderPage() {
     return (
       <div className="text-center py-24 text-slate-400 text-sm">
         Meal plan not found.{" "}
-        <button onClick={() => router.push("/meal-plans")} className="text-emerald-600 underline">
+        <button onClick={() => router.push("/meal-plans")} className="text-indigo-600 underline">
           Go back
         </button>
       </div>
@@ -277,12 +277,12 @@ export default function MealPlanBuilderPage() {
             onClick={() => setActiveDayId(day.id)}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               activeDayId === day.id
-                ? "bg-emerald-600 text-white"
+                ? "bg-indigo-600 text-white"
                 : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
             }`}
           >
             Day {day.dayNumber}
-            <span className={`ml-1 text-xs ${activeDayId === day.id ? "text-emerald-100" : "text-slate-400"}`}>
+            <span className={`ml-1 text-xs ${activeDayId === day.id ? "text-indigo-100" : "text-slate-400"}`}>
               {DAY_NAMES[day.dayNumber - 1]}
             </span>
           </button>
@@ -471,7 +471,7 @@ function MealCard({
     <Card>
       <CardHeader className="flex flex-row items-center justify-between py-3">
         <div className="flex items-center gap-2.5">
-          <span className="text-emerald-600">
+          <span className="text-indigo-600">
             {MEAL_TYPE_ICONS[meal.mealType] ?? <UtensilsCrossed className="w-4 h-4" />}
           </span>
           <div>
@@ -540,7 +540,7 @@ function MealCard({
 
         <button
           onClick={() => setShowAddFood((v) => !v)}
-          className="mt-1 flex items-center gap-1.5 text-xs text-emerald-600 hover:text-emerald-700 font-medium transition-colors"
+          className="mt-1 flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
         >
           <Plus className="w-3.5 h-3.5" />
           {showAddFood ? "Cancel" : "Add food"}
@@ -592,7 +592,7 @@ function AddMealForm({
                   setMealType(t);
                   setName(MEAL_TYPE_LABELS[t]);
                 }}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
               >
                 {MEAL_TYPES.map((t) => (
                   <option key={t} value={t}>{MEAL_TYPE_LABELS[t]}</option>
@@ -605,7 +605,7 @@ function AddMealForm({
                 type="time"
                 value={timeOfDay}
                 onChange={(e) => setTimeOfDay(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </label>
           </div>
@@ -620,7 +620,7 @@ function AddMealForm({
               onChange={(e) => setName(e.target.value)}
               maxLength={150}
               required
-              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </label>
           <div className="flex gap-2 justify-end">
@@ -701,7 +701,7 @@ function FoodSearchPanel({
               placeholder="Search food items…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="w-full pl-8 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+              className="w-full pl-8 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
             />
           </div>
           <div className="max-h-48 overflow-y-auto space-y-0.5">
@@ -740,7 +740,7 @@ function FoodSearchPanel({
             </div>
             <button
               onClick={() => setSelected(null)}
-              className="text-xs text-emerald-600 hover:text-emerald-700 font-medium underline shrink-0"
+              className="text-xs text-indigo-600 hover:text-indigo-700 font-medium underline shrink-0"
             >
               Change
             </button>
@@ -754,7 +754,7 @@ function FoodSearchPanel({
               max={2000}
               value={qty}
               onChange={(e) => setQty(Number(e.target.value))}
-              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
             />
           </label>
           <div className="flex gap-2 justify-end">

@@ -41,12 +41,12 @@ function MessageBubble({ msg }: { msg: Message }) {
         className={cn(
           "max-w-[75%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed",
           isClient
-            ? "bg-emerald-600 text-white rounded-br-sm"
+            ? "bg-indigo-600 text-white rounded-br-sm"
             : "bg-white border border-slate-200 text-slate-800 rounded-bl-sm shadow-sm"
         )}
       >
         <p>{msg.content}</p>
-        <p className={cn("text-[10px] mt-1 text-right", isClient ? "text-emerald-200" : "text-slate-400")}>
+        <p className={cn("text-[10px] mt-1 text-right", isClient ? "text-indigo-200" : "text-slate-400")}>
           {formatTime(msg.sentAt)}
         </p>
       </div>
@@ -154,7 +154,7 @@ export default function ClientChatPage() {
           <button
             onClick={sendMessage}
             disabled={!input.trim() || sending}
-            className="h-8 w-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shrink-0"
+            className="h-8 w-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shrink-0"
           >
             {sending ? <Spinner className="w-3.5 h-3.5 text-white" /> : <Send className="w-3.5 h-3.5" />}
           </button>

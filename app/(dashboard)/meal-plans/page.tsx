@@ -102,7 +102,7 @@ export default function MealPlansPage() {
         <Card>
           <CardContent className="text-center py-16 text-slate-400 text-sm">
             No clients yet.{" "}
-            <Link href="/clients/new" className="text-emerald-600 font-medium hover:underline">
+            <Link href="/clients/new" className="text-indigo-600 font-medium hover:underline">
               Add a client first →
             </Link>
           </CardContent>
@@ -117,12 +117,12 @@ export default function MealPlansPage() {
                 onClick={() => { setSelected(c); setShowForm(false); }}
                 className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors ${
                   selected?.id === c.id
-                    ? "bg-emerald-600 text-white font-medium"
+                    ? "bg-indigo-600 text-white font-medium"
                     : "text-slate-700 hover:bg-slate-100"
                 }`}
               >
                 <p className="font-medium truncate">{c.name}</p>
-                <p className={`text-xs truncate ${selected?.id === c.id ? "text-emerald-100" : "text-slate-400"}`}>
+                <p className={`text-xs truncate ${selected?.id === c.id ? "text-indigo-100" : "text-slate-400"}`}>
                   {c.phone}
                 </p>
               </button>
@@ -169,13 +169,13 @@ export default function MealPlansPage() {
               <div className="space-y-3">
                 {plans.map((plan) => (
                   <Link key={plan.id} href={`/meal-plans/${plan.id}`}>
-                    <Card className="hover:border-emerald-200 hover:shadow-md transition-all cursor-pointer">
+                    <Card className="hover:border-indigo-200 hover:shadow-md transition-all cursor-pointer">
                       <CardContent className="flex items-center justify-between py-4">
                         <div className="flex items-center gap-3">
-                          <div className="p-2 bg-emerald-50 rounded-lg">
+                          <div className="p-2 bg-indigo-50 rounded-lg">
                             {plan.aiGenerated
                               ? <Sparkles className="w-4 h-4 text-violet-500" />
-                              : <UtensilsCrossed className="w-4 h-4 text-emerald-600" />}
+                              : <UtensilsCrossed className="w-4 h-4 text-indigo-600" />}
                           </div>
                           <div>
                             <p className="text-sm font-semibold text-slate-900">{plan.name}</p>
@@ -359,7 +359,7 @@ function NewPlanForm({ onSubmit, onCancel, loading }: {
               onChange={(e) => setName(e.target.value)}
               maxLength={100}
               required
-              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </label>
           <div className="flex gap-2 justify-end">

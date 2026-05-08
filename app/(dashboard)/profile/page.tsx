@@ -156,7 +156,7 @@ export default function ProfilePage() {
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-lg shrink-0">
+          <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-lg shrink-0">
             {profile.name[0].toUpperCase()}
           </div>
           <div>
@@ -208,7 +208,7 @@ export default function ProfilePage() {
           )}
           <p className="text-xs text-slate-400 pt-1">
             To change your plan, visit{" "}
-            <a href="/billing" className="text-emerald-600 hover:underline">Billing</a>.
+            <a href="/billing" className="text-indigo-600 hover:underline">Billing</a>.
           </p>
         </CardContent>
       </Card>

@@ -88,10 +88,10 @@ function ClientOtpForm() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-emerald-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-emerald-600 rounded-xl mb-4">
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-indigo-600 rounded-xl mb-4">
             <Leaf className="w-6 h-6 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-slate-900">NutriCoach</h1>
@@ -128,7 +128,7 @@ function ClientOtpForm() {
                     value={digit}
                     onChange={(e) => handleChange(i, e.target.value)}
                     onKeyDown={(e) => handleKeyDown(i, e)}
-                    className="w-11 h-12 text-center text-lg font-semibold border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                    className="w-11 h-12 text-center text-lg font-semibold border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   />
                 ))}
               </div>
@@ -140,7 +140,7 @@ function ClientOtpForm() {
                 {resendCountdown > 0 ? (
                   <p className="text-sm text-slate-400">Resend in {resendCountdown}s</p>
                 ) : (
-                  <button type="button" onClick={handleResend} className="text-sm text-emerald-600 font-medium hover:underline">
+                  <button type="button" onClick={handleResend} className="text-sm text-indigo-600 font-medium hover:underline">
                     Resend OTP
                   </button>
                 )}

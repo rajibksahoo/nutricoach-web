@@ -55,7 +55,7 @@ export default function DashboardPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Total Clients" value={data?.totalClients ?? 0} icon={<Users className="w-5 h-5 text-emerald-600" />} />
+        <StatCard label="Total Clients" value={data?.totalClients ?? 0} icon={<Users className="w-5 h-5 text-indigo-600" />} />
         <StatCard label="Active" value={data?.activeClients ?? 0} icon={<Users className="w-5 h-5 text-blue-600" />} />
         <StatCard label="Meal Plans" value={data?.totalMealPlans ?? 0} icon={<UtensilsCrossed className="w-5 h-5 text-violet-600" />} />
         <StatCard label="Need a Plan" value={data?.clientsNeedingPlan ?? 0} icon={<AlertCircle className="w-5 h-5 text-amber-500" />} alert={(data?.clientsNeedingPlan ?? 0) > 0} />
@@ -66,7 +66,7 @@ export default function DashboardPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <h2 className="font-semibold text-slate-900">Recent Clients</h2>
-            <Link href="/clients" className="text-sm text-emerald-600 font-medium hover:underline">
+            <Link href="/clients" className="text-sm text-indigo-600 font-medium hover:underline">
               View all
             </Link>
           </div>
@@ -75,7 +75,7 @@ export default function DashboardPage() {
           {!data?.recentClients?.length ? (
             <div className="px-5 py-10 text-center text-slate-400 text-sm">
               No clients yet.{" "}
-              <Link href="/clients/new" className="text-emerald-600 font-medium hover:underline">
+              <Link href="/clients/new" className="text-indigo-600 font-medium hover:underline">
                 Add your first client →
               </Link>
             </div>

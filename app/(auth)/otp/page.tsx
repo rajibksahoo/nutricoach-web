@@ -113,7 +113,7 @@ function OtpForm() {
                 value={digit}
                 onChange={(e) => handleChange(i, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(i, e)}
-                className="w-11 h-12 text-center text-lg font-semibold border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                className="w-11 h-12 text-center text-lg font-semibold border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               />
             ))}
           </div>
@@ -125,7 +125,7 @@ function OtpForm() {
             {resendCountdown > 0 ? (
               <p className="text-sm text-slate-400">Resend in {resendCountdown}s</p>
             ) : (
-              <button type="button" onClick={handleResend} className="text-sm text-emerald-600 font-medium hover:underline">
+              <button type="button" onClick={handleResend} className="text-sm text-indigo-600 font-medium hover:underline">
                 Resend OTP
               </button>
             )}

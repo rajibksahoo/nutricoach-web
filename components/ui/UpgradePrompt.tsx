@@ -68,7 +68,7 @@ export default function UpgradePrompt() {
               setVisible(false);
               router.push("/billing");
             }}
-            className="flex-1 inline-flex items-center justify-center py-2.5 rounded-lg text-sm font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+            className="flex-1 inline-flex items-center justify-center py-2.5 rounded-lg text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
           >
             Upgrade Plan
           </button>

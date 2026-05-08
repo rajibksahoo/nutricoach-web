@@ -32,7 +32,7 @@ interface BillingStatus {
 
 const PLANS = [
   { tier: "STARTER",      price: 999,  label: "Starter",      clients: "25 clients",    color: "border-slate-200" },
-  { tier: "PROFESSIONAL", price: 2499, label: "Professional", clients: "100 clients",   color: "border-emerald-400" },
+  { tier: "PROFESSIONAL", price: 2499, label: "Professional", clients: "100 clients",   color: "border-indigo-400" },
   { tier: "ENTERPRISE",   price: 4999, label: "Enterprise",   clients: "Unlimited",     color: "border-violet-400" },
 ];
 
@@ -114,7 +114,7 @@ export default function BillingPage() {
         {PLANS.map((plan) => {
           const isCurrent = currentTier === plan.tier && isActive;
           return (
-            <Card key={plan.tier} className={`relative ${plan.color} ${isCurrent ? "ring-2 ring-emerald-500" : ""}`}>
+            <Card key={plan.tier} className={`relative ${plan.color} ${isCurrent ? "ring-2 ring-indigo-500" : ""}`}>
               {isCurrent && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                   <Badge variant="green">Current plan</Badge>

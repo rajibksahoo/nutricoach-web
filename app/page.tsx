@@ -29,37 +29,37 @@ interface PricingPlan {
 
 const FEATURES: Feature[] = [
   {
-    icon: <Users className="w-6 h-6 text-emerald-600" />,
+    icon: <Users className="w-6 h-6 text-indigo-600" />,
     title: "Client Management",
     description:
       "Track all your clients in one place with detailed health profiles, goal tracking, and status filters.",
   },
   {
-    icon: <UtensilsCrossed className="w-6 h-6 text-emerald-600" />,
+    icon: <UtensilsCrossed className="w-6 h-6 text-indigo-600" />,
     title: "Meal Plan Builder",
     description:
       "Create detailed 7-day Indian meal plans with nutrition auto-calculation for every item.",
   },
   {
-    icon: <MessageCircle className="w-6 h-6 text-emerald-600" />,
+    icon: <MessageCircle className="w-6 h-6 text-indigo-600" />,
     title: "WhatsApp Sharing",
     description:
       "Share meal plans directly to your clients' WhatsApp with one click.",
   },
   {
-    icon: <Sparkles className="w-6 h-6 text-emerald-600" />,
+    icon: <Sparkles className="w-6 h-6 text-indigo-600" />,
     title: "AI Generation",
     description:
       "Generate personalized Indian meal plans instantly using GPT-4o.",
   },
   {
-    icon: <TrendingUp className="w-6 h-6 text-emerald-600" />,
+    icon: <TrendingUp className="w-6 h-6 text-indigo-600" />,
     title: "Progress Tracking",
     description:
       "Log measurements, photos, and adherence scores. Chart your clients' progress over time.",
   },
   {
-    icon: <CreditCard className="w-6 h-6 text-emerald-600" />,
+    icon: <CreditCard className="w-6 h-6 text-indigo-600" />,
     title: "Razorpay Billing",
     description:
       "Accept payments in ₹ via UPI and cards. Automated GST invoicing included.",
@@ -111,7 +111,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto flex items-center justify-between px-6 h-16">
           {/* Logo */}
           <div className="flex items-center gap-2">
-            <Leaf className="w-6 h-6 text-emerald-600" />
+            <Leaf className="w-6 h-6 text-indigo-600" />
             <span className="font-bold text-lg text-slate-900">NutriCoach</span>
           </div>
 
@@ -125,7 +125,7 @@ export default function LandingPage() {
           {/* CTA */}
           <Link
             href="/login"
-            className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+            className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
           >
             Start Free Trial
           </Link>
@@ -133,11 +133,11 @@ export default function LandingPage() {
       </header>
 
       {/* ── Hero ───────────────────────────────────────────────────────── */}
-      <section className="py-24 px-6 text-center bg-gradient-to-b from-emerald-50/60 to-white">
+      <section className="py-24 px-6 text-center bg-gradient-to-b from-indigo-50/60 to-white">
         <div className="max-w-3xl mx-auto">
           <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 leading-tight tracking-tight">
             The nutrition platform built for{" "}
-            <span className="text-emerald-600">Indian coaches</span>
+            <span className="text-indigo-600">Indian coaches</span>
           </h1>
           <p className="mt-5 text-lg text-slate-500 leading-relaxed">
             Manage clients, create personalized meal plans, and grow your
@@ -147,7 +147,7 @@ export default function LandingPage() {
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
               href="/login"
-              className="inline-flex items-center justify-center px-6 py-3 text-base font-semibold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition-colors shadow-sm"
+              className="inline-flex items-center justify-center px-6 py-3 text-base font-semibold rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-sm"
             >
               Start Free Trial →
             </Link>
@@ -181,7 +181,7 @@ export default function LandingPage() {
                 key={f.title}
                 className="rounded-xl border border-slate-100 bg-white p-6 shadow-sm hover:shadow-md transition-shadow"
               >
-                <div className="mb-4 inline-flex items-center justify-center w-11 h-11 rounded-lg bg-emerald-50">
+                <div className="mb-4 inline-flex items-center justify-center w-11 h-11 rounded-lg bg-indigo-50">
                   {f.icon}
                 </div>
                 <h3 className="font-semibold text-slate-900 mb-2">{f.title}</h3>
@@ -208,13 +208,13 @@ export default function LandingPage() {
                 key={plan.name}
                 className={`relative rounded-2xl border bg-white p-8 flex flex-col ${
                   plan.popular
-                    ? "border-emerald-400 ring-2 ring-emerald-400 shadow-lg"
+                    ? "border-indigo-400 ring-2 ring-indigo-400 shadow-lg"
                     : "border-slate-200 shadow-sm"
                 }`}
               >
                 {plan.popular && (
                   <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-600 text-white">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-indigo-600 text-white">
                       Most Popular
                     </span>
                   </div>
@@ -231,7 +231,7 @@ export default function LandingPage() {
                 <ul className="space-y-3 flex-1 mb-8">
                   {plan.features.map((feat) => (
                     <li key={feat} className="flex items-start gap-2.5 text-sm text-slate-600">
-                      <Check className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
+                      <Check className="w-4 h-4 text-indigo-500 flex-shrink-0 mt-0.5" />
                       {feat}
                     </li>
                   ))}
@@ -241,7 +241,7 @@ export default function LandingPage() {
                   href="/login"
                   className={`inline-flex items-center justify-center w-full py-2.5 rounded-lg text-sm font-semibold transition-colors ${
                     plan.popular
-                      ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                      ? "bg-indigo-600 text-white hover:bg-indigo-700"
                       : "border border-slate-200 text-slate-700 hover:bg-slate-50"
                   }`}
                 >

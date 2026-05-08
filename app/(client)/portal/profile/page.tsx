@@ -64,8 +64,8 @@ export default function ClientProfilePage() {
       <Card>
         <CardContent className="py-5">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
-              <User className="w-7 h-7 text-emerald-600" />
+            <div className="w-14 h-14 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
+              <User className="w-7 h-7 text-indigo-600" />
             </div>
             <div>
               <p className="text-base font-semibold text-slate-900">{p?.name ?? localClient?.name}</p>

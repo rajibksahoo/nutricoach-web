@@ -96,13 +96,13 @@ export default function ClientHomePage() {
         <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">Active Meal Plan</p>
         {activePlan ? (
           <Link href={`/portal/meal-plans/${activePlan.id}`}>
-            <Card className="hover:border-emerald-200 hover:shadow-md transition-all cursor-pointer">
+            <Card className="hover:border-indigo-200 hover:shadow-md transition-all cursor-pointer">
               <CardContent className="flex items-center justify-between py-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-emerald-50 rounded-lg">
+                  <div className="p-2 bg-indigo-50 rounded-lg">
                     {activePlan.aiGenerated
                       ? <Sparkles className="w-4 h-4 text-violet-500" />
-                      : <UtensilsCrossed className="w-4 h-4 text-emerald-600" />}
+                      : <UtensilsCrossed className="w-4 h-4 text-indigo-600" />}
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-slate-900">{activePlan.name}</p>
@@ -137,9 +137,9 @@ export default function ClientHomePage() {
           { href: "/portal/check-ins", icon: ClipboardList, label: "Check-ins", count: null },
         ].map(({ href, icon: Icon, label, count }) => (
           <Link key={href} href={href}>
-            <Card className="hover:border-emerald-200 hover:shadow-sm transition-all cursor-pointer">
+            <Card className="hover:border-indigo-200 hover:shadow-sm transition-all cursor-pointer">
               <CardContent className="flex flex-col items-center py-4 gap-1">
-                <Icon className="w-5 h-5 text-emerald-600" />
+                <Icon className="w-5 h-5 text-indigo-600" />
                 <p className="text-xs font-medium text-slate-700">{label}</p>
                 {count != null && <p className="text-xs text-slate-400">{count}</p>}
               </CardContent>

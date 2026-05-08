@@ -137,12 +137,12 @@ export default function ProgressPage() {
                 onClick={() => { setSelectedClient(c); setShowLogForm(false); setShowCheckInForm(false); }}
                 className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors ${
                   selectedClient?.id === c.id
-                    ? "bg-emerald-600 text-white font-medium"
+                    ? "bg-indigo-600 text-white font-medium"
                     : "text-slate-700 hover:bg-slate-100"
                 }`}
               >
                 <p className="font-medium truncate">{c.name}</p>
-                <p className={`text-xs truncate ${selectedClient?.id === c.id ? "text-emerald-100" : "text-slate-400"}`}>
+                <p className={`text-xs truncate ${selectedClient?.id === c.id ? "text-indigo-100" : "text-slate-400"}`}>
                   {c.phone}
                 </p>
               </button>
@@ -425,7 +425,7 @@ function ProgressLogList({ logs }: { logs: ProgressLog[] }) {
                 </p>
                 {weightDelta !== null && (
                   <span className={`flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${
-                    weightDelta < 0 ? "bg-emerald-50 text-emerald-700" :
+                    weightDelta < 0 ? "bg-indigo-50 text-indigo-700" :
                     weightDelta > 0 ? "bg-red-50 text-red-600" : "bg-slate-100 text-slate-500"
                   }`}>
                     {weightDelta < 0 ? <TrendingDown className="w-3 h-3" /> :
@@ -477,8 +477,8 @@ function CheckInList({ checkIns }: { checkIns: CheckIn[] }) {
         <Card key={ci.id}>
           <CardContent className="flex items-center justify-between py-3.5">
             <div className="flex items-center gap-3">
-              <div className="p-1.5 bg-emerald-50 rounded-lg">
-                <CheckSquare className="w-4 h-4 text-emerald-600" />
+              <div className="p-1.5 bg-indigo-50 rounded-lg">
+                <CheckSquare className="w-4 h-4 text-indigo-600" />
               </div>
               <div>
                 <p className="text-sm font-medium text-slate-900">{formatDate(ci.checkInDate)}</p>
@@ -515,7 +515,7 @@ function Metric({ label, value, unit, icon, highlight }: {
 
 function AdherenceBadge({ value }: { value: number }) {
   const cls = value >= 80
-    ? "bg-emerald-100 text-emerald-700"
+    ? "bg-indigo-100 text-indigo-700"
     : value >= 60
     ? "bg-amber-100 text-amber-700"
     : "bg-red-100 text-red-600";
@@ -538,7 +538,7 @@ function Field({ label, required, children }: { label: string; required?: boolea
 }
 
 function adherenceColor(value: number) {
-  if (value >= 80) return "text-emerald-600";
+  if (value >= 80) return "text-indigo-600";
   if (value >= 60) return "text-amber-600";
   return "text-red-500";
 }
@@ -547,7 +547,7 @@ function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 }
 
-const inputCls = "w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500";
+const inputCls = "w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500";
 
 /* ── Progress Chart ────────────────────────────────────────────── */
 
@@ -618,11 +618,11 @@ function ProgressChart({ logs }: { logs: ProgressLog[] }) {
           />
 
           {/* Line */}
-          <polyline points={points} fill="none" stroke="#059669" strokeWidth="2" strokeLinejoin="round" />
+          <polyline points={points} fill="none" stroke="#4F46E5" strokeWidth="2" strokeLinejoin="round" />
 
           {/* Data points */}
           {withWeight.map((l, i) => (
-            <circle key={l.id} cx={x(i)} cy={y(l.weightKg as number)} r="4" fill="#059669" />
+            <circle key={l.id} cx={x(i)} cy={y(l.weightKg as number)} r="4" fill="#4F46E5" />
           ))}
 
           {/* X-axis labels — first, middle, last */}
@@ -644,7 +644,7 @@ function ProgressChart({ logs }: { logs: ProgressLog[] }) {
         <div className="mt-3 flex items-center gap-6 text-xs text-slate-500">
           <span><span className="font-semibold text-slate-800">{withWeight[0].weightKg} kg</span> start</span>
           <span><span className="font-semibold text-slate-800">{withWeight[withWeight.length - 1].weightKg} kg</span> latest</span>
-          <span className={`font-semibold ${(withWeight[withWeight.length - 1].weightKg! - withWeight[0].weightKg!) < 0 ? "text-emerald-600" : "text-red-500"}`}>
+          <span className={`font-semibold ${(withWeight[withWeight.length - 1].weightKg! - withWeight[0].weightKg!) < 0 ? "text-indigo-600" : "text-red-500"}`}>
             {(withWeight[withWeight.length - 1].weightKg! - withWeight[0].weightKg!) > 0 ? "+" : ""}
             {(withWeight[withWeight.length - 1].weightKg! - withWeight[0].weightKg!).toFixed(1)} kg change
           </span>
@@ -809,7 +809,7 @@ function PhotoUploadButton({ clientId, logId, onUploaded }: {
       <select
         value={photoType}
         onChange={(e) => setPhotoType(e.target.value as "FRONT" | "SIDE" | "BACK")}
-        className="px-2 py-1.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+        className="px-2 py-1.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
         disabled={uploading}
       >
         {PHOTO_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}

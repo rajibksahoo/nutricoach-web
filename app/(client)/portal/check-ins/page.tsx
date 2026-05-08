@@ -34,7 +34,7 @@ export default function ClientCheckInsPage() {
 
   function adherenceColor(pct: number | null): string {
     if (pct == null) return "text-slate-400";
-    if (pct >= 80) return "text-emerald-600";
+    if (pct >= 80) return "text-indigo-600";
     if (pct >= 60) return "text-amber-600";
     return "text-red-500";
   }
@@ -77,7 +77,7 @@ export default function ClientCheckInsPage() {
                   </p>
                 )}
                 {ci.coachNotes && (
-                  <p className="text-xs text-emerald-700 mt-1 bg-emerald-50 rounded-lg px-3 py-2">
+                  <p className="text-xs text-indigo-700 mt-1 bg-indigo-50 rounded-lg px-3 py-2">
                     <span className="font-medium">Coach:</span> {ci.coachNotes}
                   </p>
                 )}

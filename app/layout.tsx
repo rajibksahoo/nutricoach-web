@@ -26,7 +26,24 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`h-full ${inter.variable} ${jetbrainsMono.variable}`}>
       <body className="h-full antialiased">
         {children}
-        <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 3000,
+            style: {
+              background: "var(--surface)",
+              color: "var(--fg1)",
+              border: "1px solid var(--border)",
+              borderRadius: "var(--radius-md)",
+              boxShadow: "var(--shadow-md)",
+              fontFamily: "var(--font-sans)",
+              fontSize: 13,
+              padding: "10px 14px",
+            },
+            success: { iconTheme: { primary: "var(--success)", secondary: "#fff" } },
+            error:   { iconTheme: { primary: "var(--danger)",  secondary: "#fff" } },
+          }}
+        />
       </body>
     </html>
   );
