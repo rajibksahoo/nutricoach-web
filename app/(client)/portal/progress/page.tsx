@@ -84,7 +84,7 @@ export default function ClientProgressPage() {
               {logs.map((log, idx) => {
                 const trend = weightTrend(idx);
                 const TrendIcon = trend === "down" ? TrendingDown : trend === "up" ? TrendingUp : Minus;
-                const trendColor = trend === "down" ? "text-emerald-500" : trend === "up" ? "text-red-400" : "text-slate-300";
+                const trendColor = trend === "down" ? "text-indigo-500" : trend === "up" ? "text-red-400" : "text-slate-300";
 
                 return (
                   <div key={log.id} className="flex items-center justify-between py-3">

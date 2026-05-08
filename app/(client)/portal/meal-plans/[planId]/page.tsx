@@ -99,7 +99,7 @@ export default function ClientMealPlanDetailPage() {
       <div className="text-center py-20">
         <UtensilsCrossed className="w-8 h-8 text-slate-300 mx-auto mb-3" />
         <p className="text-sm text-slate-400">Meal plan not found.</p>
-        <Link href="/portal/meal-plans" className="text-sm text-emerald-600 hover:underline mt-2 inline-block">
+        <Link href="/portal/meal-plans" className="text-sm text-indigo-600 hover:underline mt-2 inline-block">
           ← Back to meal plans
         </Link>
       </div>
@@ -153,8 +153,8 @@ export default function ClientMealPlanDetailPage() {
                 onClick={() => setSelectedDay(d.dayNumber)}
                 className={`shrink-0 w-10 h-10 rounded-lg text-sm font-semibold transition-colors ${
                   selectedDay === d.dayNumber
-                    ? "bg-emerald-600 text-white"
-                    : "bg-white border border-slate-200 text-slate-600 hover:border-emerald-300"
+                    ? "bg-indigo-600 text-white"
+                    : "bg-white border border-slate-200 text-slate-600 hover:border-indigo-300"
                 }`}
               >
                 {d.dayNumber}
@@ -196,7 +196,7 @@ export default function ClientMealPlanDetailPage() {
                   <Card key={meal.id}>
                     <CardHeader>
                       <div className="flex items-center gap-2">
-                        <Icon className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <Icon className="w-4 h-4 text-indigo-600 shrink-0" />
                         <p className="text-sm font-semibold text-slate-900">
                           {meal.name || MEAL_TYPE_LABELS[meal.mealType] || meal.mealType}
                         </p>

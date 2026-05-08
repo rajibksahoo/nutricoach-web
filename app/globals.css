@@ -2,9 +2,7 @@
 
 /* ======================================================================
    NutriCoach — Design Tokens (mirrors design bundle's colors_and_type.css)
-   New brand: Indigo #4F46E5 + Teal #14B8A6 + Inter.
-   The legacy emerald palette is still referenced by un-migrated screens
-   (per-screen migration is in flight). Don't remove until all screens land.
+   Brand: Indigo #4F46E5 + Teal #14B8A6 + Inter.
    ====================================================================== */
 
 :root {
@@ -131,9 +129,6 @@
   --dur-base:    180ms;
   --dur-slow:    280ms;
 
-  /* ---------- Legacy aliases (kept until per-screen migration finishes) */
-  --background: var(--bg);
-  --foreground: var(--fg1);
 }
 
 html, body {

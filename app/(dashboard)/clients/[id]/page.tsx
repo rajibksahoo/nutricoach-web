@@ -222,7 +222,7 @@ export default function ClientDetailPage() {
     return (
       <div className="text-center py-24 text-slate-400 text-sm">
         Client not found.{" "}
-        <button onClick={() => router.push("/clients")} className="text-emerald-600 underline">
+        <button onClick={() => router.push("/clients")} className="text-indigo-600 underline">
           Go back
         </button>
       </div>
@@ -241,7 +241,7 @@ export default function ClientDetailPage() {
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-base shrink-0">
+            <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-base shrink-0">
               {client.name[0].toUpperCase()}
             </div>
             <div>
@@ -290,10 +290,10 @@ export default function ClientDetailPage() {
       {!editing && (
         <div className="grid grid-cols-2 gap-3">
           <Link href="/meal-plans">
-            <Card className="hover:border-emerald-200 hover:shadow-md transition-all cursor-pointer">
+            <Card className="hover:border-indigo-200 hover:shadow-md transition-all cursor-pointer">
               <CardContent className="flex items-center gap-3 py-4">
-                <div className="p-2 bg-emerald-50 rounded-lg">
-                  <UtensilsCrossed className="w-4 h-4 text-emerald-600" />
+                <div className="p-2 bg-indigo-50 rounded-lg">
+                  <UtensilsCrossed className="w-4 h-4 text-indigo-600" />
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-slate-900">Meal Plans</p>
@@ -303,7 +303,7 @@ export default function ClientDetailPage() {
             </Card>
           </Link>
           <Link href="/progress">
-            <Card className="hover:border-emerald-200 hover:shadow-md transition-all cursor-pointer">
+            <Card className="hover:border-indigo-200 hover:shadow-md transition-all cursor-pointer">
               <CardContent className="flex items-center gap-3 py-4">
                 <div className="p-2 bg-blue-50 rounded-lg">
                   <BarChart2 className="w-4 h-4 text-blue-600" />
@@ -555,7 +555,7 @@ function EditProfileCard({
                 placeholder="e.g. Diabetes, Hypertension"
                 value={form.healthConditions}
                 onChange={(e) => onChange("healthConditions", e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
             <div className="space-y-1">
@@ -568,7 +568,7 @@ function EditProfileCard({
                 placeholder="e.g. Peanuts, Gluten"
                 value={form.allergies}
                 onChange={(e) => onChange("allergies", e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
           </div>
@@ -593,7 +593,7 @@ function SelectField({
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white text-slate-900"
+      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-slate-900"
     >
       {placeholder && <option value="">{placeholder}</option>}
       {options.map((o) => (

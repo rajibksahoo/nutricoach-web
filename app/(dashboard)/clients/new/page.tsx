@@ -76,7 +76,7 @@ export default function NewClientPage() {
                 id="goal"
                 value={form.goal}
                 onChange={(e) => set("goal", e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white text-slate-900"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-slate-900"
               >
                 <option value="">Select a goal…</option>
                 {GOALS.map((g) => <option key={g.value} value={g.value}>{g.label}</option>)}

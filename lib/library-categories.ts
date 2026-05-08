@@ -64,7 +64,7 @@ export interface SectionPaletteEntry {
 
 export const WORKOUT_SECTION_PALETTE: Record<SectionType, SectionPaletteEntry> = {
   warmup:    { bg: "bg-amber-50",   text: "text-amber-700",   border: "border-amber-200" },
-  main:      { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200" },
+  main:      { bg: "bg-indigo-50", text: "text-indigo-700", border: "border-indigo-200" },
   accessory: { bg: "bg-sky-50",     text: "text-sky-700",     border: "border-sky-200" },
   finisher:  { bg: "bg-rose-50",    text: "text-rose-700",    border: "border-rose-200" },
   cooldown:  { bg: "bg-slate-100",  text: "text-slate-600",   border: "border-slate-200" },
@@ -114,7 +114,7 @@ export interface WorkoutTemplate {
 
 export const TEMPLATE_THUMB_COLOR: Record<TemplateExercise["thumb"], string> = {
   bodyweight: "#0D9488",
-  strength:   "#059669",
+  strength:   "#4F46E5",
   timed:      "#D97706",
   cardio:     "#DC2626",
   amrap:      "#7C3AED",
@@ -125,7 +125,7 @@ export const WORKOUT_TEMPLATES: WorkoutTemplate[] = [
     id: "t1", name: "Steady State Treadmill Run",
     description: "Cardiovascular Training: Running. Intermediate level. Progress by increasing pace.",
     exerciseCount: 9, sectionCount: 3, equipment: ["Cardio"],
-    cover: "linear-gradient(135deg, #047857 0%, #059669 50%, #10B981 100%)",
+    cover: "linear-gradient(135deg, #4338CA 0%, #4F46E5 50%, #6366F1 100%)",
     sections: [
       { title: "Warm Up", style: "Superset", items: [
         { name: "Downward Dog to Runner's Lunge", thumb: "bodyweight", reps: "6 reps", note: "x1" },
@@ -208,7 +208,7 @@ export const WORKOUT_TEMPLATES: WorkoutTemplate[] = [
     id: "t5", name: "Lower Body Strength A",
     description: "Compound-focused leg day. Heavy squat, hinge, and unilateral work.",
     exerciseCount: 7, sectionCount: 3, equipment: ["Barbell", "Dumbbells"],
-    cover: "linear-gradient(135deg, #065F46 0%, #047857 50%, #059669 100%)",
+    cover: "linear-gradient(135deg, #312E81 0%, #4338CA 50%, #4F46E5 100%)",
     sections: [
       { title: "Warm Up", style: "Superset", items: [
         { name: "Glute bridge", thumb: "strength", reps: "12 reps", note: "x2" },

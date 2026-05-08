@@ -2,7 +2,7 @@
 
 > **Source of truth:** the Claude Design bundle at `nutricoach-workout-builder/` (extracted locally at `C:\Users\rajib\AppData\Local\Temp\design\nutricoach-workout-builder\`). Tokens below mirror that bundle's `colors_and_type.css`. When the bundle and this file disagree, the bundle wins — update this file.
 >
-> Active plan: match the design screen-by-screen (`nutricoach/PROGRESS.md`). Anything in this doc tagged **legacy** is from the earlier emerald-based design system and is being replaced as screens are ported.
+> Brand migration is **complete** as of `feat/design-polish` — every screen consumes the indigo + teal token set. Earlier "legacy" notes referring to emerald are kept here for historical context only.
 
 ---
 
@@ -33,7 +33,7 @@ All tokens live as CSS variables on `:root` (see `colors_and_type.css` in the de
 | `--brand-secondary` | `#14B8A6` (Teal 500) | Secondary accents (charts, micro-actions) |
 | `--brand-secondary-50` / `-100` / `-600` | `#F0FDFA` / `#CCFBF1` / `#0D9488` | Teal surface tints |
 
-> **Migration note:** the old emerald palette (`emerald-600 #059669`) is **legacy**. New screens must use `--brand-primary`. Old screens are migrated as part of the queue in `nutricoach/PROGRESS.md`.
+> **Migration:** the old emerald palette (`emerald-600 #059669`) was retired across the codebase in `feat/design-polish` (2026-05-09). All current code uses `--brand-primary`.
 
 ### Semantic
 
@@ -356,8 +356,8 @@ Source: `shared.jsx` → `SECTION_PALETTES`. Replicate as a small lookup table i
 
 ---
 
-## Legacy notes (being removed)
+## Migration notes (historical)
 
-- The old palette used `emerald-600 #059669` as primary and `slate-100`-style focus rings. Components still on emerald should be migrated as their screen is touched, not in a flag-day rewrite.
-- `text-xl font-semibold` (20/600) was the old page-title spec; new design uses `.h1` (24/700, Inter XL).
+- `feat/design-polish` (2026-05-09) finished the emerald → indigo migration. All `bg-emerald-*` / `text-emerald-*` / `focus:ring-emerald-*` Tailwind utilities are gone. The Badge `green` variant maps to Tailwind `green-*` (success palette), not the brand.
+- `text-xl font-semibold` (20/600) was the old page-title spec; current design uses `.h1` (24/700, Inter XL).
 - Library's section pane previously rendered per-item lucide icons; the design drops them — labels only.

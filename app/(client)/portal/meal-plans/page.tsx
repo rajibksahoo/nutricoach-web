@@ -56,13 +56,13 @@ export default function ClientMealPlansPage() {
         <div className="space-y-3">
           {plans.map((plan) => (
             <Link key={plan.id} href={`/portal/meal-plans/${plan.id}`}>
-              <Card className="hover:border-emerald-200 hover:shadow-md transition-all cursor-pointer">
+              <Card className="hover:border-indigo-200 hover:shadow-md transition-all cursor-pointer">
                 <CardContent className="flex items-center justify-between py-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-emerald-50 rounded-lg">
+                    <div className="p-2 bg-indigo-50 rounded-lg">
                       {plan.aiGenerated
                         ? <Sparkles className="w-4 h-4 text-violet-500" />
-                        : <UtensilsCrossed className="w-4 h-4 text-emerald-600" />}
+                        : <UtensilsCrossed className="w-4 h-4 text-indigo-600" />}
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-slate-900">{plan.name}</p>

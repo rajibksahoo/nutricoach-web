@@ -46,10 +46,14 @@ Base URL: `NEXT_PUBLIC_API_URL` (default `http://localhost:8080`)
 All protected endpoints require `Authorization: Bearer <jwt>` header (set automatically by `lib/api.ts`).
 
 ## Design Tokens
-- Primary: `emerald-600` (#059669)
-- Sidebar: `slate-900`
-- Card background: white, `border-slate-200`, `shadow-sm`
-- Body background: `#f8fafc` (slate-50)
+Tokens live as CSS variables on `:root` in `app/globals.css` — see `DESIGN.md` for the full table.
+- Primary: `var(--brand-primary)` / `indigo-600` (#4F46E5)
+- Secondary: `var(--brand-secondary)` / `teal-500` (#14B8A6)
+- Sidebar: `var(--sidebar)` / `slate-900` (#0F172A)
+- Card surface: `var(--surface)` / white, `1px solid var(--border)`, `var(--shadow-sm)`
+- Body background: `var(--bg)` / `slate-50` (#F8FAFC)
+- Type: Inter via `next/font/google` (`--font-sans` / `--font-display` / `--font-display-xl`)
+- Focus ring: `var(--ring-focus)` (indigo, 30% alpha)
 
 ## Environment
 ```
