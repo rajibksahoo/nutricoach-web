@@ -14,9 +14,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     if (!isAuthenticated()) router.push("/login");
   }, [router]);
 
-  // Sections that own their own chrome (two-pane layout) sit flush against the primary sidebar.
+  // Sections that own their own chrome (two-pane layout, sticky headers) sit flush against the primary sidebar.
   const fullBleed =
     pathname.startsWith("/library") ||
+    pathname.startsWith("/workout-builder") ||
     pathname === "/clients";
 
   return (
