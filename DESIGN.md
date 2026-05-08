@@ -169,9 +169,12 @@ The Library section uses **horizontal tabs** at the top of the page (`Fitness ·
 
 - Container: `flex gap-1 border-b border-[var(--border)]`.
 - Tab: `flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors`.
-- Active: `text-[var(--brand-primary)] border-[var(--brand-primary)]`.
-- Idle: `text-[var(--fg3)] border-transparent hover:text-[var(--fg2)]`.
-- Optional leading lucide icon at `w-4 h-4`.
+- Active: `color: var(--brand-primary)`, `border-color: var(--brand-primary)`.
+- Idle: `color: var(--fg3)`, `border-color: transparent` (hover bumps to `--fg2`).
+- Leading lucide icon at `w-4 h-4` (`Dumbbell`, `Apple`, `ListChecks`, `FileText`).
+- Active prefix matching: each tab has a `matchPrefixes` list so legacy `/library/{exercises,workouts,programs,sections,...}` paths still highlight the **Fitness** tab while the migration to `/library/fitness/*` finishes. Same idea for Nutrition and Habits.
+
+Implemented in `components/library/LibraryTabs.tsx`; mounted at the top of `app/(dashboard)/library/layout.tsx`. The retired section pane (`LibrarySidebar.tsx`) has been deleted. `/library/` redirects to `/library/fitness/`.
 
 ### Section pane (legacy, for sections that aren't Library)
 

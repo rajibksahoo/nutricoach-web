@@ -118,14 +118,14 @@ export function ExerciseModal({
     <div onClick={onClose} style={{
       position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.55)",
       display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100,
-      padding: 24, animation: "fadeIn 140ms ease",
+      padding: 24, animation: "wb-fadeIn 140ms ease",
     }}>
       <div onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true"
         aria-label={isNew ? "New custom exercise" : "Edit exercise"}
         style={{
           background: "#fff", borderRadius: 12, width: "100%", maxWidth: 780,
           maxHeight: "calc(100vh - 48px)", display: "flex", flexDirection: "column",
-          boxShadow: "var(--shadow-xl)", animation: "slideUp 180ms ease",
+          boxShadow: "var(--shadow-xl)", animation: "wb-slideUp 180ms ease",
         }}>
         {/* Header */}
         <div style={{
