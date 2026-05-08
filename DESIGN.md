@@ -1,71 +1,136 @@
 # NutriCoach Web — Design System
 
-Reference document for UI/UX decisions in `nutricoach-web`. Use this when building new pages, components, or reviewing consistency.
+> **Source of truth:** the Claude Design bundle at `nutricoach-workout-builder/` (extracted locally at `C:\Users\rajib\AppData\Local\Temp\design\nutricoach-workout-builder\`). Tokens below mirror that bundle's `colors_and_type.css`. When the bundle and this file disagree, the bundle wins — update this file.
+>
+> Active plan: match the design screen-by-screen (`nutricoach/PROGRESS.md`). Anything in this doc tagged **legacy** is from the earlier emerald-based design system and is being replaced as screens are ported.
 
 ---
 
 ## Design Philosophy
 
-- **Calm & clinical** — coaches are professionals; the UI should feel like a good SaaS tool, not a consumer app.
+- **Calm & clinical** — coaches are professionals; the UI feels like a good SaaS tool, not a consumer app.
 - **Density over decoration** — show data clearly, skip ornamental flourishes.
 - **One interaction at a time** — forms, modals, and actions should be focused. No clutter.
-- **India-first context** — currency in ₹, phone-based auth (no email/password), dates in DD MMM YYYY format.
+- **India-first** — ₹ currency, phone-based auth, dates in DD MMM YYYY, WhatsApp share is a first-class action.
+- **Desktop-only** for MVP — minimum viewport ~1024px wide. No `sm:`/`md:`/`lg:` classes unless a page is intentionally responsive.
 
 ---
 
-## Color Palette
+## Brand Tokens
 
-### Semantic Roles
+All tokens live as CSS variables on `:root` (see `colors_and_type.css` in the design bundle). Reference them via `var(--…)` in component styles or via Tailwind `bg-[var(--…)]` arbitrary values. **Do not hardcode hex values in components.**
 
-| Role | Tailwind token | Hex | Usage |
-|------|---------------|-----|-------|
-| Primary action | `emerald-600` | `#059669` | CTA buttons, active nav item, key icons |
-| Primary hover | `emerald-700` | `#047857` | Button hover state |
-| Primary light | `emerald-50` | `#ecfdf5` | Active status badge background |
-| Danger | `red-600` | `#dc2626` | Delete actions, error badges |
-| Warning | `amber-600` | `#d97706` | Paused status, warnings |
-| Info | `blue-600` | `#2563eb` | Onboarding status, informational badges |
+### Brand
 
-### Surface Colors
+| Token | Hex | Usage |
+|-------|-----|-------|
+| `--brand-primary` | `#4F46E5` (Indigo 600) | CTAs, active nav, key icons, focus ring base |
+| `--brand-primary-hover` | `#4338CA` | Primary button hover |
+| `--brand-primary-50` | `#EEF2FF` | Soft primary surfaces, active list-item bg |
+| `--brand-primary-100` | `#E0E7FF` | Hover for soft primary |
+| `--brand-primary-200` | `#C7D2FE` | Dashed borders on soft primary buttons |
+| `--brand-primary-500` | `#6366F1` | Loading spinner accent |
+| `--brand-secondary` | `#14B8A6` (Teal 500) | Secondary accents (charts, micro-actions) |
+| `--brand-secondary-50` / `-100` / `-600` | `#F0FDFA` / `#CCFBF1` / `#0D9488` | Teal surface tints |
 
-| Surface | Tailwind token | Hex | Usage |
-|---------|---------------|-----|-------|
-| Page background | `slate-50` | `#f8fafc` | Body (`--background`) |
-| Card background | `white` | `#ffffff` | Cards, panels, modals |
-| Sidebar background | `slate-900` | `#0f172a` | Left navigation |
-| Sidebar item hover | `slate-800` | `#1e293b` | Nav hover state |
-| Border default | `slate-200` | `#e2e8f0` | Card borders, input borders |
-| Border subtle | `slate-100` | `#f1f5f9` | CardHeader dividers |
+> **Migration note:** the old emerald palette (`emerald-600 #059669`) is **legacy**. New screens must use `--brand-primary`. Old screens are migrated as part of the queue in `nutricoach/PROGRESS.md`.
 
-### Text Colors
+### Semantic
 
-| Role | Tailwind token | Hex | Usage |
-|------|---------------|-----|-------|
-| Primary text | `slate-900` | `#0f172a` | Headings, body copy (`--foreground`) |
-| Secondary text | `slate-600` | `#475569` | Labels, descriptions |
-| Muted text | `slate-500` | `#64748b` | Placeholders, timestamps |
-| Disabled text | `slate-400` | `#94a3b8` | Inactive nav items |
-| Inverse text | `white` | `#ffffff` | Text on dark/colored backgrounds |
+| Token | Hex | Usage |
+|-------|-----|-------|
+| `--success` / `-50` / `-700` | `#22C55E` / `#F0FDF4` / `#15803D` | Success badges, confirmations |
+| `--warning` / `-50` / `-700` | `#EAB308` / `#FEFCE8` / `#A16207` | Paused, warnings |
+| `--danger` / `-50` / `-700` | `#EF4444` / `#FEF2F2` / `#B91C1C` | Delete, errors |
+| `--info` / `-50` / `-700` | `#2563EB` / `#EFF6FF` / `#1D4ED8` | Onboarding, informational |
+| `--whatsapp` / `--whatsapp-dark` | `#25D366` / `#128C7E` | WhatsApp share buttons only |
+
+### Surfaces & borders
+
+| Token | Hex | Usage |
+|-------|-----|-------|
+| `--bg` | `#F8FAFC` | Page background |
+| `--bg-subtle` | `#F1F5F9` | Subtle panel fills, kbd background |
+| `--surface` | `#FFFFFF` | Cards, panels, modals |
+| `--surface-alt` | `#F8FAFC` | Alt rows |
+| `--sidebar` | `#0F172A` | Primary left nav |
+| `--sidebar-hover` | `#1E293B` | Sidebar item hover |
+| `--overlay` | `rgba(15, 23, 42, 0.40)` | Modal backdrop |
+| `--border` | `#E2E8F0` | Default borders |
+| `--border-subtle` | `#F1F5F9` | Card-header dividers |
+| `--border-strong` | `#CBD5E1` | Hover borders on secondary buttons |
+
+### Text
+
+| Token | Hex | Usage |
+|-------|-----|-------|
+| `--fg1` | `#0F172A` | Primary text |
+| `--fg2` | `#475569` | Secondary text, labels |
+| `--fg3` | `#64748B` | Muted, timestamps, placeholders |
+| `--fg4` | `#94A3B8` | Disabled |
+| `--fg5` | `#CBD5E1` | Faint placeholder |
+| `--fg-inverse` | `#FFFFFF` | Text on dark/colored backgrounds |
 
 ---
 
 ## Typography
 
-**Font stack:** `-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`
-System fonts only — no custom webfonts. Renders crisply on Windows (Segoe UI) and macOS (SF Pro).
+**Font family:** **Inter** loaded via `next/font/google` (locked decision). The design bundle ships optical-size variants (`Inter Display` 24pt, `Inter XL` 28pt); we collapse those to Inter weight steps — `--font-display` and `--font-display-xl` resolve to Inter at the appropriate weight rather than separate font files. Monospace fallback is **JetBrains Mono** (also via `next/font/google`).
 
-### Scale
+```css
+--font-sans:       "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+--font-display:    "Inter Display", "Inter", …;
+--font-display-xl: "Inter XL", "Inter Display", "Inter", …;
+--font-mono:       "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+```
 
-| Use | Tailwind class | Size | Weight |
-|-----|---------------|------|--------|
-| Page title | `text-xl font-semibold` | 20px / 600 | |
-| Section heading | `text-base font-semibold` | 16px / 600 | |
-| Card title | `text-sm font-semibold` | 14px / 600 | |
-| Body / table row | `text-sm` | 14px / 400 | |
-| Label / caption | `text-xs font-medium` | 12px / 500 | |
-| Sidebar nav item | `text-sm font-medium` | 14px / 500 | |
+### Scale (14px base)
 
-Anti-aliasing: `-webkit-font-smoothing: antialiased` applied globally.
+| Token | Size | Common use |
+|-------|------|-----------|
+| `--text-xs` | 12px | Labels, captions, badge text |
+| `--text-sm` | 14px | Body, table rows |
+| `--text-base` | 16px | Section subtitles |
+| `--text-lg` | 18px | Card titles |
+| `--text-xl` | 20px | Page title |
+| `--text-2xl` | 24px | h1 / hero block |
+| `--text-3xl` | 30px | Marketing display |
+| `--text-4xl` | 36px | Marketing hero |
+
+### Semantic styles
+
+`.h1` — `Inter XL`, 24px, 700, `letter-spacing: -0.015em`
+`.h2` — `Inter Display`, 20px, 600, `-0.01em`
+`.h3` — `Inter`, 16px, 600
+`.h4` — `Inter`, 14px, 600
+`.body` — 14px, 400, 1.5 line-height
+`.caption` — 12px, 500, `--fg3`, `letter-spacing: 0.01em`
+`.label` — 12px, 600, `--fg2`, **uppercase**, `letter-spacing: 0.06em`
+
+Anti-aliasing: `-webkit-font-smoothing: antialiased` globally.
+
+---
+
+## Radii, shadows, motion
+
+| Token | Value | Use |
+|-------|-------|-----|
+| `--radius-sm` | 6px | Pills, kbd |
+| `--radius-md` | 8px | Buttons, inputs |
+| `--radius-lg` | 12px | Cards |
+| `--radius-xl` | 16px | Modals |
+| `--radius-2xl` | 20px | Hero blocks |
+| `--radius-full` | 9999px | Avatars, dot badges |
+| `--shadow-xs` … `--shadow-xl` | see CSS | Card / modal elevation steps |
+| `--ring-focus` | `0 0 0 3px rgba(79,70,229,0.30)` | All focus rings (indigo, never emerald) |
+| `--ease-out` / `--ease-in-out` | `cubic-bezier(…)` | Default transitions |
+| `--dur-fast` / `-base` / `-slow` | 120ms / 180ms / 280ms | Hover, panel, modal motion |
+
+---
+
+## Spacing (4px base)
+
+`--space-1` 4px · `--space-2` 8px · `--space-3` 12px · `--space-4` 16px · `--space-5` 20px · `--space-6` 24px · `--space-8` 32px · `--space-10` 40px · `--space-12` 48px · `--space-16` 64px
 
 ---
 
@@ -77,50 +142,52 @@ Anti-aliasing: `-webkit-font-smoothing: antialiased` applied globally.
 ┌──────────────┬─────────────────────────────────────┐
 │              │                                     │
 │   Sidebar    │   Main content area                 │
-│   w-60       │   ml-60, min-h-screen, bg-slate-50  │
-│   (240px)    │   p-6 or p-8                        │
+│   w-60       │   ml-60, min-h-screen, bg-[--bg]    │
+│   (240px)    │   p-6 / p-8                         │
 │   fixed      │                                     │
-│              │                                     │
 └──────────────┴─────────────────────────────────────┘
 ```
 
-- Sidebar: `fixed inset-y-0 left-0 w-60 bg-slate-900 z-10`
-- Main: `ml-60 min-h-screen bg-slate-50 p-6`
-- Max content width: none currently — full width within main area
+- Sidebar: `fixed inset-y-0 left-0 w-60` with `background: var(--sidebar)`, `z-10`.
+- Logo lockup: `Leaf` (lucide) on indigo-tinted square + “NutriCoach” in `--fg-inverse`.
+- Active nav: `background: var(--brand-primary)`, `color: var(--fg-inverse)`. Idle: `color: var(--fg4)` with `hover:bg-[var(--sidebar-hover)] hover:text-white`.
+- Coach name + phone in footer above logout.
 
-### Auth Pages
+**Nav items (in order):**
+1. Dashboard — `LayoutDashboard`
+2. Clients — `Users`
+3. Messaging — `MessageSquare`
+4. Library — `BookOpen`
+5. Workouts — `Dumbbell`
+6. Meal Plans — `UtensilsCrossed`
+7. Progress — `TrendingUp`
+8. Billing — `CreditCard`
+9. Profile — `UserCircle`
 
-Centered card layout, no sidebar:
-```
-┌────────────────────────────────────┐
-│         bg-slate-50                │
-│                                    │
-│    ┌────────────────────────┐      │
-│    │  White card, p-8       │      │
-│    │  max-w-sm, mx-auto     │      │
-│    │  rounded-xl shadow-sm  │      │
-│    └────────────────────────┘      │
-│                                    │
-└────────────────────────────────────┘
-```
+### Library — top tabs (locked decision)
 
-### Page Structure (Dashboard pages)
+The Library section uses **horizontal tabs** at the top of the page (`Fitness · Nutrition · Habits · Forms`), not a section pane. The 11-entry left pane is retired. Tab styling:
 
-```
-<main className="ml-60 min-h-screen bg-slate-50 p-6">
-  {/* Page header */}
-  <div className="mb-6">
-    <h1 className="text-xl font-semibold text-slate-900">Page Title</h1>
-    <p className="text-sm text-slate-500 mt-1">Optional description</p>
-  </div>
+- Container: `flex gap-1 border-b border-[var(--border)]`.
+- Tab: `flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors`.
+- Active: `text-[var(--brand-primary)] border-[var(--brand-primary)]`.
+- Idle: `text-[var(--fg3)] border-transparent hover:text-[var(--fg2)]`.
+- Optional leading lucide icon at `w-4 h-4`.
 
-  {/* Stats row (if applicable) */}
-  <div className="grid grid-cols-4 gap-4 mb-6">...</div>
+### Section pane (legacy, for sections that aren't Library)
 
-  {/* Main content */}
-  <Card>...</Card>
-</main>
-```
+Used by sections with ≥3 sub-views that don't fit the tabs pattern.
+
+- `aside` `width: 212px`, `background: color-mix(in srgb, var(--bg) 60%, transparent)`, `border-right: 1px solid var(--border)`, `shrink-0`.
+- Header strip: `padding: 16px 18px 12px`, `border-bottom: 1px solid var(--border)`, title `text-[13px] font-semibold tracking-[-0.005em]`.
+- Nav items: `flex items-center gap-2 px-4 py-1.5 text-[12.5px] font-medium border-l-2`.
+  - Active: `bg-[var(--brand-primary-50)] text-[var(--brand-primary)] border-[var(--brand-primary)]`.
+  - Idle: `color: var(--fg2)`, `border-transparent`, `hover:bg-[var(--bg-subtle)] hover:text-[var(--fg1)]`.
+  - **Icons removed** in the design — labels only. Optional `NEW` pill: `text-[9px] font-bold uppercase tracking-wide rounded bg-[var(--brand-primary)] text-white px-1.5 py-[1px]`.
+
+### Auth pages
+
+Centered card, no sidebar. White card, `--radius-xl`, `--shadow-sm`, `max-w-sm mx-auto`, `padding: var(--space-8)` over `--bg`.
 
 ---
 
@@ -128,302 +195,102 @@ Centered card layout, no sidebar:
 
 ### Button
 
-Four variants, three sizes.
+Variants: `primary`, `secondary`, `ghost`, `danger`, plus `soft-primary` (dashed indigo, used for inline “add section” / “add exercise” affordances inside the builder).
 
-```tsx
-<Button variant="primary" size="md">Save</Button>
-<Button variant="secondary">Cancel</Button>
-<Button variant="ghost">View</Button>
-<Button variant="danger">Delete</Button>
-<Button loading>Saving...</Button>
-```
+| Variant | Background | Text | Border |
+|---------|-----------|------|--------|
+| primary | `--brand-primary` → hover `--brand-primary-hover` | `--fg-inverse` | — |
+| secondary | `--surface` → hover `--bg` | `--fg1` | `--border` → hover `--border-strong` |
+| ghost | transparent → hover `--bg-subtle` | `--fg2` → `--fg1` | — |
+| danger | `--danger` → `--danger-700` | `--fg-inverse` | — |
+| soft-primary | `--brand-primary-50` → `--brand-primary-100` | `--brand-primary` | `1px dashed --brand-primary-200` (becomes solid on hover) |
 
-| Variant | Background | Text | Border | Focus ring |
-|---------|-----------|------|--------|------------|
-| primary | `emerald-600` → hover `emerald-700` | white | — | `emerald-500` |
-| secondary | white → hover `slate-50` | `slate-700` | `slate-200` | `slate-300` |
-| ghost | transparent → hover `slate-100` | `slate-600` | — | `slate-300` |
-| danger | `red-600` → hover `red-700` | white | — | `red-500` |
+| Size | Padding | Font |
+|------|---------|------|
+| sm | `5px 9px` | 12px |
+| md | `7px 12px` | 12.5px |
+| lg | `10px 18px` | 14px |
 
-| Size | Padding | Font size |
-|------|---------|-----------|
-| sm | `px-3 py-1.5` | `text-sm` |
-| md | `px-4 py-2` | `text-sm` |
-| lg | `px-6 py-3` | `text-base` |
-
-All buttons: `rounded-lg`, `font-medium`, `disabled:opacity-50 disabled:cursor-not-allowed`. Loading state shows spinner + disables the button.
-
----
+All buttons: `--radius-md`, `font-weight: 500`, `disabled:opacity-45 cursor-not-allowed`. Loading state shows inline spinner and disables click.
 
 ### Input
 
-```tsx
-<Input label="Phone Number" error="Required" placeholder="+91 98765 43210" />
-```
-
-- Label: `text-sm font-medium text-slate-700 mb-1`
-- Input: `w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500`
-- Error state: border turns `red-300`, error message in `text-xs text-red-600 mt-1`
-
----
+- Label `text-[11.5px] font-semibold` `--fg2`; required `*` in `--danger`; hint `text-[11px]` `--fg4`.
+- Input/select/textarea: `padding: 6px 10px`, `font-size: 13px`, `border: 1px solid var(--border)`, `--radius-md`. `:focus` → `border-color: var(--brand-primary)`, `box-shadow: var(--ring-focus)`.
 
 ### Card
 
-Compound component: `Card > CardHeader + CardContent`.
-
-```tsx
-<Card>
-  <CardHeader>
-    <h2 className="text-sm font-semibold text-slate-900">Section Title</h2>
-  </CardHeader>
-  <CardContent>
-    {/* content */}
-  </CardContent>
-</Card>
 ```
-
-- Card: `bg-white rounded-xl border border-slate-200 shadow-sm`
-- CardHeader: `px-5 py-4 border-b border-slate-100`
-- CardContent: `px-5 py-4`
-
----
+Card: bg-[var(--surface)], border 1px var(--border), --radius-lg, shadow-sm
+CardHeader: padding 12px 16px, border-bottom 1px var(--border-subtle)
+CardContent: padding 12px 16px
+```
 
 ### Badge
 
-Inline status indicators. Always `text-xs font-medium`, `rounded-md`, `px-2 py-0.5`.
+`text-xs font-medium`, `--radius-sm`, `padding: 1px 8px`. Variants pull from semantic tokens (`success`, `warning`, `danger`, `info`, `slate`) using the `*-50` background + `*-700` text + `*` ring.
 
-| Variant | Background | Text | Ring |
-|---------|-----------|------|------|
-| green | `emerald-50` | `emerald-700` | `emerald-200` |
-| yellow | `amber-50` | `amber-700` | `amber-200` |
-| red | `red-50` | `red-700` | `red-200` |
-| blue | `blue-50` | `blue-700` | `blue-200` |
-| slate | `slate-100` | `slate-600` | `slate-200` |
+**Client status mapping:** `ACTIVE` → success, `ONBOARDING` → info, `PAUSED` → warning, `INACTIVE` → slate.
 
-**Client status mapping:**
-- `ACTIVE` → green
-- `ONBOARDING` → blue
-- `PAUSED` → yellow
-- `INACTIVE` → slate
+### Modal
 
----
+- Backdrop: `var(--overlay)`. No backdrop-blur.
+- Shell: `bg-[var(--surface)] --radius-xl --shadow-xl max-h-[calc(100vh-48px)] flex flex-col overflow-hidden`.
+- Width: `max-w-3xl` (~768px) for 2-column form modals; `max-w-md` for confirms.
+- Header: `padding 16px 20px`, `border-bottom 1px var(--border)`, title `text-[17px] font-semibold tracking-tight`, close `X` icon button on the right.
+- Body: `padding 20px`, `overflow-y: auto`. 2-column form layout uses `grid grid-cols-[1fr_280px] gap-6` with the right column `border-l border-[var(--border)] pl-6`.
+- Footer: `padding 12px 20px`, `border-top 1px var(--border)`, `bg-[var(--bg)]`. Keyboard hint left, `Cancel` (secondary) + primary right.
+- Keyboard: `Esc` closes, `⌘/Ctrl+Enter` confirms primary, autofocus first text input.
+- Hints rendered with `Kbd`: `font-mono text-[10px] bg-[var(--surface)] border px-1.5 py-0.5 rounded`.
+- **No multi-step wizards.** Single-screen forms only. If supporting context exists (preview / summary), use the 2-column layout.
 
-### Two-Pane Section Layout (standard)
+### Toast
 
-The pattern first introduced for **Library** is the canonical layout for any top-level dashboard section that contains multiple sub-views (statuses, categories, sub-tabs, saved views). New sections (Clients, Meal Plans, Progress, …) should adopt it instead of inventing per-page chrome.
-
-```
-┌──────────┬───────────────┬─────────────────────────────────────────┐
-│          │ Section pane  │   Page area                             │
-│  Primary │  w-[212px]    │   header + filter bar + table           │
-│  sidebar │  bg-slate-50  │   padding: 20px 28px 80px               │
-│  w-60    │  border-r     │                                         │
-│  fixed   │  slate-200    │                                         │
-└──────────┴───────────────┴─────────────────────────────────────────┘
-```
-
-**Anatomy**
-- **Primary sidebar** (`components/layout/Sidebar.tsx`) — global nav, always present.
-- **Section pane** (`components/<section>/<Section>Sidebar.tsx`) — fixed-width 212px, sub-nav for the section. Sits flush against the primary sidebar.
-- **Page area** — full-bleed: no centered `max-w-6xl` wrapper. The dashboard layout opts the section into full-bleed via a path check.
-
-**Section pane spec**
-- `aside` with `width: 212px`, `bg-slate-50/60`, `border-r border-slate-200`, `shrink-0`.
-- Header strip: `padding: 16px 18px 12px`, `border-b border-slate-200`, title in `text-[13px] font-semibold tracking-[-0.005em]`.
-- Nav: `padding-top: 8px`, items as `Link` with:
-  - Layout: `flex items-center gap-2.5 px-4 py-1.5 text-[12.5px] font-medium border-l-2 transition-colors`
-  - Active: `bg-emerald-50 text-emerald-700 border-emerald-600`
-  - Idle: `text-slate-600 border-transparent hover:bg-slate-100 hover:text-slate-900`
-  - Icon: `w-[15px] h-[15px] shrink-0` from lucide
-  - Optional `NEW` badge: `px-1.5 py-[1px] text-[9px] font-bold tracking-wide rounded bg-emerald-600 text-white`
-- Active match uses `pathname === href || pathname.startsWith(href + "/")` so detail/edit routes stay highlighted.
-
-**Page area spec**
-- Outer wrapper: `flex flex-col gap-4` with `padding: 20px 28px 80px`.
-- Page header: `h1` is `flex items-center gap-2`, `fontSize: 24, fontWeight: 700, letterSpacing: -0.02em`, leading icon in `emerald-600 w-5 h-5`. Right side holds secondary actions, a vertical divider (`w-px h-5 bg-slate-200`), then the primary `New …` action in `emerald-600`.
-- Filter bar: white card, `border-slate-200 rounded-lg`, `padding: 12px 14px`, `gap: 10`. Search field uses `padding: 7px 36px 7px 32px`, `fontSize: 12.5`, leading `Search` icon and trailing `⌘K` kbd hint. Chips for facet filters use the `Chip` component pattern (rounded-full, `text-[11.5px]`, active = tinted bg + colored text + `border-current`).
-- Table: `border border-slate-200 rounded-lg bg-white`. Header row: `bg-slate-50/60`, columns are `text-[10.5px] font-semibold uppercase tracking-[0.05em] text-slate-500`, padding `9px 13px`. Body rows: `border-t border-slate-100`, `hover:bg-slate-50/60`, cell padding `10px 13px`, click row to open detail/edit. Selected row: `bg-emerald-50/40`. Hover-only row actions: `opacity-0 group-hover:opacity-100` cluster of icon buttons + a `MoreHorizontal` button.
-- Pagination footer inside the same card border, `bg-slate-50/60`, `text-[11.5px]`.
-- Floating bulk-action bar: `fixed bottom-6 left-1/2 -translate-x-1/2`, `bg-slate-900 text-white rounded-xl shadow-lg`, appears only when selection > 0.
-
-**Routing**
-- Use a `(list)` route group when the section also has `[id]` / `new` detail routes that should keep the centered dashboard wrapper. The `(list)/layout.tsx` mounts the section sidebar; `[id]` and `new` siblings stay outside the group.
-- The dashboard shell (`app/(dashboard)/layout.tsx`) decides full-bleed by path:
-  ```ts
-  const fullBleed =
-    pathname.startsWith("/library") ||
-    pathname === "/clients";
-  ```
-  Add the section's list path here when adopting the pattern.
-- `/<section>` should `redirect()` to the default sub-view (e.g. `/library` → `/library/exercises`). Filter-style sub-views may instead live as `?status=` query params on a single `(list)/page.tsx`.
-
-**When to use**
-- Any section with ≥3 mutually exclusive sub-views or saved-filter sets.
-- Skip for single-purpose pages (Profile, Billing) — those keep the centered dashboard wrapper.
-
-### Sidebar
-
-Fixed, always visible on all dashboard pages.
-
-- Width: `w-60` (240px)
-- Background: `slate-900`
-- Logo area: `Leaf` icon in `emerald-500` rounded square + "NutriCoach" text in white
-- Nav items: active = `bg-emerald-600 text-white`, inactive = `text-slate-400 hover:bg-slate-800 hover:text-white`
-- Icon size: `w-4 h-4`
-- Coach name/phone shown in footer above logout button
-
-**Nav items (in order):**
-1. Dashboard — `LayoutDashboard`
-2. Clients — `Users`
-3. Meal Plans — `UtensilsCrossed`
-4. Progress — `TrendingUp`
-5. Billing — `CreditCard`
-6. Profile — `UserCircle`
-
----
+`react-hot-toast`, top-right, 3s default. `toast.success("…")` / `toast.error("…")`. Keep messages short.
 
 ### Spinner
 
-Used for loading states within buttons or standalone.
-
-```tsx
-<Spinner />
-<Spinner className="h-8 w-8" />
-```
-
-Default size: `h-5 w-5`. Color: `text-emerald-600`.
-
----
+22px circle, `border: 2.5px solid rgba(0,0,0,0.08)`, top border `--brand-primary`, `animation: spin 700ms linear infinite`.
 
 ### UpgradePrompt
 
-Modal triggered automatically on HTTP 402 responses from the API. Prompts the coach to upgrade their plan. Not triggered manually.
+Modal triggered automatically on HTTP 402. Not invoked manually.
 
 ---
 
-### Modal (form modal pattern)
+## Workout Builder section palettes
 
-Used for create/edit forms (e.g. `AddExerciseModal`). **Single-screen, never wizard.** If the form has supporting context (preview, summary, calculation), use a 2-column body with the form on the left and an aside on the right.
+The builder colors workout sections (warmup / main / accessory / finisher / cooldown) using a tweakable palette. Three options exist; **`cool` is the default**.
 
-**Backdrop & shell**
-- Backdrop: `fixed inset-0 bg-slate-900/55` — clicking it closes the modal
-- Shell: `bg-white rounded-xl shadow-2xl max-h-[calc(100vh-48px)] flex flex-col overflow-hidden`
-- Width: `max-w-3xl` (~768px) for 2-column form modals; `max-w-md` for confirm/single-field modals
-- Click inside the shell does **not** close (`stopPropagation`)
+| Palette | Warmup | Main | Accessory | Finisher | Cooldown |
+|---------|--------|------|-----------|----------|----------|
+| cool | indigo | violet | sky | teal | slate |
+| warm | amber | orange | rose | red | stone |
+| mono | slate-300 | slate-500 | slate-400 | slate-600 | slate-200 |
 
-**Sections**
-- Header (`px-6 py-4 border-b border-slate-200`): title `text-[17px] font-semibold tracking-tight`, optional subtitle in `text-xs text-slate-500`, close `X` icon button on the right
-- Body (`px-6 py-5 overflow-y-auto`): form fields in a `flex flex-col gap-4`. For 2-column layouts use `grid grid-cols-[1fr_280px] gap-6`; right column gets `border-l border-slate-200 pl-6`
-- Footer (`px-6 py-3 border-t border-slate-200 bg-slate-50`): keyboard hint on the left, `Cancel` (secondary) + primary action on the right
-
-**Field pattern**
-- Use the local `Field` helper: label `text-[11.5px] font-semibold text-slate-700`, required asterisk in `text-red-500`, hint in `text-[11px] text-slate-400`
-- Inputs: `px-3 py-1.5 text-[13px] border border-slate-200 rounded-md focus:ring-2 focus:ring-emerald-500`
-- Selects use the same `inputCls` for visual consistency
-- Inline icon prefixes (e.g. video link): absolute-positioned `w-3.5 h-3.5 text-slate-400` at `left-3`, input gets `pl-9`
-
-**Tile pickers (e.g. Category)**
-- 5-tile `grid grid-cols-5 gap-1.5`; each tile is `flex flex-col items-center gap-1.5 px-1.5 py-2.5 rounded-lg border`
-- Selected: tinted background + colored text + accent border (e.g. `bg-orange-50 text-orange-700 border-orange-400`)
-- Unselected: `bg-white text-slate-600 border-slate-200 hover:bg-slate-50`
-- Pair with a contextual hint card below in the same tint, explaining what changes when this option is selected
-
-**Preview aside**
-- 280px column with section header `text-[10.5px] font-semibold uppercase tracking-wider text-slate-500`
-- Hero block: `aspect-[4/3] rounded-lg` with category-tinted background and a large icon — replaced by media if a video URL is set
-- Summary block: live name, muscle/equipment line, badges (category + pattern)
-- Bottom callout: tinted info card (e.g. violet "Custom exercise") pinned with `mt-auto`
-
-**Keyboard**
-- `Esc` closes
-- `⌘/Ctrl + Enter` triggers primary action
-- Always autofocus the first text input
-- Show hints in the footer using the `Kbd` helper (`font-mono text-[10px] bg-white border px-1.5 py-0.5 rounded`)
-
-**Don'ts**
-- No multi-step wizards for create/edit forms — show all fields at once
-- No `backdrop-blur` on the overlay — flat translucent `slate-900/55` only
-- No free-text inputs for fields with a known small set (muscle group, equipment, movement pattern) — use `<select>` with the canonical list
+Source: `shared.jsx` → `SECTION_PALETTES`. Replicate as a small lookup table in `nutricoach-web/lib/section-palettes.ts`.
 
 ---
 
 ## Iconography
 
-Library: **lucide-react** — consistent 24px stroke-based icons.
-
-- Dashboard pages use `w-4 h-4` (16px) for inline/nav icons
-- Larger decorative icons: `w-5 h-5` or `w-6 h-6`
-- Always use `shrink-0` on icons inside flex containers
-- Brand icon: `Leaf` (used in sidebar logo)
+`lucide-react` only. `w-4 h-4` (16px) for inline/nav, `w-5 h-5` for headers, `shrink-0` whenever inside flex. Brand mark = `Leaf`.
 
 ---
 
 ## Status & Feedback
 
-### Toast Notifications
-
-Library: **react-hot-toast**, configured in root layout.
-
-- Position: top-right
-- Duration: 3 seconds (default)
-- Use `toast.success()` for confirmations, `toast.error()` for failures
-- Keep messages short: "Client saved." / "Failed to save client."
-
-### Loading States
-
-- Button actions: use `loading` prop on `Button` — shows inline spinner, disables click
-- Page/data loading: full-area `Spinner` centered in the content region
-- Never show skeleton screens — a spinner is sufficient at this scale
-
-### Empty States
-
-- Show inside a Card with centered text
-- Pattern: icon + heading + subtext + optional CTA button
-- Example: "No clients yet. Add your first client to get started."
-
-### Error States
-
-- API errors: `toast.error(message)` for transient errors
-- Form validation: inline `error` prop on `Input` component
-- 401: automatic redirect to `/login` via axios interceptor
-- 402: automatic `UpgradePrompt` modal via axios interceptor
+- **Toast** for completed actions.
+- **Inline `error` prop** on `Input` for validation.
+- **Spinner** for page/data loading — never skeletons at this scale.
+- **Empty states** inside a Card: icon + heading + subtext + optional CTA.
+- **401** → redirect to `/login` (axios interceptor). **402** → `UpgradePrompt` modal (axios interceptor).
 
 ---
 
-## Spacing
+## Data formatting
 
-Based on Tailwind's default 4px base unit.
-
-| Token | px | Common use |
-|-------|-----|-----------|
-| `gap-2` | 8px | Tight icon + label pairs |
-| `gap-3` | 12px | Nav item icon + label |
-| `gap-4` | 16px | Grid columns, card grid |
-| `gap-6` | 24px | Section spacing |
-| `p-6` | 24px | Main content padding |
-| `px-5 py-4` | 20/16px | Card header/content padding |
-| `px-3 py-2.5` | 12/10px | Nav item padding |
-| `mb-6` | 24px | Page header bottom margin |
-
----
-
-## Data Formatting
-
-Handled by `lib/utils.ts`:
-
-| Data type | Format | Example |
-|-----------|--------|---------|
-| Currency | `formatCurrency(paise)` — paise to ₹ | `₹1,500` |
-| Date | `formatDate(isoString)` — DD MMM YYYY | `15 Jan 2025` |
-| Phone | Display as-is from backend | `+91 98765 43210` |
-
----
-
-## Responsive Behavior
-
-This app is **desktop-only** for the MVP. No mobile breakpoints are implemented. The sidebar is fixed-width and the layout assumes a minimum viewport of ~1024px wide.
-
-Do not add responsive classes (`sm:`, `md:`, `lg:`) unless a page is specifically designed to be responsive.
+`lib/utils.ts`: `formatCurrency(paise)` → `₹1,500`; `formatDate(iso)` → `15 Jan 2025`; phone displayed as-is (`+91 98765 43210`).
 
 ---
 
@@ -431,10 +298,19 @@ Do not add responsive classes (`sm:`, `md:`, `lg:`) unless a page is specificall
 
 | Do | Don't |
 |----|-------|
-| Use `emerald-600` for all primary actions | Mix in other accent colors (purple, teal, orange) |
-| Use the `Card` component for all content panels | Use raw `div` with ad-hoc shadow/border styles |
-| Use `toast` for feedback after actions | Use alert() or inline success banners |
+| Use `var(--brand-primary)` for primary actions | Mix in emerald/purple/orange accents |
+| Reference design tokens via CSS variables | Hardcode hex values inline |
+| Use `Card` for content panels | Build ad-hoc bordered `div`s |
+| Use `toast` for action feedback | Use `alert()` or inline success banners |
 | Use `Badge` for status labels | Use custom colored text spans |
-| Use Lucide icons | Mix in other icon sets |
-| Keep forms focused — one purpose per page | Put multiple unrelated forms on one page |
-| Derive color from semantic role (primary, danger) | Use arbitrary hex values inline |
+| Use Lucide icons | Mix in another icon set |
+| Single-screen modals | Multi-step wizards for create/edit |
+| Inter (`--font-sans`) | System-only stacks |
+
+---
+
+## Legacy notes (being removed)
+
+- The old palette used `emerald-600 #059669` as primary and `slate-100`-style focus rings. Components still on emerald should be migrated as their screen is touched, not in a flag-day rewrite.
+- `text-xl font-semibold` (20/600) was the old page-title spec; new design uses `.h1` (24/700, Inter XL).
+- Library's section pane previously rendered per-item lucide icons; the design drops them — labels only.

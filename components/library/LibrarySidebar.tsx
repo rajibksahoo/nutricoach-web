@@ -3,40 +3,25 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import {
-  Dumbbell,
-  ClipboardList,
-  Layers,
-  CalendarDays,
-  CheckSquare,
-  FileText,
-  UtensilsCrossed,
-  ChefHat,
-  Carrot,
-  BookOpen,
-  Activity,
-  type LucideIcon,
-} from "lucide-react";
 
 interface NavItem {
   href: string;
   label: string;
-  icon: LucideIcon;
   badge?: "NEW";
 }
 
 const ITEMS: NavItem[] = [
-  { href: "/library/exercises",     label: "Exercises",              icon: Dumbbell },
-  { href: "/library/workouts",      label: "Workouts",               icon: ClipboardList },
-  { href: "/library/sections",      label: "Sections",               icon: Layers },
-  { href: "/library/programs",      label: "Programs",               icon: CalendarDays },
-  { href: "/library/tasks",         label: "Tasks",                  icon: CheckSquare },
-  { href: "/library/forms",         label: "Forms & Questionnaires", icon: FileText },
-  { href: "/library/meal-plans",    label: "Meal Plan Templates",    icon: UtensilsCrossed },
-  { href: "/library/recipes",       label: "Recipes",                icon: ChefHat },
-  { href: "/library/ingredients",   label: "Ingredients",            icon: Carrot },
-  { href: "/library/recipe-books",  label: "Recipe Books",           icon: BookOpen, badge: "NEW" },
-  { href: "/library/metric-groups", label: "Metric Groups",          icon: Activity },
+  { href: "/library/exercises",     label: "Exercises" },
+  { href: "/library/workouts",      label: "Workouts" },
+  { href: "/library/sections",      label: "Sections" },
+  { href: "/library/programs",      label: "Programs" },
+  { href: "/library/tasks",         label: "Tasks" },
+  { href: "/library/forms",         label: "Forms & Questionnaires" },
+  { href: "/library/meal-plans",    label: "Meal Plan Templates" },
+  { href: "/library/recipes",       label: "Recipes" },
+  { href: "/library/ingredients",   label: "Ingredients" },
+  { href: "/library/recipe-books",  label: "Recipe Books",           badge: "NEW" },
+  { href: "/library/metric-groups", label: "Metric Groups" },
 ];
 
 export default function LibrarySidebar() {
@@ -55,20 +40,19 @@ export default function LibrarySidebar() {
         </p>
       </div>
       <nav style={{ paddingTop: 8, paddingBottom: 16 }}>
-        {ITEMS.map(({ href, label, icon: Icon, badge }) => {
+        {ITEMS.map(({ href, label, badge }) => {
           const active = pathname === href || pathname.startsWith(href + "/");
           return (
             <Link
               key={href}
               href={href}
               className={cn(
-                "flex items-center gap-2.5 px-4 py-1.5 text-[12.5px] font-medium transition-colors border-l-2",
+                "flex items-center gap-2 px-4 py-1.5 text-[12.5px] font-medium transition-colors border-l-2",
                 active
                   ? "bg-emerald-50 text-emerald-700 border-emerald-600"
                   : "text-slate-600 border-transparent hover:bg-slate-100 hover:text-slate-900"
               )}
             >
-              <Icon className="w-[15px] h-[15px] shrink-0" />
               <span className="flex-1 truncate">{label}</span>
               {badge === "NEW" && (
                 <span className="px-1.5 py-[1px] text-[9px] font-bold tracking-wide rounded bg-emerald-600 text-white leading-tight">
