@@ -5,10 +5,14 @@ import {
   Search, ChevronDown, ChevronUp, Plus, Edit, Bell, Calendar as Cal,
   MessageCircle as Msg, Star, Sliders, Activity, Dumbbell,
 } from "lucide-react";
+import toast from "react-hot-toast";
 import {
-  CLIENT_DETAILS, STATUS_COLORS,
+  STATUS_COLORS,
   type ClientDetail, type StatusKey,
 } from "./data";
+import {
+  listClients, getClientChart, toClientDetail, isMockFallbackEnv, mockFallbackClients,
+} from "@/lib/clients-api";
 
 // ─── Tiny visuals ──────────────────────────────────────────────────────
 function ClientAvatar({ name, tone = "#4F46E5", size = 32 }: { name: string; tone?: string; size?: number }) {
@@ -787,10 +791,93 @@ function MetricChartCard({ def, data, large }: {
 }
 
 // ─── Top-level Clients screen ──────────────────────────────────────────
+const useMock = isMockFallbackEnv();
+
 export default function ClientsScreen() {
-  const [selectedId, setSelectedId] = React.useState<string>(CLIENT_DETAILS[0].id);
+  const [clients, setClients] = React.useState<ClientDetail[]>([]);
+  const [selectedId, setSelectedId] = React.useState<string | null>(null);
   const [tab, setTab] = React.useState<DetailTab>("Overview");
-  const client = CLIENT_DETAILS.find((c) => c.id === selectedId) || CLIENT_DETAILS[0];
+  const [loading, setLoading] = React.useState(true);
+  // Cache of progress arrays keyed by client id; merged into the
+  // selected client's `metrics` so sparklines come from real logs.
+  const [chartById, setChartById] = React.useState<Record<string, ClientDetail["metrics"]>>({});
+
+  // Initial load: fetch the coach's clients (or fall back to fixtures
+  // when no API URL is configured / API returns empty in dev).
+  React.useEffect(() => {
+    if (useMock) {
+      const list = mockFallbackClients();
+      setClients(list);
+      setSelectedId(list[0]?.id ?? null);
+      setLoading(false);
+      return;
+    }
+    listClients()
+      .then((rows) => {
+        if (rows.length === 0) {
+          // Empty backend → keep fixtures so the screen still demos.
+          const list = mockFallbackClients();
+          setClients(list);
+          setSelectedId(list[0]?.id ?? null);
+          return;
+        }
+        const mapped = rows.map((r) => toClientDetail(r));
+        setClients(mapped);
+        setSelectedId(mapped[0]?.id ?? null);
+      })
+      .catch((e) => {
+        console.error(e);
+        toast.error("Failed to load clients");
+        const list = mockFallbackClients();
+        setClients(list);
+        setSelectedId(list[0]?.id ?? null);
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  // Lazy-load progress chart for the selected client.
+  React.useEffect(() => {
+    if (useMock || !selectedId || chartById[selectedId]) return;
+    // Skip fixture rows — real backend IDs are UUIDs (contain dashes).
+    if (!selectedId.includes("-")) return;
+    getClientChart(selectedId, 60)
+      .then((logs) => {
+        const sorted = [...logs].sort((a, b) => a.loggedDate.localeCompare(b.loggedDate));
+        const weight = sorted.map((p) => p.weightKg).filter((v): v is string => !!v).map(Number);
+        const bf = sorted.map((p) => p.bodyFatPercent).filter((v): v is string => !!v).map(Number);
+        setChartById((prev) => ({ ...prev, [selectedId]: { weight, bf, steps: [] } }));
+      })
+      .catch((e) => { console.error(e); });
+  }, [selectedId, clients]);
+
+  if (loading) {
+    return (
+      <div style={{
+        minHeight: "100vh", background: "var(--bg)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        color: "var(--fg3)", fontSize: 13,
+      }}>
+        Loading clients…
+      </div>
+    );
+  }
+
+  if (clients.length === 0) {
+    return (
+      <div style={{
+        minHeight: "100vh", background: "var(--bg)",
+        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+        gap: 8, color: "var(--fg3)",
+      }}>
+        <div style={{ fontSize: 15, fontWeight: 600, color: "var(--fg2)" }}>No clients yet</div>
+        <div style={{ fontSize: 12.5 }}>Add your first client to start coaching.</div>
+      </div>
+    );
+  }
+
+  const baseClient = clients.find((c) => c.id === selectedId) || clients[0];
+  const chart = selectedId ? chartById[selectedId] : undefined;
+  const client: ClientDetail = chart ? { ...baseClient, metrics: chart } : baseClient;
 
   return (
     <div style={{
@@ -798,8 +885,8 @@ export default function ClientsScreen() {
       minHeight: "100vh", background: "var(--bg)",
     }}>
       <ClientsSubNav
-        clients={CLIENT_DETAILS}
-        selectedId={selectedId}
+        clients={clients}
+        selectedId={baseClient.id}
         onSelect={(id) => { setSelectedId(id); setTab("Overview"); }}
       />
       <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
