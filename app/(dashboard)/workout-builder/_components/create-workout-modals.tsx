@@ -209,12 +209,12 @@ export function CreateWorkoutChooserModal({
     <div onClick={onClose} style={{
       position: "fixed", inset: 0, background: "rgba(15,23,42,0.55)",
       display: "flex", alignItems: "center", justifyContent: "center",
-      zIndex: 100, padding: 24, animation: "fadeIn 140ms ease",
+      zIndex: 100, padding: 24, animation: "wb-fadeIn 140ms ease",
     }}>
       <div onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Create workout"
         style={{
           background: "#fff", borderRadius: 12, width: "100%", maxWidth: 560,
-          boxShadow: "var(--shadow-xl)", animation: "slideUp 180ms ease",
+          boxShadow: "var(--shadow-xl)", animation: "wb-slideUp 180ms ease",
           position: "relative", padding: "22px 24px 24px",
         }}>
         <button onClick={onClose} aria-label="Close"
@@ -396,13 +396,13 @@ export function ChooseTemplateModal({
     <div onClick={onClose} style={{
       position: "fixed", inset: 0, background: "rgba(15,23,42,0.55)",
       display: "flex", alignItems: "center", justifyContent: "center",
-      zIndex: 110, padding: 24, animation: "fadeIn 140ms ease",
+      zIndex: 110, padding: 24, animation: "wb-fadeIn 140ms ease",
     }}>
       <div onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Choose template"
         style={{
           background: "#fff", borderRadius: 12, width: "100%", maxWidth: 880,
           height: "calc(100vh - 48px)", maxHeight: 640,
-          boxShadow: "var(--shadow-xl)", animation: "slideUp 180ms ease",
+          boxShadow: "var(--shadow-xl)", animation: "wb-slideUp 180ms ease",
           display: "grid", gridTemplateColumns: "1fr 1fr",
           overflow: "hidden", position: "relative",
         }}>
