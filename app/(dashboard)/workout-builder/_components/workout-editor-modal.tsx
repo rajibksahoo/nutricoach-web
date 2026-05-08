@@ -464,6 +464,7 @@ export function WorkoutEditorModal({
     <div onClick={onClose} style={{
       position: "fixed", inset: 0, background: "rgba(15,23,42,0.55)", display: "flex",
       alignItems: "center", justifyContent: "center", zIndex: 120, padding: 24,
+      animation: "wb-fadeIn 140ms ease",
     }}>
       <div onClick={(e) => e.stopPropagation()} style={{
         background: "#fff", borderRadius: 12, width: "100%", maxWidth: 1080,
@@ -471,6 +472,7 @@ export function WorkoutEditorModal({
         boxShadow: "var(--shadow-xl)",
         display: "grid", gridTemplateColumns: leftCollapsed ? "32px 1fr" : "320px 1fr",
         overflow: "hidden", position: "relative", transition: "grid-template-columns 180ms ease",
+        animation: "wb-slideUp 180ms ease",
       }}>
         <button onClick={onClose} style={{
           position: "absolute", top: 14, right: 14, zIndex: 10,
