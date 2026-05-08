@@ -1,11 +1,17 @@
 "use client";
 
 import * as React from "react";
+import toast from "react-hot-toast";
 import {
   Search, Send, Edit, MoreHorizontal as MoreH, ChevronDown,
   Video, Activity, Bookmark, Clock,
 } from "lucide-react";
 import { CLIENT_DETAILS, type ClientDetail } from "@/components/clients/data";
+import {
+  listConversations, getThread, sendMessage, isMockFallbackEnv,
+  toneFromId, fmtRelative, fmtMessageDate, fmtMessageTime,
+  type ConversationSummary, type BackendMessage,
+} from "@/lib/messaging-api";
 
 interface ThreadMsg {
   d: string;
@@ -23,7 +29,7 @@ interface Thread {
   msgs: ThreadMsg[];
 }
 
-const INBOX_THREADS: Thread[] = [
+const FALLBACK_THREADS: Thread[] = [
   {
     id: "c1", clientId: "c1", lastDate: "Mar 31",
     preview: "Sounds good — see you Tuesday!",
@@ -51,6 +57,27 @@ const INBOX_THREADS: Thread[] = [
   ]},
 ];
 
+// ─── Map backend types → render-shape ─────────────────────────────────
+function conversationToThread(c: ConversationSummary, msgs: BackendMessage[] = []): Thread {
+  return {
+    id: c.clientId,
+    clientId: c.clientId,
+    lastDate: c.lastMessageAt ? fmtRelative(c.lastMessageAt) : "",
+    preview: c.lastMessage || "",
+    unread: c.unreadCount || 0,
+    msgs: msgs.map(messageToThreadMsg),
+  };
+}
+
+function messageToThreadMsg(m: BackendMessage): ThreadMsg {
+  return {
+    d: fmtMessageDate(m.sentAt),
+    side: m.senderType === "COACH" ? "out" : "in",
+    text: m.content,
+    time: fmtMessageTime(m.sentAt),
+  };
+}
+
 function InboxAvatar({ name, tone = "#4F46E5", size = 36 }: { name: string; tone?: string; size?: number }) {
   const initials = (name || "?").split(/\s+/).slice(0, 2).map((s) => s[0]?.toUpperCase()).join("");
   return (
@@ -72,16 +99,79 @@ const ibBtn: React.CSSProperties = {
 
 type EnrichedThread = Thread & { client: ClientDetail | { name: string; avatarTone: string; timezone?: string; notes?: ClientDetail["notes"]; updates?: ClientDetail["updates"] } };
 
+const useMock = isMockFallbackEnv();
+
+// In dev fallback the "client" lookup uses CLIENT_DETAILS (rich notes
+// + updates). For real backend rows we synthesize a minimal client
+// from the conversation row + a deterministic avatar tone.
+function fallbackClient(name: string, clientId: string) {
+  return { name, avatarTone: toneFromId(clientId) } as { name: string; avatarTone: string };
+}
+
 export default function InboxScreen() {
-  const [activeId, setActiveId] = React.useState<string>(INBOX_THREADS[0].id);
+  const [conversations, setConversations] = React.useState<ConversationSummary[]>([]);
+  const [threads, setThreads] = React.useState<Thread[]>([]);
+  const [activeId, setActiveId] = React.useState<string | null>(null);
   const [filter, setFilter] = React.useState<"All" | "Unread" | "Groups">("All");
   const [q, setQ] = React.useState("");
+  const [draft, setDraft] = React.useState("");
+  const [sending, setSending] = React.useState(false);
+  const [loading, setLoading] = React.useState(true);
 
-  const enriched: EnrichedThread[] = INBOX_THREADS.map((t) => {
-    const c = CLIENT_DETAILS.find((cl) => cl.id === t.clientId)
-      || { name: "Client", avatarTone: "#94A3B8" } as { name: string; avatarTone: string };
-    return { ...t, client: c };
+  // ─── Initial load: conversations ────────────────────────────────────
+  const refreshConversations = React.useCallback(async () => {
+    if (useMock) {
+      setThreads(FALLBACK_THREADS);
+      setActiveId((prev) => prev ?? FALLBACK_THREADS[0]?.id ?? null);
+      return;
+    }
+    try {
+      const list = await listConversations();
+      setConversations(list);
+      // Preserve any already-fetched message arrays on refresh so the
+      // active thread doesn't blank out while the list updates.
+      setThreads((prev) => {
+        const byId = new Map(prev.map((t) => [t.clientId, t.msgs]));
+        return list.map((c) => ({ ...conversationToThread(c, []), msgs: byId.get(c.clientId) || [] }));
+      });
+      setActiveId((prev) => prev ?? list[0]?.clientId ?? null);
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to load conversations");
+      setThreads(FALLBACK_THREADS);
+      setActiveId((prev) => prev ?? FALLBACK_THREADS[0]?.id ?? null);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    refreshConversations().finally(() => setLoading(false));
+  }, [refreshConversations]);
+
+  // ─── Lazy-load thread messages on selection ────────────────────────
+  React.useEffect(() => {
+    if (useMock || !activeId) return;
+    let cancelled = false;
+    getThread(activeId)
+      .then((msgs) => {
+        if (cancelled) return;
+        setThreads((prev) => prev.map((t) =>
+          t.clientId === activeId ? { ...t, msgs: msgs.map(messageToThreadMsg), unread: 0 } : t,
+        ));
+      })
+      .catch((e) => { console.error(e); });
+    return () => { cancelled = true; };
+  }, [activeId]);
+
+  // ─── Enrich for render ──────────────────────────────────────────────
+  const enriched: EnrichedThread[] = threads.map((t) => {
+    if (useMock) {
+      const c = CLIENT_DETAILS.find((cl) => cl.id === t.clientId);
+      if (c) return { ...t, client: c };
+    }
+    const summary = conversations.find((s) => s.clientId === t.clientId);
+    return { ...t, client: fallbackClient(summary?.clientName || "Client", t.clientId) };
   });
+
   const filtered = enriched.filter((t) => {
     if (filter === "Unread" && !t.unread) return false;
     if (q && !t.client.name.toLowerCase().includes(q.toLowerCase())) return false;
@@ -89,12 +179,67 @@ export default function InboxScreen() {
   });
   const active = enriched.find((t) => t.id === activeId) || enriched[0];
 
-  const byDate = (active.msgs || []).reduce<Record<string, ThreadMsg[]>>((acc, m) => {
+  const byDate = (active?.msgs || []).reduce<Record<string, ThreadMsg[]>>((acc, m) => {
     (acc[m.d] = acc[m.d] || []).push(m);
     return acc;
   }, {});
 
-  const totalUnread = INBOX_THREADS.reduce((s, t) => s + t.unread, 0);
+  const totalUnread = threads.reduce((s, t) => s + t.unread, 0);
+
+  // ─── Send a message ─────────────────────────────────────────────────
+  const handleSend = async () => {
+    const body = draft.trim();
+    if (!body || !active || sending) return;
+    if (useMock) {
+      // Just append locally so the screen demos.
+      const now = new Date().toISOString();
+      const m: ThreadMsg = { d: fmtMessageDate(now), side: "out", text: body, time: fmtMessageTime(now) };
+      setThreads((prev) => prev.map((t) => t.clientId === active.clientId
+        ? { ...t, msgs: [...t.msgs, m], preview: body, lastDate: "Just now" } : t));
+      setDraft("");
+      return;
+    }
+    setSending(true);
+    try {
+      const sent = await sendMessage(active.clientId, body);
+      const m = messageToThreadMsg(sent);
+      setThreads((prev) => prev.map((t) => t.clientId === active.clientId
+        ? { ...t, msgs: [...t.msgs, m], preview: sent.content, lastDate: "Just now" } : t));
+      setDraft("");
+      // Refresh the conversations list so other rows' lastMessageAt etc stay accurate.
+      refreshConversations();
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to send");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div style={{
+        minHeight: "100vh", background: "var(--bg)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        color: "var(--fg3)", fontSize: 13,
+      }}>
+        Loading conversations…
+      </div>
+    );
+  }
+
+  if (!active) {
+    return (
+      <div style={{
+        minHeight: "100vh", background: "var(--bg)",
+        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+        gap: 8, color: "var(--fg3)",
+      }}>
+        <div style={{ fontSize: 15, fontWeight: 600, color: "var(--fg2)" }}>No conversations yet</div>
+        <div style={{ fontSize: 12.5 }}>Add a client to start messaging.</div>
+      </div>
+    );
+  }
 
   return (
     <div style={{
@@ -339,16 +484,29 @@ export default function InboxScreen() {
                 }} />
               </button>
             </div>
-            <input placeholder="Type message here…" style={{
-              flex: 1, padding: "6px 4px", border: "none", outline: "none",
-              background: "transparent", fontSize: 13.5, color: "var(--fg1)",
-            }} />
-            <button title="Send" style={{
-              width: 36, height: 36, padding: 0, border: "none", borderRadius: "50%",
-              background: "var(--brand-primary)", color: "#fff", cursor: "pointer",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              flexShrink: 0,
-            }}><Send size={15} /></button>
+            <input
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
+              }}
+              placeholder="Type message here…"
+              disabled={sending}
+              style={{
+                flex: 1, padding: "6px 4px", border: "none", outline: "none",
+                background: "transparent", fontSize: 13.5, color: "var(--fg1)",
+              }}
+            />
+            <button
+              title="Send" onClick={handleSend} disabled={!draft.trim() || sending}
+              style={{
+                width: 36, height: 36, padding: 0, border: "none", borderRadius: "50%",
+                background: "var(--brand-primary)", color: "#fff",
+                cursor: !draft.trim() || sending ? "not-allowed" : "pointer",
+                opacity: !draft.trim() || sending ? 0.5 : 1,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                flexShrink: 0,
+              }}><Send size={15} /></button>
           </div>
         </footer>
       </section>
