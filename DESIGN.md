@@ -209,6 +209,29 @@ Used by sections with ≥3 sub-views that don't fit the tabs pattern.
   - Idle: `color: var(--fg2)`, `border-transparent`, `hover:bg-[var(--bg-subtle)] hover:text-[var(--fg1)]`.
   - **Icons removed** in the design — labels only. Optional `NEW` pill: `text-[9px] font-bold uppercase tracking-wide rounded bg-[var(--brand-primary)] text-white px-1.5 py-[1px]`.
 
+### Clients — sub-pane + tabbed detail (matches design)
+
+Two-column screen: a 280px white sub-pane (search + alphabetical list) on the left, and a detail dashboard on the right with a sticky header (avatar + name + status pill + tabs) over a per-tab body.
+
+- **Container** — `display: grid; gridTemplateColumns: "280px 1fr"`, `min-height: 100vh`, `background: var(--bg)`.
+- **Sub-pane** — `var(--surface)` background, right border, internal "Clients / All Clients" header (10px uppercase eyebrow + 22px Inter Display XL), search input + sort toggle, scrollable client rows (avatar 36, name + goal + last-active + status dot), footer with `n of total` + soft-primary `Add client` pill.
+- **Detail header** — sticky `var(--surface)` strip with 56px avatar, 22px name in Inter Display XL, status pill, tabs row (`Overview · Training · Tasks · Metrics · Food Journal · Meal Plan · Settings`), and right-aligned icon actions (Search / Cal / Bell). Active tab uses indigo bottom border.
+- **Overview tab** — 3-column grid `minmax(0,1.4fr) minmax(280px,1fr) minmax(280px,1fr)`. Col A: Training (3 stat tiles + Last Workout strip) + Body Metrics Overview (Weight + Body Fat sparklines). Col B: Goal countdown (amber tint), Notes (indigo left-bar), Limitations (red left-bar), Progress Photos. Col C: Profile + Updates feed.
+- **Metrics tab** — left list (Body / Exercise segmented switch + table) + right `All Metrics` chart grid (Weight chart spans full row, Body Fat / Steps below).
+- **Tabs not yet implemented** show a centered "coming soon" card matching the design's placeholder.
+- Visual primitives implemented in `components/clients/ClientsScreen.tsx`: `ClientAvatar` (initials in tinted circle), `StatusPill`, `Spark` (SVG sparkline + area + axis lines + endpoint dot), `Delta` (↑/↓ pill, green/red), `Card`, `CardTitle`, `TrainStat`, `MetricRow`, `MetricChartCard`, `RangeSelect`.
+- Static fixture (5 clients with weight/BF/steps arrays) in `components/clients/data.ts`. Backend wiring is a separate concern — the current `/clients/[id]` and `/clients/new` routes are untouched.
+
+### Inbox / Messaging — 3-pane
+
+`/messages` is a 3-column screen: conversations sub-pane (320px) + thread (flex 1) + profile/notes/updates pane (320px). Container `min-height: 100vh`, `background: var(--bg)`.
+
+- **Conversations sub-pane** — `Inbox` 24px header in Inter Display XL with broadcast (orange-dot ↑) + compose icon buttons; "MY MESSAGES (n)" eyebrow with search affordance; `All / Unread / Groups` filter pills (active uses `--brand-primary-100` + brand color); search input; scrollable thread list. Each row: 40px avatar, name (bold if unread), date, preview (1-line clamp), unread count pill in brand color. Active row gets `--brand-primary-50` background + 3px brand-color tab on the left edge.
+- **Thread** — header strip with 36px avatar, name, online dot + timezone, More icon. Body is `#FAFBFC` background with date dividers (centered, fg4) and message bubbles. Outgoing bubbles use `--brand-primary` background, white text, asymmetric border radius (`14 14 4 14`); incoming use white surface with `--shadow-sm` and inverse border radius. Each bubble has a 28px sender avatar and a tabular-nums timestamp underneath. Footer is a rounded 24px input "pill" containing photo / voice / GIF / saved (with orange-dot bookmark) action buttons + the input + a circular brand-color send button.
+- **Right pane** — large 84px avatar + name + timezone, then `Notes` (indigo left-bar quotes) and `Updates` (filter pill + list).
+- Implemented in `components/messages/InboxScreen.tsx`. Static `INBOX_THREADS` fixture; client metadata (name, avatarTone, notes, updates) is enriched from `components/clients/data.ts` so the right pane lights up with real client context when both screens are loaded together.
+- Both `/clients` and `/messages` are added to the dashboard's `fullBleed` path list so the screens fill the main column without the centered wrapper.
+
 ### Auth pages
 
 Centered card, no sidebar. White card, `--radius-xl`, `--shadow-sm`, `max-w-sm mx-auto`, `padding: var(--space-8)` over `--bg`.

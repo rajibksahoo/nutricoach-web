@@ -18,7 +18,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const fullBleed =
     pathname.startsWith("/library") ||
     pathname.startsWith("/workout-builder") ||
-    pathname === "/clients";
+    pathname === "/clients" ||
+    pathname === "/messages";
 
   return (
     <div className="flex h-full">
