@@ -208,6 +208,59 @@ Inline status indicators. Always `text-xs font-medium`, `rounded-md`, `px-2 py-0
 
 ---
 
+### Two-Pane Section Layout (standard)
+
+The pattern first introduced for **Library** is the canonical layout for any top-level dashboard section that contains multiple sub-views (statuses, categories, sub-tabs, saved views). New sections (Clients, Meal Plans, Progress, …) should adopt it instead of inventing per-page chrome.
+
+```
+┌──────────┬───────────────┬─────────────────────────────────────────┐
+│          │ Section pane  │   Page area                             │
+│  Primary │  w-[212px]    │   header + filter bar + table           │
+│  sidebar │  bg-slate-50  │   padding: 20px 28px 80px               │
+│  w-60    │  border-r     │                                         │
+│  fixed   │  slate-200    │                                         │
+└──────────┴───────────────┴─────────────────────────────────────────┘
+```
+
+**Anatomy**
+- **Primary sidebar** (`components/layout/Sidebar.tsx`) — global nav, always present.
+- **Section pane** (`components/<section>/<Section>Sidebar.tsx`) — fixed-width 212px, sub-nav for the section. Sits flush against the primary sidebar.
+- **Page area** — full-bleed: no centered `max-w-6xl` wrapper. The dashboard layout opts the section into full-bleed via a path check.
+
+**Section pane spec**
+- `aside` with `width: 212px`, `bg-slate-50/60`, `border-r border-slate-200`, `shrink-0`.
+- Header strip: `padding: 16px 18px 12px`, `border-b border-slate-200`, title in `text-[13px] font-semibold tracking-[-0.005em]`.
+- Nav: `padding-top: 8px`, items as `Link` with:
+  - Layout: `flex items-center gap-2.5 px-4 py-1.5 text-[12.5px] font-medium border-l-2 transition-colors`
+  - Active: `bg-emerald-50 text-emerald-700 border-emerald-600`
+  - Idle: `text-slate-600 border-transparent hover:bg-slate-100 hover:text-slate-900`
+  - Icon: `w-[15px] h-[15px] shrink-0` from lucide
+  - Optional `NEW` badge: `px-1.5 py-[1px] text-[9px] font-bold tracking-wide rounded bg-emerald-600 text-white`
+- Active match uses `pathname === href || pathname.startsWith(href + "/")` so detail/edit routes stay highlighted.
+
+**Page area spec**
+- Outer wrapper: `flex flex-col gap-4` with `padding: 20px 28px 80px`.
+- Page header: `h1` is `flex items-center gap-2`, `fontSize: 24, fontWeight: 700, letterSpacing: -0.02em`, leading icon in `emerald-600 w-5 h-5`. Right side holds secondary actions, a vertical divider (`w-px h-5 bg-slate-200`), then the primary `New …` action in `emerald-600`.
+- Filter bar: white card, `border-slate-200 rounded-lg`, `padding: 12px 14px`, `gap: 10`. Search field uses `padding: 7px 36px 7px 32px`, `fontSize: 12.5`, leading `Search` icon and trailing `⌘K` kbd hint. Chips for facet filters use the `Chip` component pattern (rounded-full, `text-[11.5px]`, active = tinted bg + colored text + `border-current`).
+- Table: `border border-slate-200 rounded-lg bg-white`. Header row: `bg-slate-50/60`, columns are `text-[10.5px] font-semibold uppercase tracking-[0.05em] text-slate-500`, padding `9px 13px`. Body rows: `border-t border-slate-100`, `hover:bg-slate-50/60`, cell padding `10px 13px`, click row to open detail/edit. Selected row: `bg-emerald-50/40`. Hover-only row actions: `opacity-0 group-hover:opacity-100` cluster of icon buttons + a `MoreHorizontal` button.
+- Pagination footer inside the same card border, `bg-slate-50/60`, `text-[11.5px]`.
+- Floating bulk-action bar: `fixed bottom-6 left-1/2 -translate-x-1/2`, `bg-slate-900 text-white rounded-xl shadow-lg`, appears only when selection > 0.
+
+**Routing**
+- Use a `(list)` route group when the section also has `[id]` / `new` detail routes that should keep the centered dashboard wrapper. The `(list)/layout.tsx` mounts the section sidebar; `[id]` and `new` siblings stay outside the group.
+- The dashboard shell (`app/(dashboard)/layout.tsx`) decides full-bleed by path:
+  ```ts
+  const fullBleed =
+    pathname.startsWith("/library") ||
+    pathname === "/clients";
+  ```
+  Add the section's list path here when adopting the pattern.
+- `/<section>` should `redirect()` to the default sub-view (e.g. `/library` → `/library/exercises`). Filter-style sub-views may instead live as `?status=` query params on a single `(list)/page.tsx`.
+
+**When to use**
+- Any section with ≥3 mutually exclusive sub-views or saved-filter sets.
+- Skip for single-purpose pages (Profile, Billing) — those keep the centered dashboard wrapper.
+
 ### Sidebar
 
 Fixed, always visible on all dashboard pages.

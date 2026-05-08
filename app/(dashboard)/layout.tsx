@@ -14,8 +14,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     if (!isAuthenticated()) router.push("/login");
   }, [router]);
 
-  // Library owns its own chrome and needs to sit flush against the primary sidebar.
-  const fullBleed = pathname.startsWith("/library");
+  // Sections that own their own chrome (two-pane layout) sit flush against the primary sidebar.
+  const fullBleed =
+    pathname.startsWith("/library") ||
+    pathname === "/clients";
 
   return (
     <div className="flex h-full">
