@@ -22,7 +22,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex h-full">
       <Sidebar />
-      <main className="ml-60 flex-1 overflow-y-auto">
+      <main className="ml-[212px] flex-1 overflow-y-auto">
         {fullBleed ? children : (
           <div className="max-w-6xl mx-auto px-6 py-8">{children}</div>
         )}
