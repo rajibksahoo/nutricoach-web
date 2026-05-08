@@ -59,17 +59,35 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="fixed inset-y-0 left-0 w-60 bg-slate-900 flex flex-col z-10">
+    <aside
+      className="fixed inset-y-0 left-0 w-[212px] flex flex-col z-10 text-white"
+      style={{ background: "var(--sidebar)" }}
+    >
       {/* Logo */}
-      <div className="flex items-center gap-2 px-5 py-5 border-b border-slate-800">
-        <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
-          <Leaf className="w-5 h-5 text-white" />
+      <div
+        className="flex items-center gap-2.5 px-[18px] py-[14px] pt-4"
+        style={{ borderBottom: "1px solid var(--sidebar-hover)" }}
+      >
+        <div
+          className="w-7 h-7 rounded-md flex items-center justify-center"
+          style={{ background: "var(--brand-primary)" }}
+        >
+          <Leaf className="w-4 h-4 text-white" strokeWidth={2.2} />
         </div>
-        <span className="text-white font-semibold text-lg">NutriCoach</span>
+        <span
+          className="font-semibold"
+          style={{
+            fontFamily: "var(--font-display)",
+            fontSize: 15,
+            letterSpacing: "-0.01em",
+          }}
+        >
+          NutriCoach
+        </span>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+      <nav className="flex-1 overflow-y-auto px-2 py-2.5 flex flex-col gap-px">
         {navItems.map(({ href, label, icon: Icon, badge, matchPrefixes }) => {
           const prefixes = matchPrefixes ?? [href];
           const active = prefixes.some((p) => pathname.startsWith(p));
@@ -78,16 +96,21 @@ export default function Sidebar() {
               key={href}
               href={href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                "flex items-center gap-2.5 rounded-md transition-colors",
+                "px-2.5 py-[7px] text-[12.5px] font-medium",
                 active
-                  ? "bg-emerald-600 text-white"
-                  : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                  ? "text-white"
+                  : "text-slate-400 hover:text-white hover:bg-[var(--sidebar-hover)]"
               )}
+              style={active ? { background: "var(--brand-primary)" } : undefined}
             >
-              <Icon className="w-4 h-4 shrink-0" />
+              <Icon className="w-[15px] h-[15px] shrink-0" />
               <span className="flex-1">{label}</span>
               {badge ? (
-                <span className="bg-red-500 text-white text-[10px] font-bold leading-none px-1.5 py-0.5 rounded-full">
+                <span
+                  className="text-[10px] font-bold leading-tight px-1.5 py-px rounded-full"
+                  style={{ background: "var(--danger)", color: "#fff" }}
+                >
                   {badge}
                 </span>
               ) : null}
@@ -97,8 +120,14 @@ export default function Sidebar() {
       </nav>
 
       {/* Coach footer */}
-      <div className="border-t border-slate-800 px-3 py-3 flex items-center gap-2.5">
-        <div className="w-7 h-7 rounded-full bg-emerald-600 text-white text-[11px] font-semibold flex items-center justify-center shrink-0">
+      <div
+        className="px-3.5 py-3 flex items-center gap-2.5"
+        style={{ borderTop: "1px solid var(--sidebar-hover)" }}
+      >
+        <div
+          className="w-7 h-7 rounded-full text-[11.5px] font-semibold flex items-center justify-center shrink-0"
+          style={{ background: "var(--brand-primary-50)", color: "#3730A3" }}
+        >
           {initialsFromName(coach?.name ?? "Coach")}
         </div>
         <div className="min-w-0 flex-1">

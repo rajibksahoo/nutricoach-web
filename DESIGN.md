@@ -148,21 +148,20 @@ Anti-aliasing: `-webkit-font-smoothing: antialiased` globally.
 └──────────────┴─────────────────────────────────────┘
 ```
 
-- Sidebar: `fixed inset-y-0 left-0 w-60` with `background: var(--sidebar)`, `z-10`.
-- Logo lockup: `Leaf` (lucide) on indigo-tinted square + “NutriCoach” in `--fg-inverse`.
-- Active nav: `background: var(--brand-primary)`, `color: var(--fg-inverse)`. Idle: `color: var(--fg4)` with `hover:bg-[var(--sidebar-hover)] hover:text-white`.
-- Coach name + phone in footer above logout.
+- Sidebar: `fixed inset-y-0 left-0 w-[212px]` with `background: var(--sidebar)`, `z-10`. Main column offsets with `ml-[212px]`.
+- Logo lockup: `Leaf` (lucide, 16px) on a 28×28 `--brand-primary` square (`--radius-sm`) + “NutriCoach” in `--fg-inverse`, Inter Display 15px / 600.
+- Nav items: `flex items-center gap-2.5 px-2.5 py-[7px] rounded-md text-[12.5px] font-medium`, icon 15px. Active = `background: var(--brand-primary)` + white text. Idle = `text-slate-400` + `hover:bg-[var(--sidebar-hover)] hover:text-white`.
+- Coach footer: 28px avatar with indigo-tinted background (`--brand-primary-50`) + indigo-800 initial; logout icon (`LogOut`) 14px.
 
-**Nav items (in order):**
+**Nav items (in order, matches design's `shared.jsx` NAV):**
 1. Dashboard — `LayoutDashboard`
 2. Clients — `Users`
-3. Messaging — `MessageSquare`
-4. Library — `BookOpen`
-5. Workouts — `Dumbbell`
-6. Meal Plans — `UtensilsCrossed`
-7. Progress — `TrendingUp`
-8. Billing — `CreditCard`
-9. Profile — `UserCircle`
+3. Meal plans — `Utensils`
+4. Library — `BookOpen` (active prefix matches `/library` and `/workout-builder`)
+5. Progress — `TrendingUp`
+6. Messaging — `MessageCircle` (badge = unread count)
+7. Billing — `CreditCard`
+8. Profile — `UserCircle` (kept beyond the design — production-only)
 
 ### Library — top tabs (locked decision)
 
