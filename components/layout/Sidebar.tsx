@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { clearAuth, getCoach } from "@/lib/auth";
+import type { CoachUser } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
@@ -51,7 +53,11 @@ function initialsFromName(name: string): string {
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const coach = getCoach();
+  const [coach, setCoach] = useState<CoachUser | null>(null);
+
+  useEffect(() => {
+    setCoach(getCoach());
+  }, []);
 
   function handleLogout() {
     clearAuth();
