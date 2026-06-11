@@ -12,14 +12,14 @@ import {
 } from "./icons";
 import { ExThumb, CatBadge, CustomBadge, Avatar, FilterChip } from "./shared";
 
-interface SectionState {
+export interface SectionState {
   id: string;
   type: SectionType;
   title: string;
   exercises: SectionExercise[];
 }
 
-interface WorkoutState {
+export interface WorkoutState {
   name: string;
   program: string;
   week: number;
@@ -644,8 +644,8 @@ export function BuilderScreen({
 }: {
   palette: Palette;
   onBack: () => void;
-  onAssign: () => void;
-  onSchedule: () => void;
+  onAssign: (w: WorkoutState) => void;
+  onSchedule: (w: WorkoutState) => void;
   onNewExercise: () => void;
   dynamicLibrary?: LibraryExercise[];
   initialWorkout?: WorkoutState;
@@ -768,8 +768,11 @@ export function BuilderScreen({
     <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: "100vh" }}>
       <BuilderHeader workout={workout}
         onNameChange={(n) => setWorkout({ ...workout, name: n })}
-        onBack={onBack} onAssign={onAssign} onSchedule={onSchedule}
-        onSave={onAssign} savedAt={savedAt} />
+        onBack={onBack}
+        onAssign={() => onAssign(workout)}
+        onSchedule={() => onSchedule(workout)}
+        onSave={() => onAssign(workout)}
+        savedAt={savedAt} />
 
       <div style={{ display: "flex", flex: 1, alignItems: "flex-start" }}>
         <main style={{ flex: 1, padding: "18px 24px 80px", display: "flex", flexDirection: "column", gap: 14, minWidth: 0 }}>

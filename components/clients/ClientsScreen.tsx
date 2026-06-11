@@ -13,6 +13,10 @@ import {
 import {
   listClients, getClientChart, toClientDetail, isMockFallbackEnv, mockFallbackClients,
 } from "@/lib/clients-api";
+import {
+  listClientSchedules, unscheduleWorkout, listWorkouts,
+  type WorkoutScheduleEntry,
+} from "@/lib/workout-builder-api";
 
 // ─── Tiny visuals ──────────────────────────────────────────────────────
 function ClientAvatar({ name, tone = "#4F46E5", size = 32 }: { name: string; tone?: string; size?: number }) {
@@ -790,6 +794,127 @@ function MetricChartCard({ def, data, large }: {
   );
 }
 
+// ─── Training tab ──────────────────────────────────────────────────────
+// Workout names are stable within a session — fetch the list once and share
+// across clients (schedule DTOs carry workoutId only).
+let workoutNamesCache: Map<string, string> | null = null;
+async function getWorkoutNames(): Promise<Map<string, string>> {
+  if (!workoutNamesCache) {
+    const ws = await listWorkouts();
+    workoutNamesCache = new Map(ws.map((w) => [w.id, w.name]));
+  }
+  return workoutNamesCache;
+}
+
+function fmtScheduleDate(d: string) {
+  return new Date(d + "T00:00:00").toLocaleDateString(undefined, {
+    weekday: "short", day: "numeric", month: "short", year: "numeric",
+  });
+}
+
+function ScheduleGroup({ label, entries, names, onRemove }: {
+  label: string; entries: WorkoutScheduleEntry[];
+  names: Map<string, string>; onRemove: (id: string) => void;
+}) {
+  if (entries.length === 0) return null;
+  return (
+    <div>
+      <div style={{
+        fontSize: 10, fontWeight: 700, color: "var(--fg4)",
+        textTransform: "uppercase", letterSpacing: "0.06em", margin: "4px 0 8px",
+      }}>{label}</div>
+      <div style={{ border: "1px solid var(--border)", borderRadius: 9, overflow: "hidden" }}>
+        {entries.map((s, idx) => (
+          <div key={s.id} style={{
+            padding: "10px 14px", display: "flex", alignItems: "center", gap: 12,
+            borderTop: idx === 0 ? "none" : "1px solid var(--border-subtle)",
+            background: "#fff",
+          }}>
+            <Dumbbell size={15} style={{ color: "var(--brand-primary)", flexShrink: 0 }} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 13, fontWeight: 500, color: "var(--fg1)" }}>
+                {names.get(s.workoutId) ?? "Workout"}
+              </div>
+              <div style={{ fontSize: 11.5, color: "var(--fg3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {fmtScheduleDate(s.date)}{s.notes ? ` · ${s.notes}` : ""}
+              </div>
+            </div>
+            <button type="button" onClick={() => onRemove(s.id)} aria-label="Remove from schedule"
+              style={{ ...iconBtnStyle, width: 26, height: 26, color: "var(--fg3)" }}>
+              ✕
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TrainingTab({ clientId }: { clientId: string }) {
+  const [schedules, setSchedules] = React.useState<WorkoutScheduleEntry[] | null>(null);
+  const [names, setNames] = React.useState<Map<string, string>>(new Map());
+
+  React.useEffect(() => {
+    if (useMock) { setSchedules([]); return; }
+    let cancelled = false;
+    setSchedules(null);
+    Promise.all([listClientSchedules(clientId), getWorkoutNames()])
+      .then(([rows, n]) => { if (!cancelled) { setSchedules(rows); setNames(n); } })
+      .catch((e) => {
+        console.error(e);
+        if (!cancelled) { toast.error("Failed to load schedule"); setSchedules([]); }
+      });
+    return () => { cancelled = true; };
+  }, [clientId]);
+
+  const handleUnschedule = async (id: string) => {
+    const prev = schedules;
+    setSchedules((rows) => (rows ?? []).filter((s) => s.id !== id));
+    try {
+      await unscheduleWorkout(id);
+      toast.success("Removed from schedule");
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to remove from schedule");
+      setSchedules(prev);
+    }
+  };
+
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  const rows = schedules ?? [];
+  const upcoming = rows.filter((s) => s.date >= today).sort((a, b) => a.date.localeCompare(b.date));
+  const past = rows.filter((s) => s.date < today).sort((a, b) => b.date.localeCompare(a.date));
+
+  return (
+    <div style={{ padding: "24px 28px 60px", maxWidth: 720 }}>
+      <Card>
+        <CardTitle>Scheduled workouts</CardTitle>
+        {schedules === null ? (
+          <div style={{ padding: "20px 0", textAlign: "center", color: "var(--fg3)", fontSize: 12.5 }}>
+            Loading…
+          </div>
+        ) : rows.length === 0 ? (
+          <div style={{
+            padding: "36px 20px", textAlign: "center",
+            border: "1px dashed var(--border)", borderRadius: 10,
+            color: "var(--fg3)", fontSize: 12.5,
+          }}>
+            <Dumbbell size={20} style={{ color: "var(--fg4)", marginBottom: 8 }} />
+            <div style={{ fontWeight: 600, color: "var(--fg2)", marginBottom: 3 }}>No workouts scheduled yet</div>
+            <div>Schedule one from the Workout Builder.</div>
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+            <ScheduleGroup label="Upcoming" entries={upcoming} names={names} onRemove={handleUnschedule} />
+            <ScheduleGroup label="Past" entries={past} names={names} onRemove={handleUnschedule} />
+          </div>
+        )}
+      </Card>
+    </div>
+  );
+}
+
 // ─── Top-level Clients screen ──────────────────────────────────────────
 const useMock = isMockFallbackEnv();
 
@@ -893,7 +1018,8 @@ export default function ClientsScreen() {
         <ClientDetailHeader client={client} tab={tab} onTab={setTab} />
         {tab === "Overview" && <OverviewTab client={client} />}
         {tab === "Metrics"  && <MetricsTab  client={client} />}
-        {!["Overview", "Metrics"].includes(tab) && (
+        {tab === "Training" && <TrainingTab clientId={client.id} />}
+        {!["Overview", "Metrics", "Training"].includes(tab) && (
           <div style={{
             margin: "40px 28px", padding: "60px 20px",
             background: "#fff", border: "1px dashed var(--border)", borderRadius: 12,
