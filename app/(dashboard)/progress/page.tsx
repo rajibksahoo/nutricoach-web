@@ -158,10 +158,6 @@ export default function ProgressPage() {
                   <button
                     key={t}
                     onClick={() => {
-                      if (t === "Photos") {
-                        toast("Progress photos are not yet implemented", { icon: "🚧" });
-                        return;
-                      }
                       setTab(t); setShowLogForm(false); setShowCheckInForm(false);
                     }}
                     className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
@@ -783,12 +779,13 @@ function PhotoUploadButton({ clientId, logId, onUploaded }: {
       );
       const { photoId, uploadUrl, s3Key } = initRes.data.data;
 
-      // 2. Upload directly to S3
-      await fetch(uploadUrl, {
+      // 2. Upload directly to S3 — fetch does not throw on non-2xx
+      const uploadRes = await fetch(uploadUrl, {
         method: "PUT",
         headers: { "Content-Type": file.type || "image/jpeg" },
         body: file,
       });
+      if (!uploadRes.ok) throw new Error(`S3 upload failed: ${uploadRes.status}`);
 
       // 3. Fetch the photo record with download URL
       const listRes = await api.get(`/api/v1/clients/${clientId}/progress/${logId}/photos`);
