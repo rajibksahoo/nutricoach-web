@@ -158,7 +158,10 @@ export default function InboxScreen() {
           t.clientId === activeId ? { ...t, msgs: msgs.map(messageToThreadMsg), unread: 0 } : t,
         ));
       })
-      .catch((e) => { console.error(e); });
+      .catch((e) => {
+        console.error(e);
+        if (!cancelled) toast.error("Failed to load messages");
+      });
     return () => { cancelled = true; };
   }, [activeId]);
 

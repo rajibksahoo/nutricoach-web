@@ -11,7 +11,8 @@ Connects to the Spring Boot backend at `nutricoach-api`.
 ```bash
 npm run dev        # Start dev server (http://localhost:3000)
 npm run build      # Production build
-npm run typecheck  # npx tsc --noEmit
+npx tsc --noEmit   # Typecheck (no npm script for this)
+npm run gen:api    # Regenerate types/api.ts from the running backend's OpenAPI spec
 ```
 
 ## Tech Stack
@@ -24,12 +25,16 @@ npm run typecheck  # npx tsc --noEmit
 ## Architecture
 
 ### Route groups
-- `(auth)` — unauthenticated pages (login, otp). Centered card layout.
-- `(dashboard)` — authenticated pages with sidebar. Redirects to `/login` if no token.
+- `(auth)` — unauthenticated coach pages (login, otp). Centered card layout.
+- `(dashboard)` — authenticated coach pages with sidebar: dashboard, clients, meal-plans, library, workout-builder, messages, progress, billing, profile. Redirects to `/login` if no token.
+- `(client)` — client-facing portal under `/portal`: its own login/otp, home, meal-plans, check-ins, chat, progress, profile. Separate auth from the coach side.
 
 ### Key files
-- `lib/api.ts` — Axios instance; attaches JWT from `localStorage`, redirects to `/login` on 401
-- `lib/auth.ts` — `saveAuth`, `getCoach`, `clearAuth`, `isAuthenticated` helpers
+- `lib/api.ts` — coach Axios instance; attaches JWT from `localStorage` (`nc_token`), redirects to `/login` on 401
+- `lib/auth.ts` — coach `saveAuth`, `getCoach`, `clearAuth`, `isAuthenticated` helpers
+- `lib/client-api.ts` / `lib/client-auth.ts` — same pattern for the client portal (`nc_client_token`)
+- `lib/clients-api.ts`, `lib/messaging-api.ts`, `lib/workout-builder-api.ts` — typed per-domain API modules
+- `lib/library-types.ts`, `lib/library-categories.ts` — library domain types/constants
 - `lib/utils.ts` — `cn`, `formatCurrency` (paise → ₹), `formatDate`
 
 ### Components
