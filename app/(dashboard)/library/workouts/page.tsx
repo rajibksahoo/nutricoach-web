@@ -27,6 +27,9 @@ import {
 import api from "@/lib/api";
 import Spinner from "@/components/ui/Spinner";
 import CreateWorkoutModal from "@/components/library/CreateWorkoutModal";
+import { AssignWorkoutModal } from "@/app/(dashboard)/workout-builder/_components/assign-schedule-modals";
+import { listClients, assignWorkout } from "@/lib/workout-builder-api";
+import type { Client } from "@/app/(dashboard)/workout-builder/_components/data";
 import { cn } from "@/lib/utils";
 import {
   inferSectionType,
@@ -111,6 +114,8 @@ export default function WorkoutsPage() {
   const [showModal, setShowModal] = useState(false);
   const [menuFor, setMenuFor] = useState<string | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>("recent");
+  const [assignFor, setAssignFor] = useState<WorkoutRow | null>(null);
+  const [clients, setClients] = useState<Client[]>([]);
 
   function load() {
     setLoading(true);
@@ -214,18 +219,37 @@ export default function WorkoutsPage() {
       .catch(() => toast.error("Failed to delete"));
   }
 
-  function handleDuplicate(row: WorkoutRow) {
-    api
-      .post<ApiEnvelope<{ id: string }>>("/api/v1/library/workouts", {
-        name: `${row.name} (copy)`,
-        description: row.description || null,
-        estimatedDurationMinutes: null,
-      })
+  function handleDuplicate(ids: string[]) {
+    if (ids.length === 0) return;
+    Promise.all(ids.map((id) => api.post(`/api/v1/library/workouts/${id}/duplicate`)))
       .then(() => {
-        toast.success("Workout duplicated");
+        toast.success(ids.length === 1 ? "Workout duplicated" : `${ids.length} duplicated`);
+        setSelected(new Set());
         load();
       })
       .catch(() => toast.error("Failed to duplicate"));
+  }
+
+  function openAssign(row: WorkoutRow) {
+    setAssignFor(row);
+    if (clients.length === 0) {
+      listClients()
+        .then(setClients)
+        .catch(() => toast.error("Failed to load clients"));
+    }
+  }
+
+  function handleAssign(picked: Client[], opts: { message: string; notify: boolean }) {
+    const target = assignFor;
+    setAssignFor(null);
+    if (!target || picked.length === 0) return;
+    assignWorkout(target.id, picked.map((c) => c.id), opts.message || undefined)
+      .then(() =>
+        toast.success(
+          `Assigned "${target.name}" to ${picked.length} client${picked.length === 1 ? "" : "s"}`,
+        ),
+      )
+      .catch(() => toast.error("Failed to assign workout"));
   }
 
   return (
@@ -529,7 +553,7 @@ export default function WorkoutsPage() {
                             Icon={Copy}
                             onClick={() => {
                               setMenuFor(null);
-                              handleDuplicate(row);
+                              handleDuplicate([row.id]);
                             }}
                           >
                             Duplicate
@@ -538,7 +562,7 @@ export default function WorkoutsPage() {
                             Icon={Send}
                             onClick={() => {
                               setMenuFor(null);
-                              toast("Assign to client coming soon");
+                              openAssign(row);
                             }}
                           >
                             Assign to client
@@ -621,7 +645,7 @@ export default function WorkoutsPage() {
           <div className="bg-slate-700" style={{ width: 1, height: 18 }} />
           <button
             type="button"
-            onClick={() => toast("Duplicate coming soon")}
+            onClick={() => handleDuplicate(Array.from(selected))}
             className="inline-flex items-center gap-1 text-slate-200 hover:text-white"
             style={{ fontSize: 12, fontWeight: 500 }}
           >
@@ -665,6 +689,14 @@ export default function WorkoutsPage() {
           load();
           router.push(`/library/workouts/${id}`);
         }}
+      />
+      <AssignWorkoutModal
+        open={assignFor !== null}
+        clients={clients}
+        workoutName={assignFor?.name}
+        workoutId={assignFor?.id ?? null}
+        onClose={() => setAssignFor(null)}
+        onAssign={handleAssign}
       />
     </div>
   );
