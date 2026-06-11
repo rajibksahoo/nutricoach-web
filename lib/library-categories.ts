@@ -6,6 +6,7 @@ import {
   Target,
   type LucideIcon,
 } from "lucide-react";
+import type { Exercise } from "./library-types";
 
 export type CategoryKey = "strength" | "cardio" | "mobility" | "plyometric" | "skill";
 
@@ -49,6 +50,68 @@ export const MOVEMENT_PATTERNS = [
   "Lower body push", "Lower body hinge",
   "Core", "Locomotion", "Mobility", "Recovery", "Compound",
 ];
+
+// ─── Taxonomy normalization ──────────────────────────────────────────────
+// Seeded exercises store snake_case taxonomy values (core, full_body, none,
+// core_anti_rotation…) while the option lists above are display labels.
+// Normalize on load so tables, filter chips, and modal selects line up.
+
+const MUSCLE_ALIASES: Record<string, string> = {
+  core: "Core",
+  chest: "Chest",
+  back: "Mid back",
+  full_body: "Full body",
+  glutes: "Glutes",
+  quads: "Quads",
+};
+
+const EQUIPMENT_ALIASES: Record<string, string> = {
+  none: "Bodyweight",
+};
+
+const PATTERN_ALIASES: Record<string, string> = {
+  horizontal_push: "Upper body horiz. push",
+  horizontal_pull: "Upper body horiz. pull",
+  vertical_push: "Upper body vert. push",
+  vertical_pull: "Upper body vert. pull",
+  hinge: "Lower body hinge",
+  squat: "Lower body push",
+  lunge: "Lower body push",
+  core_anti_rotation: "Core",
+  core_anti_extension: "Core",
+  core_extension: "Core",
+  core_dynamic: "Core",
+  full_body_conditioning: "Compound",
+};
+
+function humanize(value: string): string {
+  const s = value.replace(/_/g, " ").trim();
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+function normalizeValue(
+  raw: string | null | undefined,
+  aliases: Record<string, string>,
+  canonical: string[],
+): string | null {
+  if (!raw) return raw ?? null;
+  if (canonical.includes(raw)) return raw;
+  const key = raw.trim().toLowerCase();
+  if (aliases[key]) return aliases[key];
+  const human = humanize(raw);
+  const match = canonical.find((c) => c.toLowerCase() === human.toLowerCase());
+  return match ?? human;
+}
+
+export function normalizeExercise(ex: Exercise): Exercise {
+  return {
+    ...ex,
+    muscleGroup: normalizeValue(ex.muscleGroup, MUSCLE_ALIASES, MUSCLE_GROUPS),
+    equipment: normalizeValue(ex.equipment, EQUIPMENT_ALIASES, EQUIPMENT),
+    modality: normalizeValue(ex.modality, EQUIPMENT_ALIASES, EQUIPMENT),
+    movementPattern: normalizeValue(ex.movementPattern, PATTERN_ALIASES, MOVEMENT_PATTERNS),
+  };
+}
 
 // ─── Workout section palette (chips on workout rows) ────────────────────
 export type SectionType = "warmup" | "main" | "accessory" | "finisher" | "cooldown";

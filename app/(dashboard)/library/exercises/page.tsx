@@ -26,7 +26,7 @@ import Spinner from "@/components/ui/Spinner";
 import AddExerciseModal from "@/components/library/AddExerciseModal";
 import { cn } from "@/lib/utils";
 import type { ApiEnvelope, Exercise } from "@/lib/library-types";
-import { CATEGORIES, getCategory, type CategoryKey } from "@/lib/library-categories";
+import { CATEGORIES, getCategory, normalizeExercise, type CategoryKey } from "@/lib/library-categories";
 
 const PAGE_SIZE = 25;
 
@@ -114,7 +114,7 @@ export default function ExercisesPage() {
     setLoading(true);
     api
       .get<ApiEnvelope<Exercise[]>>("/api/v1/library/exercises")
-      .then((r) => setExercises(r.data.data))
+      .then((r) => setExercises(r.data.data.map(normalizeExercise)))
       .catch(() => toast.error("Failed to load exercises"))
       .finally(() => setLoading(false));
   }

@@ -6,6 +6,7 @@ import {
 } from "./data";
 import { X, Video, Sparkles, SaveIcon } from "./icons";
 import { CatBadge, CustomBadge } from "./shared";
+import { parseVideoUrl } from "@/lib/video";
 
 const inputStyle: React.CSSProperties = {
   width: "100%", padding: "7px 11px", border: "1px solid var(--border)",
@@ -97,6 +98,7 @@ export function ExerciseModal({
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) =>
     setForm(f => ({ ...f, [k]: v }));
   const c = CAT[form.cat];
+  const embed = parseVideoUrl(form.videoUrl);
 
   const submit = () => {
     if (!form.name.trim()) return;
@@ -239,17 +241,38 @@ export function ExerciseModal({
               textTransform: "uppercase", letterSpacing: "0.06em",
             }}>Preview</span>
 
-            <div style={{
-              aspectRatio: "4 / 3", borderRadius: 9, background: c.tint,
-              border: `1px solid ${c.color}26`,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              flexDirection: "column", gap: 8,
-            }}>
-              <c.Icon size={36} style={{ color: c.color, strokeWidth: 1.6 }} />
-              <span style={{ fontSize: 11, color: c.color, fontWeight: 500 }}>
-                {form.videoUrl ? "Video attached" : "No video — icon shown"}
-              </span>
-            </div>
+            {embed ? (
+              <div style={{
+                aspectRatio: "16 / 9", borderRadius: 9, overflow: "hidden",
+                border: "1px solid var(--border)", background: "#0F172A",
+              }}>
+                {embed.kind === "file" ? (
+                  <video key={embed.url} src={embed.url} controls
+                    style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                ) : (
+                  <iframe
+                    key={embed.id}
+                    src={embed.embedUrl}
+                    title="Exercise video preview"
+                    style={{ width: "100%", height: "100%", border: 0 }}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                )}
+              </div>
+            ) : (
+              <div style={{
+                aspectRatio: "4 / 3", borderRadius: 9, background: c.tint,
+                border: `1px solid ${c.color}26`,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                flexDirection: "column", gap: 8,
+              }}>
+                <c.Icon size={36} style={{ color: c.color, strokeWidth: 1.6 }} />
+                <span style={{ fontSize: 11, color: c.color, fontWeight: 500 }}>
+                  {form.videoUrl ? "Video link attached" : "No video — icon shown"}
+                </span>
+              </div>
+            )}
 
             <div style={{ borderTop: "1px solid var(--border-subtle)", paddingTop: 12 }}>
               <div style={{
