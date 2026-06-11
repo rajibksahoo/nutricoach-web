@@ -261,3 +261,45 @@ export async function listClientSchedules(clientId: string): Promise<WorkoutSche
 export async function unscheduleWorkout(scheduleId: string): Promise<void> {
   await api.delete(`/api/v1/library/schedules/${scheduleId}`);
 }
+
+export interface BuilderSectionPayload {
+  title: string;
+  type: SectionType;
+  exercises: {
+    exerciseId: string;
+    sets: number | null;
+    reps: number | null;
+    duration: number | null;
+    rest: number | null;
+    weight: string;
+    note: string;
+  }[];
+}
+
+// Persists a builder composition: create the workout, then create + attach
+// each section and add its exercises. Returns the full saved workout.
+export async function saveBuilderWorkout(
+  name: string, sections: BuilderSectionPayload[], description?: string,
+): Promise<SavedWorkout> {
+  const { data: w } = await api.post<ApiResp<ApiWorkoutSummary>>("/api/v1/library/workouts", {
+    name, description: description || null, tags: [],
+  });
+  const workoutId = w.data.id;
+  for (const [i, s] of sections.entries()) {
+    const { data: sec } = await api.post<ApiResp<{ id: string }>>("/api/v1/library/workout-sections", {
+      name: s.title, sectionType: SECTION_TYPE_TO_BE[s.type],
+    });
+    await api.post(`/api/v1/library/workouts/${workoutId}/sections`, {
+      sectionId: sec.data.id, position: i,
+    });
+    for (const [j, e] of s.exercises.entries()) {
+      await api.post(`/api/v1/library/workout-sections/${sec.data.id}/exercises`, {
+        exerciseId: e.exerciseId, position: j,
+        sets: e.sets, reps: e.reps,
+        durationSeconds: e.duration, restSeconds: e.rest,
+        weight: e.weight || null, notes: e.note || null,
+      });
+    }
+  }
+  return getWorkout(workoutId);
+}

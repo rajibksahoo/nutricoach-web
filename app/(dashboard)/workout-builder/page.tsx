@@ -6,7 +6,7 @@ import {
   type SavedWorkout, type LibraryExercise, type WorkoutTemplate, type Client,
 } from "./_components/data";
 import { LibraryScreen } from "./_components/library-screen";
-import { BuilderScreen } from "./_components/builder-screen";
+import { BuilderScreen, type WorkoutState as BuilderWorkoutState } from "./_components/builder-screen";
 import { WorkoutEditorModal } from "./_components/workout-editor-modal";
 import {
   CreateWorkoutChooserModal, ChooseTemplateModal, templateToWorkoutState,
@@ -20,7 +20,7 @@ import {
   listExercises, createExercise, updateExercise, deleteExercise,
   listWorkouts, deleteWorkout, duplicateWorkout,
   listWorkoutTemplates, instantiateTemplate,
-  listClients, assignWorkout, scheduleWorkout,
+  listClients, assignWorkout, scheduleWorkout, saveBuilderWorkout,
 } from "@/lib/workout-builder-api";
 
 type Screen = "library" | "builder";
@@ -45,6 +45,8 @@ export default function WorkoutBuilderPage() {
   const [assignOpen, setAssignOpen] = React.useState(false);
   const [scheduleOpen, setScheduleOpen] = React.useState(false);
   const [actionWorkout, setActionWorkout] = React.useState<SavedWorkout | null>(null);
+  // Backend id of the workout composed in the current builder session, once persisted
+  const [builderSavedId, setBuilderSavedId] = React.useState<string | null>(null);
   const palette = SECTION_PALETTES.cool;
 
   React.useEffect(() => {
@@ -72,10 +74,56 @@ export default function WorkoutBuilderPage() {
     setChooserOpen(true);
   };
 
-  const goToBuilder = (seed?: BuilderInitialWorkout) => {
+  const goToBuilder = (seed?: BuilderInitialWorkout, savedId?: string) => {
     setBuilderSeed(seed);
+    setBuilderSavedId(savedId ?? null);
     setBuilderKey(k => k + 1);
     setScreen("builder");
+  };
+
+  // The builder composes purely client-side; persist a snapshot the first time
+  // the coach assigns/schedules/sends from it, then reuse that workout id for
+  // the rest of the session. Demo exercises not in the real library are skipped.
+  const ensureBuilderWorkoutSaved = async (w: BuilderWorkoutState): Promise<SavedWorkout> => {
+    if (builderSavedId) {
+      const existing = workouts.find(x => x.id === builderSavedId);
+      if (existing) return existing;
+    }
+    const realIds = new Set(library.map(x => x.id));
+    let skipped = 0;
+    const sections = w.sections.map(s => ({
+      title: s.title,
+      type: s.type,
+      exercises: s.exercises.filter(e => {
+        if (realIds.has(e.libId)) return true;
+        skipped++;
+        return false;
+      }).map(e => ({
+        exerciseId: e.libId, sets: e.sets, reps: e.reps,
+        duration: e.duration, rest: e.rest, weight: e.weight, note: e.note,
+      })),
+    }));
+    const saved = await saveBuilderWorkout(w.name || "Untitled workout", sections);
+    setWorkouts(prev => [saved, ...prev]);
+    setBuilderSavedId(saved.id);
+    toast.success(`Saved "${saved.name}" to your workouts${skipped > 0 ? ` (${skipped} demo exercise${skipped === 1 ? "" : "s"} skipped)` : ""}`);
+    return saved;
+  };
+
+  const openBuilderAction = async (w: BuilderWorkoutState, kind: "assign" | "schedule") => {
+    if (useMockFallback) {
+      setActionWorkout(null);
+      if (kind === "assign") setAssignOpen(true); else setScheduleOpen(true);
+      return;
+    }
+    try {
+      const saved = await ensureBuilderWorkoutSaved(w);
+      setActionWorkout(saved);
+      if (kind === "assign") setAssignOpen(true); else setScheduleOpen(true);
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to save workout");
+    }
   };
 
   const builderWorkoutName = builderSeed?.name || "Untitled workout";
@@ -168,7 +216,7 @@ export default function WorkoutBuilderPage() {
       const created = await instantiateTemplate(t.id);
       setWorkouts(prev => [created, ...prev]);
       toast.success(`Created "${created.name}" from template`);
-      goToBuilder(templateToWorkoutState(t, library));
+      goToBuilder(templateToWorkoutState(t, library), created.id);
     } catch (e) { console.error(e); toast.error("Failed to create from template"); }
   };
 
@@ -190,8 +238,8 @@ export default function WorkoutBuilderPage() {
           palette={palette}
           initialWorkout={builderSeed}
           onBack={() => setScreen("library")}
-          onAssign={() => { setActionWorkout(null); setAssignOpen(true); }}
-          onSchedule={() => { setActionWorkout(null); setScheduleOpen(true); }}
+          onAssign={(w) => { void openBuilderAction(w, "assign"); }}
+          onSchedule={(w) => { void openBuilderAction(w, "schedule"); }}
           onNewExercise={() => { setExerciseEditing(null); setExerciseModalOpen(true); }}
           dynamicLibrary={library}
         />
