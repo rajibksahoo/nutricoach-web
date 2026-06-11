@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import { X, Video, Sparkles, Save } from "lucide-react";
 import api from "@/lib/api";
 import { cn } from "@/lib/utils";
+import { parseVideoUrl } from "@/lib/video";
 import type { ApiEnvelope, Exercise } from "@/lib/library-types";
 import {
   CATEGORIES,
@@ -106,6 +107,7 @@ export default function AddExerciseModal({
   const cat = CATEGORIES.find((c) => c.key === form.category) ?? CATEGORIES[0];
   const CatIcon = cat.Icon;
   const canSave = form.name.trim().length > 0;
+  const embed = parseVideoUrl(form.videoUrl);
 
   return (
     <div
@@ -191,6 +193,9 @@ export default function AddExerciseModal({
                   onChange={(e) => set("muscleGroup", e.target.value)}
                   className={inputCls}
                 >
+                  {form.muscleGroup && !MUSCLE_GROUPS.includes(form.muscleGroup) && (
+                    <option value={form.muscleGroup}>{form.muscleGroup}</option>
+                  )}
                   {MUSCLE_GROUPS.map((m) => <option key={m}>{m}</option>)}
                 </select>
               </Field>
@@ -200,6 +205,9 @@ export default function AddExerciseModal({
                   onChange={(e) => set("equipment", e.target.value)}
                   className={inputCls}
                 >
+                  {form.equipment && !EQUIPMENT.includes(form.equipment) && (
+                    <option value={form.equipment}>{form.equipment}</option>
+                  )}
                   {EQUIPMENT.map((m) => <option key={m}>{m}</option>)}
                 </select>
               </Field>
@@ -211,6 +219,9 @@ export default function AddExerciseModal({
                 onChange={(e) => set("movementPattern", e.target.value)}
                 className={inputCls}
               >
+                {form.movementPattern && !MOVEMENT_PATTERNS.includes(form.movementPattern) && (
+                  <option value={form.movementPattern}>{form.movementPattern}</option>
+                )}
                 {MOVEMENT_PATTERNS.map((m) => <option key={m}>{m}</option>)}
               </select>
             </Field>
@@ -275,17 +286,34 @@ export default function AddExerciseModal({
               Preview
             </span>
 
-            <div
-              className={cn(
-                "aspect-[4/3] rounded-lg flex flex-col items-center justify-center gap-2 border",
-                cat.tint, "border-slate-200"
-              )}
-            >
-              <CatIcon className={cn("w-9 h-9", cat.color)} strokeWidth={1.6} />
-              <span className={cn("text-xs font-medium", cat.color)}>
-                {form.videoUrl ? "Video attached" : "No video — icon shown"}
-              </span>
-            </div>
+            {embed ? (
+              <div className="aspect-video rounded-lg overflow-hidden border border-slate-200 bg-slate-900">
+                {embed.kind === "file" ? (
+                  <video key={embed.url} src={embed.url} controls className="w-full h-full object-contain" />
+                ) : (
+                  <iframe
+                    key={embed.id}
+                    src={embed.embedUrl}
+                    title="Exercise video preview"
+                    className="w-full h-full border-0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                )}
+              </div>
+            ) : (
+              <div
+                className={cn(
+                  "aspect-[4/3] rounded-lg flex flex-col items-center justify-center gap-2 border",
+                  cat.tint, "border-slate-200"
+                )}
+              >
+                <CatIcon className={cn("w-9 h-9", cat.color)} strokeWidth={1.6} />
+                <span className={cn("text-xs font-medium", cat.color)}>
+                  {form.videoUrl ? "Video link attached" : "No video — icon shown"}
+                </span>
+              </div>
+            )}
 
             <div className="border-t border-slate-100 pt-3">
               <div className="flex items-center gap-1.5 mb-0.5">
