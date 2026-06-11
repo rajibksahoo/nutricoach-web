@@ -1,8 +1,10 @@
 "use client";
 import * as React from "react";
+import toast from "react-hot-toast";
 import { type Client } from "./data";
 import { Search, ChevLeft, ChevRight, X, Check, Send, Bell, Cal } from "./icons";
 import { Avatar } from "./shared";
+import { listAssignments, unassignWorkout, type WorkoutAssignment } from "@/lib/workout-builder-api";
 
 const inputStyle: React.CSSProperties = {
   width: "100%", padding: "7px 11px", border: "1px solid var(--border)",
@@ -58,22 +60,53 @@ function ModalFrame({
 export interface AssignOpts { message: string; notify: boolean; }
 
 export function AssignWorkoutModal({
-  open, onClose, onAssign, workoutName, clients,
+  open, onClose, onAssign, workoutName, workoutId, clients,
 }: {
   open: boolean;
   onClose: () => void;
   onAssign: (clients: Client[], opts: AssignOpts) => void;
   workoutName?: string;
+  workoutId?: string | null;
   clients: Client[];
 }) {
   const [q, setQ] = React.useState("");
   const [picked, setPicked] = React.useState<string | null>(null);
   const [message, setMessage] = React.useState("");
   const [notify, setNotify] = React.useState(true);
+  const [assigned, setAssigned] = React.useState<WorkoutAssignment[]>([]);
+  const [loadingAssigned, setLoadingAssigned] = React.useState(false);
 
   React.useEffect(() => {
     if (open) { setQ(""); setPicked(null); setMessage(""); setNotify(true); }
   }, [open]);
+
+  React.useEffect(() => {
+    if (!open || !workoutId) { setAssigned([]); return; }
+    let cancelled = false;
+    setLoadingAssigned(true);
+    listAssignments(workoutId)
+      .then((rows) => { if (!cancelled) setAssigned(rows); })
+      .catch((e) => { console.error(e); if (!cancelled) toast.error("Failed to load current assignments"); })
+      .finally(() => { if (!cancelled) setLoadingAssigned(false); });
+    return () => { cancelled = true; };
+  }, [open, workoutId]);
+
+  const handleUnassign = async (assignmentId: string) => {
+    if (!workoutId) return;
+    const prev = assigned;
+    setAssigned(rows => rows.filter(a => a.id !== assignmentId));
+    try {
+      await unassignWorkout(workoutId, assignmentId);
+      toast.success("Assignment removed");
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to remove assignment");
+      setAssigned(prev);
+    }
+  };
+
+  const assignedClientIds = new Set(assigned.map(a => a.clientId));
+  const clientName = (id: string) => clients.find(c => c.id === id)?.name ?? "Client";
 
   const filtered = clients.filter(c =>
     !q || c.name.toLowerCase().includes(q.toLowerCase()) || c.goal.toLowerCase().includes(q.toLowerCase())
@@ -109,6 +142,45 @@ export function AssignWorkoutModal({
         padding: "16px 22px", display: "flex", flexDirection: "column", gap: 14,
         overflow: "hidden", flex: 1,
       }}>
+        {workoutId && (loadingAssigned || assigned.length > 0) && (
+          <div>
+            <div style={{ fontSize: 11.5, fontWeight: 600, color: "var(--fg2)", marginBottom: 6 }}>
+              Currently assigned ({assigned.length})
+            </div>
+            <div style={{ border: "1px solid var(--border)", borderRadius: 8, overflow: "auto", maxHeight: 150 }}>
+              {loadingAssigned ? (
+                <div style={{ padding: "12px", textAlign: "center", color: "var(--fg3)", fontSize: 12 }}>
+                  Loading…
+                </div>
+              ) : assigned.map((a, idx) => (
+                <div key={a.id} style={{
+                  padding: "8px 12px", display: "flex", alignItems: "center", gap: 10,
+                  borderTop: idx === 0 ? "none" : "1px solid var(--border-subtle)",
+                }}>
+                  <Avatar name={clientName(a.clientId)} size={28} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 12.5, fontWeight: 500, color: "var(--fg1)" }}>
+                      {clientName(a.clientId)}
+                    </div>
+                    <div style={{ fontSize: 11, color: "var(--fg3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      Assigned {new Date(a.assignedAt).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}
+                      {a.notes ? ` · ${a.notes}` : ""}
+                    </div>
+                  </div>
+                  <button type="button" onClick={() => handleUnassign(a.id)} aria-label={`Unassign ${clientName(a.clientId)}`}
+                    style={{
+                      display: "inline-flex", alignItems: "center", justifyContent: "center",
+                      width: 24, height: 24, padding: 0, border: "none", borderRadius: 6,
+                      background: "transparent", color: "var(--fg3)", cursor: "pointer",
+                    }}>
+                    <X size={13} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div style={{ position: "relative" }}>
           <Search size={14} style={{
             position: "absolute", left: 11, top: "50%",
@@ -129,13 +201,16 @@ export function AssignWorkoutModal({
             </div>
           ) : filtered.map((c, idx) => {
             const on = picked === c.id;
+            const already = assignedClientIds.has(c.id);
             return (
-              <button key={c.id} type="button" onClick={() => setPicked(c.id)} style={{
+              <button key={c.id} type="button" disabled={already}
+                onClick={() => { if (!already) setPicked(c.id); }} style={{
                 width: "100%", padding: "9px 12px", border: "none",
                 borderTop: idx === 0 ? "none" : "1px solid var(--border-subtle)",
                 background: on ? "var(--brand-primary-50)" : "#fff",
                 display: "flex", alignItems: "center", gap: 10,
-                cursor: "pointer", textAlign: "left", transition: "background 80ms",
+                cursor: already ? "default" : "pointer", textAlign: "left", transition: "background 80ms",
+                opacity: already ? 0.55 : 1,
               }}>
                 <Avatar name={c.name} size={32} />
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -145,12 +220,20 @@ export function AssignWorkoutModal({
                   }}>{c.name}</div>
                   <div style={{ fontSize: 11, color: "var(--fg3)" }}>{c.goal} · {c.phone}</div>
                 </div>
-                <span style={{
-                  fontSize: 9.5, padding: "1px 7px", borderRadius: 5,
-                  background: c.status === "ACTIVE" ? "#DCFCE7" : c.status === "PAUSED" ? "#FEE2E2" : "#FEF3C7",
-                  color: c.status === "ACTIVE" ? "#166534" : c.status === "PAUSED" ? "#991B1B" : "#854D0E",
-                  fontWeight: 600, letterSpacing: "0.05em",
-                }}>{c.status}</span>
+                {already ? (
+                  <span style={{
+                    fontSize: 9.5, padding: "1px 7px", borderRadius: 5,
+                    background: "var(--brand-primary-50)", color: "var(--brand-primary)",
+                    fontWeight: 600, letterSpacing: "0.05em",
+                  }}>ASSIGNED</span>
+                ) : (
+                  <span style={{
+                    fontSize: 9.5, padding: "1px 7px", borderRadius: 5,
+                    background: c.status === "ACTIVE" ? "#DCFCE7" : c.status === "PAUSED" ? "#FEE2E2" : "#FEF3C7",
+                    color: c.status === "ACTIVE" ? "#166534" : c.status === "PAUSED" ? "#991B1B" : "#854D0E",
+                    fontWeight: 600, letterSpacing: "0.05em",
+                  }}>{c.status}</span>
+                )}
                 {on && <Check size={15} style={{ color: "var(--brand-primary)" }} />}
               </button>
             );

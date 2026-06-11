@@ -236,6 +236,7 @@ export default function WorkoutBuilderPage() {
         open={assignOpen}
         clients={clients}
         workoutName={actionWorkout?.name || builderWorkoutName}
+        workoutId={useMockFallback ? null : actionWorkout?.id ?? null}
         onClose={() => setAssignOpen(false)}
         onAssign={handleAssign}
       />

@@ -233,3 +233,31 @@ export async function assignWorkout(workoutId: string, clientIds: string[], note
 export async function scheduleWorkout(workoutId: string, clientId: string, date: string, notes?: string): Promise<void> {
   await api.post(`/api/v1/library/workouts/${workoutId}/schedules`, { clientId, date, notes });
 }
+
+export interface WorkoutAssignment {
+  id: string; clientId: string; workoutId: string;
+  assignedAt: string; notes?: string | null;
+}
+
+export interface WorkoutScheduleEntry {
+  id: string; clientId: string; workoutId: string;
+  date: string; notes?: string | null;
+}
+
+export async function listAssignments(workoutId: string): Promise<WorkoutAssignment[]> {
+  const { data } = await api.get<ApiResp<WorkoutAssignment[]>>(`/api/v1/library/workouts/${workoutId}/assignments`);
+  return data.data;
+}
+
+export async function unassignWorkout(workoutId: string, assignmentId: string): Promise<void> {
+  await api.delete(`/api/v1/library/workouts/${workoutId}/assignments/${assignmentId}`);
+}
+
+export async function listClientSchedules(clientId: string): Promise<WorkoutScheduleEntry[]> {
+  const { data } = await api.get<ApiResp<WorkoutScheduleEntry[]>>(`/api/v1/library/clients/${clientId}/schedules`);
+  return data.data;
+}
+
+export async function unscheduleWorkout(scheduleId: string): Promise<void> {
+  await api.delete(`/api/v1/library/schedules/${scheduleId}`);
+}
