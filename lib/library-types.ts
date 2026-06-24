@@ -65,6 +65,12 @@ export interface ProgramSummary {
   name: string;
   description?: string | null;
   durationDays: number;
+  weeks?: number | null;
+  modality?: string | null;
+  experienceLevel?: string | null;
+  tags?: string[] | null;
+  coverImageUrl?: string | null;
+  coverGradient?: string | null;
   createdAt: string;
   updatedAt: string;
 }
