@@ -9,7 +9,8 @@ import { formatDate } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/Card";
 import Spinner from "@/components/ui/Spinner";
 import Badge from "@/components/ui/Badge";
-import { UtensilsCrossed, TrendingUp, ClipboardList, ChevronRight, Sparkles } from "lucide-react";
+import { UtensilsCrossed, TrendingUp, ClipboardList, ChevronRight, Sparkles, Dumbbell } from "lucide-react";
+import { listUpcomingWorkouts, type ClientScheduledWorkout } from "@/lib/client-workouts-api";
 
 interface MealPlan {
   id: string;
@@ -36,15 +37,20 @@ export default function ClientHomePage() {
   const client = getClientUser();
   const [plans, setPlans] = useState<MealPlan[]>([]);
   const [latestLog, setLatestLog] = useState<ProgressLog | null>(null);
+  const [todayWorkouts, setTodayWorkouts] = useState<ClientScheduledWorkout[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const todayIso = new Date().toISOString().slice(0, 10);
     Promise.all([
       clientApi.get("/api/v1/portal/meal-plans").then((r) => setPlans(r.data.data)),
       clientApi.get("/api/v1/portal/progress").then((r) => {
         const logs: ProgressLog[] = r.data.data;
         if (logs.length > 0) setLatestLog(logs[0]);
       }),
+      listUpcomingWorkouts()
+        .then((ws) => setTodayWorkouts(ws.filter((w) => w.date === todayIso)))
+        .catch(() => { /* workouts are optional on the home overview */ }),
     ])
       .catch(() => toast.error("Failed to load data"))
       .finally(() => setLoading(false));
@@ -90,6 +96,35 @@ export default function ClientHomePage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Today's workout */}
+      {todayWorkouts.length > 0 && (
+        <div>
+          <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">Today's Workout</p>
+          <div className="space-y-2">
+            {todayWorkouts.map((w, i) => (
+              <Link key={`${w.workoutId}-${i}`} href="/portal/workouts">
+                <Card className="hover:border-indigo-200 hover:shadow-md transition-all cursor-pointer">
+                  <CardContent className="flex items-center justify-between py-4">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="p-2 bg-indigo-50 rounded-lg">
+                        <Dumbbell className="w-4 h-4 text-indigo-600" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-slate-900 truncate">{w.workoutName}</p>
+                        <p className="text-xs text-slate-400 mt-0.5 truncate">
+                          {w.programName} · {w.exerciseCount} exercise{w.exerciseCount !== 1 ? "s" : ""}
+                        </p>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-slate-300 shrink-0" />
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Active meal plan */}
       <div>
