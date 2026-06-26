@@ -1,0 +1,99 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import { Dumbbell } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/Card";
+import Spinner from "@/components/ui/Spinner";
+import { listUpcomingWorkouts, type ClientScheduledWorkout } from "@/lib/client-workouts-api";
+
+function dateLabel(iso: string): string {
+  const today = new Date();
+  const todayIso = today.toISOString().slice(0, 10);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+  const tomorrowIso = tomorrow.toISOString().slice(0, 10);
+  if (iso === todayIso) return "Today";
+  if (iso === tomorrowIso) return "Tomorrow";
+  const d = new Date(iso + "T00:00:00");
+  return d.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "short" });
+}
+
+export default function ClientWorkoutsPage() {
+  const [workouts, setWorkouts] = useState<ClientScheduledWorkout[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    listUpcomingWorkouts()
+      .then(setWorkouts)
+      .catch(() => toast.error("Failed to load workouts"))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return <div className="flex justify-center py-20"><Spinner className="w-8 h-8" /></div>;
+  }
+
+  // Group by date, preserving the server's ascending order.
+  const groups: { date: string; items: ClientScheduledWorkout[] }[] = [];
+  for (const w of workouts) {
+    const last = groups[groups.length - 1];
+    if (last && last.date === w.date) last.items.push(w);
+    else groups.push({ date: w.date, items: [w] });
+  }
+
+  return (
+    <div className="space-y-5">
+      <h1 className="text-xl font-semibold text-slate-900">Workouts</h1>
+
+      {workouts.length === 0 ? (
+        <Card>
+          <CardContent className="py-16 text-center">
+            <Dumbbell className="w-8 h-8 text-slate-300 mx-auto mb-3" />
+            <p className="text-sm text-slate-400">No upcoming workouts. Your coach will assign a program soon.</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-6">
+          {groups.map((g) => (
+            <div key={g.date} className="space-y-2">
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">{dateLabel(g.date)}</p>
+              <div className="space-y-3">
+                {g.items.map((w, i) => (
+                  <Card key={`${w.workoutId}-${i}`}>
+                    <CardContent className="py-4">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 bg-indigo-50 rounded-lg">
+                          <Dumbbell className="w-4 h-4 text-indigo-600" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-slate-900 truncate">{w.workoutName}</p>
+                          <p className="text-xs text-slate-400 mt-0.5 truncate">
+                            {w.programName} · {w.exerciseCount} exercise{w.exerciseCount !== 1 ? "s" : ""}
+                          </p>
+                        </div>
+                      </div>
+                      {w.exercises.length > 0 && (
+                        <ul className="divide-y divide-slate-100 border border-slate-100 rounded-lg overflow-hidden">
+                          {w.exercises.map((ex, j) => (
+                            <li key={j} className="flex items-center gap-3 px-3 py-2">
+                              <span className="text-[11px] font-semibold text-slate-500 bg-slate-50 rounded px-1.5 py-0.5 min-w-[28px] text-center shrink-0">
+                                {ex.sets ? `${ex.sets}x` : "•"}
+                              </span>
+                              <span className="text-sm text-slate-700 flex-1 min-w-0 truncate">{ex.name}</span>
+                              <span className="text-xs text-slate-400 shrink-0">{ex.target}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { clearClientAuth, getClientUser } from "@/lib/client-auth";
-import { Leaf, Home, UtensilsCrossed, TrendingUp, ClipboardList, User, LogOut, MessageCircle } from "lucide-react";
+import { Leaf, Home, UtensilsCrossed, Dumbbell, TrendingUp, ClipboardList, User, LogOut, MessageCircle } from "lucide-react";
 
 const NAV = [
   { href: "/portal/home",      label: "Home",       icon: Home          },
   { href: "/portal/meal-plans",label: "Meal Plans",  icon: UtensilsCrossed },
+  { href: "/portal/workouts",  label: "Workouts",    icon: Dumbbell      },
   { href: "/portal/progress",  label: "Progress",    icon: TrendingUp    },
   { href: "/portal/check-ins", label: "Check-ins",   icon: ClipboardList },
   { href: "/portal/chat",      label: "Chat",        icon: MessageCircle },
