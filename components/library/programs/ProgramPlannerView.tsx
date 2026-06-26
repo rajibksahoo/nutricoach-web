@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import {
   ChevronLeft, ChevronRight, Calendar, Plus, SlidersHorizontal, ArrowRight,
-  Pencil, X, MoreHorizontal, Search,
+  Pencil, X, MoreHorizontal, Search, Copy, Trash2, BookmarkPlus, ClipboardPaste,
 } from "lucide-react";
 import type { Program, ProgramSummary } from "@/lib/library-types";
 import {
@@ -33,6 +33,8 @@ export default function ProgramPlannerView({
   const [previews, setPreviews] = useState<Map<string, WorkoutPreview>>(new Map());
   const [pickFor, setPickFor] = useState<number | null>(null);
   const [options, setOptions] = useState<WorkoutOption[]>([]);
+  const [copied, setCopied] = useState<DayEntry | null>(null);   // active copy → click a date to paste
+  const [confirmDay, setConfirmDay] = useState<number | null>(null); // day pending delete confirmation
 
   useEffect(() => { setProgram(initialProgram); setDays(buildDays(initialProgram)); }, [initialProgram]);
 
@@ -60,7 +62,9 @@ export default function ProgramPlannerView({
   }, [pickFor, options.length]);
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setToastInfo(false); };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { setToastInfo(false); setCopied(null); setConfirmDay(null); }
+    };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
@@ -113,6 +117,31 @@ export default function ProgramPlannerView({
       await clearProgramDay(program.id, day);
     } catch {
       toast.error("Failed to clear day");
+      refresh();
+    }
+  };
+
+  const saveToLibrary = () => {
+    toast.success("Workout saved to Library", {
+      style: { background: "#16A34A", color: "#fff" },
+      iconTheme: { primary: "#fff", secondary: "#16A34A" },
+    });
+  };
+
+  const copyWorkout = (entry: DayEntry) => {
+    setCopied(entry);
+    toast("Workout copied, Click on the date to paste workout", { icon: "📋", duration: 5000 });
+  };
+
+  const pasteWorkout = async (day: number) => {
+    if (!copied) return;
+    const entry = copied;
+    setCopied(null);
+    setDays((prev) => new Map(prev).set(day, entry));
+    try {
+      await setProgramDay(program.id, day, entry.workoutId);
+    } catch {
+      toast.error("Failed to paste workout");
       refresh();
     }
   };
@@ -233,7 +262,12 @@ export default function ProgramPlannerView({
             onDrop={(targetDay, shift) => {
               if (dragging != null) { placeWorkout(dragging, targetDay, shift); setDragging(null); }
             }}
-            onPick={(day) => setPickFor(day)} onRemove={removeDay} />
+            onPick={(day) => setPickFor(day)}
+            pasteMode={copied !== null}
+            onPaste={pasteWorkout}
+            onSaveToLibrary={saveToLibrary}
+            onCopy={(day) => { const e = days.get(day); if (e) copyWorkout(e); }}
+            onDelete={(day) => setConfirmDay(day)} />
         ))}
       </div>
 
@@ -263,6 +297,13 @@ export default function ProgramPlannerView({
       {pickFor !== null && (
         <WorkoutPickerModal day={pickFor} options={options} onClose={() => setPickFor(null)} onPick={pickWorkout} />
       )}
+
+      {confirmDay !== null && (
+        <ConfirmDeleteDialog
+          onCancel={() => setConfirmDay(null)}
+          onConfirm={() => { const d = confirmDay; setConfirmDay(null); removeDay(d); }}
+        />
+      )}
     </div>
   );
 }
@@ -276,12 +317,15 @@ function buildDays(p: Program): Map<number, DayEntry> {
 }
 
 function WeekRow({
-  weekIdx, days, previews, weekView, onDragStart, onDragEnd, onDrop, onPick, onRemove,
+  weekIdx, days, previews, weekView, onDragStart, onDragEnd, onDrop, onPick,
+  pasteMode, onPaste, onSaveToLibrary, onCopy, onDelete,
 }: {
   weekIdx: number; days: Map<number, DayEntry>; previews: Map<string, WorkoutPreview>; weekView: 1 | 2 | 4;
   onDragStart: (day: number) => void; onDragEnd: () => void;
   onDrop: (targetDay: number, shift: boolean) => void;
-  onPick: (day: number) => void; onRemove: (day: number) => void;
+  onPick: (day: number) => void;
+  pasteMode: boolean; onPaste: (day: number) => void;
+  onSaveToLibrary: (day: number) => void; onCopy: (day: number) => void; onDelete: (day: number) => void;
 }) {
   const weekNum = weekIdx + 1;
   const dayStart = weekIdx * 7 + 1;
@@ -299,7 +343,9 @@ function WeekRow({
         return (
           <DayCell key={day} day={day} entry={entry} preview={entry ? previews.get(entry.workoutId) : undefined}
             minH={cellMinH} weekView={weekView} onDragStart={onDragStart} onDragEnd={onDragEnd}
-            onDrop={(shift) => onDrop(day, shift)} onPick={() => onPick(day)} onRemove={() => onRemove(day)} />
+            onDrop={(shift) => onDrop(day, shift)} onPick={() => onPick(day)}
+            pasteMode={pasteMode} onPaste={() => onPaste(day)}
+            onSaveToLibrary={() => onSaveToLibrary(day)} onCopy={() => onCopy(day)} onDelete={() => onDelete(day)} />
         );
       })}
     </div>
@@ -307,19 +353,26 @@ function WeekRow({
 }
 
 function DayCell({
-  day, entry, preview, minH, weekView, onDragStart, onDragEnd, onDrop, onPick, onRemove,
+  day, entry, preview, minH, weekView, onDragStart, onDragEnd, onDrop, onPick,
+  pasteMode, onPaste, onSaveToLibrary, onCopy, onDelete,
 }: {
   day: number; entry?: DayEntry; preview?: WorkoutPreview; minH: number; weekView: 1 | 2 | 4;
   onDragStart: (day: number) => void; onDragEnd: () => void;
-  onDrop: (shift: boolean) => void; onPick: () => void; onRemove: () => void;
+  onDrop: (shift: boolean) => void; onPick: () => void;
+  pasteMode: boolean; onPaste: () => void;
+  onSaveToLibrary: () => void; onCopy: () => void; onDelete: () => void;
 }) {
   const [over, setOver] = useState(false);
+  const [hover, setHover] = useState(false);
   return (
     <div
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
       onDragOver={(e) => { e.preventDefault(); setOver(true); }}
       onDragLeave={() => setOver(false)}
       onDrop={(e) => { e.preventDefault(); setOver(false); onDrop(e.shiftKey); }}
       style={{
+        position: "relative",
         minHeight: minH, background: over ? "var(--brand-primary-50)" : "var(--bg)",
         border: over ? "1px dashed var(--brand-primary)" : "1px solid var(--border-subtle)",
         borderRadius: 9, padding: "10px 10px 8px", display: "flex", flexDirection: "column", gap: 8,
@@ -336,18 +389,49 @@ function DayCell({
       </div>
       {entry && (
         <WorkoutCard entry={entry} preview={preview} weekView={weekView}
-          onDragStart={() => onDragStart(day)} onDragEnd={onDragEnd} onRemove={onRemove} />
+          onDragStart={() => onDragStart(day)} onDragEnd={onDragEnd}
+          onSaveToLibrary={onSaveToLibrary} onCopy={onCopy} onDelete={onDelete} />
+      )}
+
+      {/* Paste affordance — shown on hover while a workout is on the clipboard */}
+      {pasteMode && hover && (
+        <div
+          onClick={(e) => { e.stopPropagation(); onPaste(); }}
+          title="Paste workout here"
+          style={{
+            position: "absolute", inset: 0, borderRadius: 9, zIndex: 8, cursor: "pointer",
+            background: "rgba(37,99,235,0.08)", border: "1px dashed #2563EB",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+          <span style={{
+            display: "inline-flex", alignItems: "center", gap: 6, background: "#2563EB", color: "#fff",
+            padding: "6px 16px", borderRadius: 8, font: "600 12.5px var(--font-sans)",
+            boxShadow: "0 4px 12px rgba(37,99,235,.3)",
+          }}>
+            <ClipboardPaste size={13} /> Paste
+          </span>
+        </div>
       )}
     </div>
   );
 }
 
 function WorkoutCard({
-  entry, preview, weekView, onDragStart, onDragEnd, onRemove,
+  entry, preview, weekView, onDragStart, onDragEnd, onSaveToLibrary, onCopy, onDelete,
 }: {
   entry: DayEntry; preview?: WorkoutPreview; weekView: 1 | 2 | 4;
-  onDragStart: () => void; onDragEnd: () => void; onRemove: () => void;
+  onDragStart: () => void; onDragEnd: () => void;
+  onSaveToLibrary: () => void; onCopy: () => void; onDelete: () => void;
 }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [tip, setTip] = useState(false);
+  useEffect(() => {
+    if (!menuOpen) return;
+    const close = () => setMenuOpen(false);
+    document.addEventListener("click", close);
+    return () => document.removeEventListener("click", close);
+  }, [menuOpen]);
+
   const showCount = weekView === 1 ? 5 : weekView === 2 ? 3 : 0;
   const lines = preview?.lines ?? [];
   const shown = lines.slice(0, showCount);
@@ -366,10 +450,42 @@ function WorkoutCard({
           font: "700 10.5px var(--font-sans)", color: "#2563EB", letterSpacing: "0.04em",
           overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
         }}>{(entry.workoutName || "WORKOUT").toUpperCase()}</span>
-        <button onClick={(e) => { e.stopPropagation(); onRemove(); }} title="Remove" style={{
-          width: 20, height: 20, border: "none", borderRadius: 5, background: "transparent",
-          cursor: "pointer", color: "var(--fg3)", display: "flex", alignItems: "center", justifyContent: "center",
-        }}><MoreHorizontal size={12} /></button>
+        <div style={{ position: "relative" }}>
+          <button
+            aria-label="More options"
+            onClick={(e) => { e.stopPropagation(); setTip(false); setMenuOpen((o) => !o); }}
+            onMouseEnter={() => setTip(true)} onMouseLeave={() => setTip(false)}
+            style={{
+              width: 20, height: 20, border: "none", borderRadius: 5,
+              background: menuOpen ? "var(--bg)" : "transparent",
+              cursor: "pointer", color: "var(--fg3)", display: "flex", alignItems: "center", justifyContent: "center",
+            }}><MoreHorizontal size={12} /></button>
+
+          {/* Hover tooltip */}
+          {tip && !menuOpen && (
+            <span style={{
+              position: "absolute", bottom: "calc(100% + 6px)", right: 0, zIndex: 70, whiteSpace: "nowrap",
+              background: "#0F172A", color: "#fff", font: "500 11px var(--font-sans)",
+              padding: "4px 8px", borderRadius: 6, boxShadow: "0 4px 12px rgba(15,23,42,.25)", pointerEvents: "none",
+            }}>More Options</span>
+          )}
+
+          {/* Dropdown menu */}
+          {menuOpen && (
+            <div onClick={(e) => e.stopPropagation()} role="menu" style={{
+              position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 70, minWidth: 168,
+              background: "#fff", border: "1px solid var(--border)", borderRadius: 8,
+              boxShadow: "var(--shadow-xl)", padding: 4, display: "flex", flexDirection: "column",
+            }}>
+              <MenuItem icon={<BookmarkPlus size={14} />} label="Save to Library"
+                onClick={() => { setMenuOpen(false); onSaveToLibrary(); }} />
+              <MenuItem icon={<Copy size={14} />} label="Copy"
+                onClick={() => { setMenuOpen(false); onCopy(); }} />
+              <MenuItem icon={<Trash2 size={14} />} label="Delete" danger
+                onClick={() => { setMenuOpen(false); onDelete(); }} />
+            </div>
+          )}
+        </div>
       </div>
 
       {shown.map((ex, i) => (
@@ -439,6 +555,56 @@ function WorkoutPickerModal({
               {o.name}
             </button>
           ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MenuItem({
+  icon, label, onClick, danger,
+}: {
+  icon: React.ReactNode; label: string; onClick: () => void; danger?: boolean;
+}) {
+  return (
+    <button role="menuitem" onClick={onClick}
+      onMouseEnter={(e) => (e.currentTarget.style.background = danger ? "#FEF2F2" : "var(--bg)")}
+      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+      style={{
+        display: "flex", alignItems: "center", gap: 9, width: "100%", padding: "8px 10px",
+        border: "none", background: "transparent", borderRadius: 6, cursor: "pointer", textAlign: "left",
+        font: "500 12.5px var(--font-sans)", color: danger ? "#DC2626" : "var(--fg1)",
+      }}>
+      {icon}{label}
+    </button>
+  );
+}
+
+function ConfirmDeleteDialog({ onCancel, onConfirm }: { onCancel: () => void; onConfirm: () => void }) {
+  return (
+    <div onClick={onCancel} style={{
+      position: "fixed", inset: 0, background: "rgba(15,23,42,0.45)", display: "flex",
+      alignItems: "center", justifyContent: "center", zIndex: 95, padding: 24,
+    }}>
+      <div onClick={(e) => e.stopPropagation()} role="alertdialog" aria-label="Delete workout" style={{
+        background: "#fff", borderRadius: 12, width: "100%", maxWidth: 380,
+        boxShadow: "var(--shadow-xl)", padding: "22px 22px 18px",
+      }}>
+        <h3 style={{ margin: "0 0 8px", font: "600 16px var(--font-display)", color: "var(--fg1)" }}>
+          Are you sure that you want to delete this workout?
+        </h3>
+        <p style={{ margin: "0 0 20px", fontSize: 13, color: "var(--fg3)", lineHeight: 1.5 }}>
+          This removes the workout from this day. It stays in your Library.
+        </p>
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
+          <button onClick={onCancel} style={{
+            padding: "8px 18px", borderRadius: 8, border: "1px solid var(--border)", background: "#fff",
+            color: "var(--fg1)", font: "500 13px var(--font-sans)", cursor: "pointer",
+          }}>Cancel</button>
+          <button onClick={onConfirm} style={{
+            padding: "8px 22px", borderRadius: 8, border: "none", background: "#DC2626",
+            color: "#fff", font: "600 13px var(--font-sans)", cursor: "pointer",
+          }}>OK</button>
         </div>
       </div>
     </div>
