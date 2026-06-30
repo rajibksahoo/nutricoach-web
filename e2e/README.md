@@ -32,13 +32,24 @@ npx playwright show-report                # open the last HTML report
 
 ## How it's structured
 
-- `auth.setup.ts` — logs in **once**, saves `nc_token` + `nc_coach` to
-  `.auth/coach.json` (git-ignored). Every other spec starts authenticated via
-  `storageState`, so they skip the OTP UI.
+- `auth.setup.ts` — authenticates **once** via the dev-only `demo-login` API
+  (no OTP, so the per-phone OTP rate limit can't block it) and saves `nc_token` +
+  `nc_coach` to `.auth/coach.json` (git-ignored). Every other spec starts
+  authenticated via `storageState`.
 - `auth.spec.ts` — the one spec that exercises the real login UI (happy path +
-  invalid OTP); it runs unauthenticated on purpose.
+  invalid OTP); it runs unauthenticated with a fresh phone per run.
 - `pages/` — Page Objects (selectors + actions live here, specs read like stories).
-- `helpers/api.ts` — `seedClient()` and `uniquePhone()` for fast, isolated test data.
+- `helpers/api.ts` — fast API setup: `uniquePhone()`/`uniqueName()`, `seedClient`,
+  `seedExercise`/`seedWorkout`/`seedProgram`, `ensureClientName` and
+  `ensureClientSlot` (work around the trial 5-client cap on a shared DB).
+
+## Coverage
+
+- `clients.spec.ts` — create a client → appears in the list.
+- `meal-plans.spec.ts` — create a meal plan for a client.
+- `library-exercises.spec.ts` — exercise create / read / update / delete.
+- `library-workouts.spec.ts` — workout create / read / update / delete + assign to a client.
+- `library-programs.spec.ts` — program create / read / update / delete + assign to a client.
 
 ## Adding a workflow test
 
