@@ -9,11 +9,23 @@ Connects to the Spring Boot backend at `nutricoach-api`.
 ## Commands
 
 ```bash
-npm run dev        # Start dev server (http://localhost:3000)
-npm run build      # Production build
-npx tsc --noEmit   # Typecheck (no npm script for this)
-npm run gen:api    # Regenerate types/api.ts from the running backend's OpenAPI spec
+npm run dev          # Start dev server (http://localhost:3000)
+npm run build        # Production build
+npx tsc --noEmit     # Typecheck (no npm script for this)
+npm run gen:api      # Regenerate types/api.ts from the running backend's OpenAPI spec
+npm run test:e2e     # Playwright E2E (headless); :ui and :headed variants exist
 ```
+
+## E2E Tests
+Playwright tests under `e2e/` drive real coach workflows against the **real local backend**
+using the dev-mode OTP bypass (`111111`). They are NOT mocked.
+
+- Prereqs: backend up (`local` profile + `pg-test`) and `.env.local` with
+  `NEXT_PUBLIC_API_URL=http://localhost:8080` and `NEXT_PUBLIC_DEV_MODE=true`.
+- `e2e/auth.setup.ts` logs in once and saves `nc_token`/`nc_coach` to `e2e/.auth/coach.json`
+  (git-ignored); every other spec reuses it via `storageState` and skips the OTP UI.
+- Page Objects live in `e2e/pages/`; test-data helpers in `e2e/helpers/api.ts`.
+- See `e2e/README.md` for the full guide.
 
 ## Tech Stack
 - Next.js 16 (App Router, Turbopack)
