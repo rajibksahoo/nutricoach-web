@@ -15,6 +15,9 @@ npx tsc --noEmit     # Typecheck (no npm script for this)
 npm run gen:api      # Regenerate types/api.ts from the running backend's OpenAPI spec
 npm run test:e2e     # Playwright E2E (headless); :ui and :headed variants exist
 ```
+There is **no unit-test runner** — no `npm test`. Verification is `npx tsc --noEmit` plus the Playwright e2e suite.
+
+> **Next.js 16 caveat** (see `AGENTS.md`): this is a bleeding-edge Next release with breaking changes from earlier versions — APIs, conventions, and file structure may differ from training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing Next-specific code, and heed deprecation notices.
 
 ## E2E Tests
 Playwright tests under `e2e/` drive real coach workflows against the **real local backend**
