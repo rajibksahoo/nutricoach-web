@@ -25,7 +25,7 @@ export default function ProgramPlannerView({
   const [program, setProgram] = useState<Program>(initialProgram);
   const [weeks, setWeeks] = useState(program.weeks ?? Math.max(1, Math.ceil(program.durationDays / 7)));
   const [days, setDays] = useState<Map<number, DayEntry>>(() => buildDays(initialProgram));
-  const [weekView, setWeekView] = useState<1 | 2 | 4>(4);
+  const [weekView, setWeekView] = useState<1 | 2 | 4>(2);
   const [weekOffset, setWeekOffset] = useState(0);
   const [liveSync, setLiveSync] = useState(false);
   const [toastInfo, setToastInfo] = useState(false);

@@ -1,46 +1,42 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import Spinner from "@/components/ui/Spinner";
-import type { ProgramSummary } from "@/lib/library-types";
+import type { Program, ProgramSummary } from "@/lib/library-types";
 import {
-  assignProgram, createProgram, deleteProgram, listPrograms,
-  updateProgram, uploadProgramCover,
+  assignProgram, getProgram, updateProgram, uploadProgramCover,
 } from "@/lib/programs-api";
 import { listClients } from "@/lib/workout-builder-api";
 import type { Client } from "@/app/(dashboard)/workout-builder/_components/data";
-import ProgramListView from "./ProgramListView";
-import CreateProgramModal, { type ProgramFormPayload } from "./CreateProgramModal";
-import AssignProgramModal from "./AssignProgramModal";
+import ProgramPlannerView from "@/components/library/programs/ProgramPlannerView";
+import CreateProgramModal, { type ProgramFormPayload } from "@/components/library/programs/CreateProgramModal";
+import AssignProgramModal from "@/components/library/programs/AssignProgramModal";
 
-export default function ProgramsLibrary() {
+export default function ProgramCalendarPage() {
+  const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const [programs, setPrograms] = useState<ProgramSummary[]>([]);
+
+  const [program, setProgram] = useState<Program | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const [modalMode, setModalMode] = useState<"create" | "edit" | null>(null);
-  const [editTarget, setEditTarget] = useState<ProgramSummary | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const [assignTarget, setAssignTarget] = useState<ProgramSummary | null>(null);
   const [assigning, setAssigning] = useState(false);
   const [clients, setClients] = useState<Client[]>([]);
 
-  function load() {
+  const load = useCallback(() => {
     setLoading(true);
-    listPrograms()
-      .then(setPrograms)
-      .catch(() => toast.error("Failed to load programs"))
+    getProgram(id)
+      .then(setProgram)
+      .catch(() => toast.error("Failed to load program"))
       .finally(() => setLoading(false));
-  }
+  }, [id]);
 
-  useEffect(load, []);
-
-  function openPlanner(p: ProgramSummary) {
-    router.push(`/library/programs/${p.id}/calendar`);
-  }
+  useEffect(() => { load(); }, [load]);
 
   function openAssign(p: ProgramSummary) {
     setAssignTarget(p);
@@ -49,18 +45,7 @@ export default function ProgramsLibrary() {
     }
   }
 
-  async function handleDelete(p: ProgramSummary) {
-    if (!confirm(`Delete "${p.name}"?`)) return;
-    try {
-      await deleteProgram(p.id);
-      toast.success("Program deleted");
-      load();
-    } catch {
-      toast.error("Failed to delete");
-    }
-  }
-
-  async function handleSubmit(payload: ProgramFormPayload) {
+  async function handleEdit(payload: ProgramFormPayload) {
     setSaving(true);
     try {
       const body = {
@@ -70,20 +55,12 @@ export default function ProgramsLibrary() {
         modality: payload.modality || null,
         experienceLevel: payload.experienceLevel || null,
       };
-      if (modalMode === "edit" && editTarget) {
-        await updateProgram(editTarget.id, body);
-        if (payload.coverFile) await uploadProgramCover(editTarget.id, payload.coverFile);
-        toast.success("Program updated");
-        setModalMode(null);
-        load();
-      } else {
-        const created = await createProgram(body);
-        if (payload.coverFile) await uploadProgramCover(created.id, payload.coverFile);
-        toast.success("Program created");
-        setModalMode(null);
-        load();
-        openPlanner(created);
-      }
+      const updated = await updateProgram(id, body);
+      if (payload.coverFile) await uploadProgramCover(id, payload.coverFile);
+      toast.success("Program updated");
+      setEditOpen(false);
+      // Keep planner header in sync without a full refetch of days
+      setProgram((prev) => (prev ? { ...prev, ...updated, days: prev.days } : prev));
     } catch (e) {
       const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
       toast.error(msg ?? "Failed to save program");
@@ -109,25 +86,26 @@ export default function ProgramsLibrary() {
   if (loading) {
     return <div style={{ padding: "60px 0", display: "flex", justifyContent: "center" }}><Spinner /></div>;
   }
+  if (!program) {
+    return <p style={{ padding: 24, fontSize: 14, color: "var(--fg2)" }}>Program not found.</p>;
+  }
 
   return (
     <>
-      <ProgramListView
-        programs={programs}
-        onOpen={openPlanner}
-        onCreate={() => { setEditTarget(null); setModalMode("create"); }}
-        onEdit={(p) => { setEditTarget(p); setModalMode("edit"); }}
+      <ProgramPlannerView
+        program={program}
+        onBack={() => router.push("/library/programs")}
+        onEditInfo={() => setEditOpen(true)}
         onAssign={openAssign}
-        onDelete={handleDelete}
       />
 
       <CreateProgramModal
-        open={modalMode !== null}
-        mode={modalMode ?? "create"}
-        initial={editTarget}
+        open={editOpen}
+        mode="edit"
+        initial={program}
         saving={saving}
-        onClose={() => setModalMode(null)}
-        onSubmit={handleSubmit}
+        onClose={() => setEditOpen(false)}
+        onSubmit={handleEdit}
       />
 
       <AssignProgramModal
