@@ -142,3 +142,13 @@ html, body {
   font-feature-settings: "cv11", "ss01";
   letter-spacing: -0.005em;
 }
+
+/* ---------- Dashboard ------------------------------------------------- */
+@keyframes dashPulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.45; }
+}
+
+@keyframes dashSpin {
+  to { transform: rotate(360deg); }
+}

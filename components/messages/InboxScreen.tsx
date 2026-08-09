@@ -12,6 +12,7 @@ import {
   toneFromId, fmtRelative, fmtMessageDate, fmtMessageTime,
   type ConversationSummary, type BackendMessage,
 } from "@/lib/messaging-api";
+import ClientAvatar from "@/components/ui/ClientAvatar";
 
 interface ThreadMsg {
   d: string;
@@ -76,18 +77,6 @@ function messageToThreadMsg(m: BackendMessage): ThreadMsg {
     text: m.content,
     time: fmtMessageTime(m.sentAt),
   };
-}
-
-function InboxAvatar({ name, tone = "#4F46E5", size = 36 }: { name: string; tone?: string; size?: number }) {
-  const initials = (name || "?").split(/\s+/).slice(0, 2).map((s) => s[0]?.toUpperCase()).join("");
-  return (
-    <div style={{
-      width: size, height: size, borderRadius: "50%",
-      background: tone + "22", color: tone, border: `1px solid ${tone}55`,
-      display: "flex", alignItems: "center", justifyContent: "center",
-      fontWeight: 600, fontSize: Math.round(size * 0.36), flexShrink: 0,
-    }}>{initials}</div>
-  );
 }
 
 const ibBtn: React.CSSProperties = {
@@ -351,7 +340,7 @@ export default function InboxScreen() {
                   position: "absolute", left: 0, top: 8, bottom: 8, width: 3,
                   background: "var(--brand-primary)", borderRadius: "0 3px 3px 0",
                 }} />}
-                <InboxAvatar name={t.client.name} tone={t.client.avatarTone} size={40} />
+                <ClientAvatar name={t.client.name} tone={t.client.avatarTone} size={40} />
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{
                     display: "flex", justifyContent: "space-between",
@@ -395,7 +384,7 @@ export default function InboxScreen() {
           background: "#fff", display: "flex", alignItems: "center", justifyContent: "space-between",
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <InboxAvatar name={active.client.name} tone={active.client.avatarTone} size={36} />
+            <ClientAvatar name={active.client.name} tone={active.client.avatarTone} size={36} />
             <div>
               <div style={{
                 fontSize: 16, fontWeight: 600, color: "var(--fg1)", letterSpacing: "-0.01em",
@@ -432,7 +421,7 @@ export default function InboxScreen() {
                   flexDirection: m.side === "out" ? "row-reverse" : "row",
                   alignItems: "flex-end",
                 }}>
-                  <InboxAvatar
+                  <ClientAvatar
                     name={m.side === "out" ? "Coach Rajib" : active.client.name}
                     tone={m.side === "out" ? "#0F766E" : active.client.avatarTone}
                     size={28}
@@ -521,7 +510,7 @@ export default function InboxScreen() {
       }}>
         <div style={{ textAlign: "center", marginBottom: 14 }}>
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 10 }}>
-            <InboxAvatar name={active.client.name} tone={active.client.avatarTone} size={84} />
+            <ClientAvatar name={active.client.name} tone={active.client.avatarTone} size={84} />
           </div>
           <div style={{
             fontFamily: "var(--font-display-xl)", fontSize: 17, fontWeight: 700,
@@ -585,7 +574,7 @@ export default function InboxScreen() {
               padding: "10px 0",
               borderTop: i > 0 ? "1px solid var(--border-subtle)" : "none",
             }}>
-              <InboxAvatar
+              <ClientAvatar
                 name={u.who === "You" ? "Coach R" : (u.who || active.client.name)}
                 tone={u.who === "You" ? "#0F766E" : active.client.avatarTone}
                 size={26}
