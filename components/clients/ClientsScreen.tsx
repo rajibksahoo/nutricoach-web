@@ -17,83 +17,10 @@ import {
   listClientSchedules, unscheduleWorkout, listWorkouts,
   type WorkoutScheduleEntry,
 } from "@/lib/workout-builder-api";
-
-// ─── Tiny visuals ──────────────────────────────────────────────────────
-function ClientAvatar({ name, tone = "#4F46E5", size = 32 }: { name: string; tone?: string; size?: number }) {
-  const initials = (name || "?").split(/\s+/).slice(0, 2).map((s) => s[0]?.toUpperCase()).join("");
-  return (
-    <div style={{
-      width: size, height: size, borderRadius: "50%",
-      background: tone + "22", color: tone, border: `1px solid ${tone}55`,
-      display: "flex", alignItems: "center", justifyContent: "center",
-      fontWeight: 600, fontSize: Math.round(size * 0.36), flexShrink: 0,
-      letterSpacing: "-0.01em",
-    }}>{initials}</div>
-  );
-}
-
-function StatusPill({ status }: { status: StatusKey }) {
-  const c = STATUS_COLORS[status] || STATUS_COLORS["Offline"];
-  return (
-    <span style={{
-      display: "inline-flex", alignItems: "center", gap: 6,
-      background: c.bg, color: c.color,
-      padding: "2px 8px", borderRadius: 999,
-      fontSize: 11, fontWeight: 600,
-      border: `1px solid ${c.color}22`,
-    }}>
-      <span style={{ width: 6, height: 6, borderRadius: "50%", background: c.dot }} />
-      {status}
-    </span>
-  );
-}
-
-function Spark({ data, color = "#4F46E5", w = 240, h = 80, fill, axis }: {
-  data: number[]; color?: string; w?: number; h?: number; fill?: boolean; axis?: boolean;
-}) {
-  if (!data || !data.length) return <div style={{ width: w, height: h }} />;
-  const min = Math.min(...data), max = Math.max(...data);
-  const range = max - min || 1;
-  const padX = 8, padY = 8;
-  const innerW = w - padX * 2, innerH = h - padY * 2;
-  const pts = data.map((v, i) => {
-    const x = (i / (data.length - 1 || 1)) * innerW + padX;
-    const y = padY + innerH - ((v - min) / range) * innerH;
-    return [x, y] as const;
-  });
-  const path = pts.map((p, i) => (i === 0 ? "M" : "L") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
-  const areaPath = path + ` L ${pts[pts.length - 1][0].toFixed(1)} ${h - padY} L ${pts[0][0].toFixed(1)} ${h - padY} Z`;
-  return (
-    <svg width={w} height={h} style={{ display: "block" }}>
-      {axis && [0.25, 0.5, 0.75].map((p, i) => (
-        <line key={i} x1={padX} x2={w - padX} y1={padY + innerH * p} y2={padY + innerH * p}
-          stroke="var(--border-subtle)" strokeDasharray="2 3" />
-      ))}
-      {fill && <path d={areaPath} fill={color + "18"} />}
-      <path d={path} fill="none" stroke={color} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
-      {pts.map(([x, y], i) => i === pts.length - 1 ?
-        <circle key={i} cx={x} cy={y} r="3" fill={color} stroke="#fff" strokeWidth="1.5" /> : null)}
-    </svg>
-  );
-}
-
-function Delta({ pct, dir = "down", positiveIsDown }: { pct: number; dir?: "up" | "down"; positiveIsDown?: boolean }) {
-  const isGood = positiveIsDown ? dir === "down" : dir === "up";
-  const tone = isGood ? "#15803D" : "#B91C1C";
-  const bg = isGood ? "#F0FDF4" : "#FEF2F2";
-  return (
-    <span style={{
-      display: "inline-flex", alignItems: "center", gap: 3,
-      background: bg, color: tone,
-      padding: "1px 7px", borderRadius: 99,
-      fontSize: 11, fontWeight: 600,
-      fontVariantNumeric: "tabular-nums",
-    }}>
-      <span style={{ fontSize: 10 }}>{dir === "down" ? "↓" : "↑"}</span>
-      {pct}%
-    </span>
-  );
-}
+import ClientAvatar from "@/components/ui/ClientAvatar";
+import StatusPill from "@/components/ui/StatusPill";
+import Spark from "@/components/ui/Spark";
+import Delta from "@/components/ui/Delta";
 
 // ─── Sub-pane: search + client list ────────────────────────────────────
 function ClientsSubNav({ clients, selectedId, onSelect }: {

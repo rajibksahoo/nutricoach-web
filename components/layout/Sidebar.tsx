@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { clearAuth, getCoach } from "@/lib/auth";
 import type { CoachUser } from "@/lib/auth";
+import { listConversations } from "@/lib/messaging-api";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
@@ -23,7 +24,8 @@ type NavItem = {
   href: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
-  badge?: number;
+  /** Renders the live unread-message count fetched below. */
+  showsUnread?: boolean;
   matchPrefixes?: string[];
 };
 
@@ -38,7 +40,7 @@ const navItems: NavItem[] = [
     matchPrefixes: ["/library", "/workout-builder"],
   },
   { href: "/progress",   label: "Progress",   icon: TrendingUp },
-  { href: "/messages",   label: "Messaging",  icon: MessageCircle, badge: 3 },
+  { href: "/messages",   label: "Messaging",  icon: MessageCircle, showsUnread: true },
   { href: "/billing",    label: "Billing",    icon: CreditCard },
   { href: "/profile",    label: "Profile",    icon: UserCircle },
 ];
@@ -54,10 +56,23 @@ export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [coach, setCoach] = useState<CoachUser | null>(null);
+  const [unread, setUnread] = useState(0);
 
   useEffect(() => {
     setCoach(getCoach());
   }, []);
+
+  // Real unread total. listConversations is read-only — unlike getThread it
+  // does not mark anything as read server-side.
+  useEffect(() => {
+    let cancelled = false;
+    listConversations()
+      .then((cs) => {
+        if (!cancelled) setUnread(cs.reduce((sum, c) => sum + (c.unreadCount || 0), 0));
+      })
+      .catch(() => { /* a badge is not worth a toast */ });
+    return () => { cancelled = true; };
+  }, [pathname]);
 
   function handleLogout() {
     clearAuth();
@@ -94,9 +109,10 @@ export default function Sidebar() {
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto px-2 py-2.5 flex flex-col gap-px">
-        {navItems.map(({ href, label, icon: Icon, badge, matchPrefixes }) => {
+        {navItems.map(({ href, label, icon: Icon, showsUnread, matchPrefixes }) => {
           const prefixes = matchPrefixes ?? [href];
           const active = prefixes.some((p) => pathname.startsWith(p));
+          const badge = showsUnread ? unread : 0;
           return (
             <Link
               key={href}

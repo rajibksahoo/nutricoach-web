@@ -19,7 +19,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     pathname.startsWith("/library") ||
     pathname.startsWith("/workout-builder") ||
     pathname === "/clients" ||
-    pathname === "/messages";
+    pathname === "/messages" ||
+    pathname === "/dashboard";
 
   return (
     <div className="flex h-full">

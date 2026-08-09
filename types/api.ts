@@ -41,6 +41,134 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/library/workouts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a workout with its ordered sections */
+        get: operations["get_2"];
+        /** Update workout metadata */
+        put: operations["update_1"];
+        post?: never;
+        /** Delete a workout (soft delete; detaches all sections) */
+        delete: operations["delete_1"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/library/workouts/{id}/sections/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Reorder section assignments within a workout */
+        put: operations["reorderWorkoutSections"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/library/workout-sections/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a workout section with its exercises */
+        get: operations["getSection"];
+        /** Update section metadata */
+        put: operations["updateSection"];
+        post?: never;
+        /** Delete a section (fails if any workout still uses it) */
+        delete: operations["deleteSection"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/library/workout-sections/{id}/exercises/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Reorder exercise entries within a section */
+        put: operations["reorderSectionExercises"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/library/programs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a program with its day-by-day workout schedule */
+        get: operations["get_4"];
+        /** Update program metadata */
+        put: operations["update_2"];
+        post?: never;
+        /** Delete a program (soft delete) */
+        delete: operations["delete_2"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/library/programs/{id}/days/{dayNumber}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Assign a workout to a day (or set notes); upserts the day */
+        put: operations["setDay"];
+        post?: never;
+        /** Clear a day (remove workout assignment and notes) */
+        delete: operations["clearDay"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/library/exercises/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get an exercise */
+        get: operations["get_5"];
+        /** Update an exercise */
+        put: operations["update_3"];
+        post?: never;
+        /** Delete an exercise (soft delete) */
+        delete: operations["delete_3"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/coach/me": {
         parameters: {
             query?: never;
@@ -70,12 +198,128 @@ export interface paths {
             cookie?: never;
         };
         /** Get client by ID */
-        get: operations["get_3"];
+        get: operations["get_7"];
         /** Update client */
-        put: operations["update_1"];
+        put: operations["update_4"];
         post?: never;
         /** Delete client (soft delete) */
-        delete: operations["delete_1"];
+        delete: operations["delete_4"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/portal/workouts/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mark a scheduled workout as completed
+         * @description Marks one of my derived upcoming/today workouts done. Idempotent — re-completing the same (workout, date) returns success without a duplicate row. Returns the workout with completed=true.
+         */
+        post: operations["complete"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/portal/progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get my progress history
+         * @description Returns all progress logs sorted by date descending
+         */
+        get: operations["getHistory"];
+        put?: never;
+        /**
+         * Log a progress entry
+         * @description Logs (or upserts for the day) a progress entry for the authenticated client
+         */
+        post: operations["log"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/portal/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get chat thread
+         * @description Returns all messages with the coach (oldest first). Also marks coach messages as read.
+         */
+        get: operations["getMessages"];
+        put?: never;
+        /**
+         * Send a message
+         * @description Send a message from the client to their coach
+         */
+        post: operations["sendMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/portal/check-ins": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get my check-in history
+         * @description Returns all check-ins sorted by date descending
+         */
+        get: operations["getHistory_1"];
+        put?: never;
+        /**
+         * Submit a check-in
+         * @description Creates a check-in for the authenticated client
+         */
+        post: operations["create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/messages/clients/{clientId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get message thread
+         * @description Returns all messages for a client conversation (oldest first). Also marks unread messages as read.
+         */
+        get: operations["getMessages_1"];
+        put?: never;
+        /**
+         * Send a message
+         * @description Send a message from the coach to a client
+         */
+        post: operations["sendMessage_1"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -152,6 +396,220 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/library/workouts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List all workouts for the current coach */
+        get: operations["list_1"];
+        put?: never;
+        /** Create a workout */
+        post: operations["create_1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/library/workouts/{workoutId}/schedules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Schedule a workout for a client on a specific date */
+        post: operations["schedule"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/library/workouts/{workoutId}/assignments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List active assignments for a workout */
+        get: operations["listAssignments"];
+        put?: never;
+        /** Assign a workout to one or more clients */
+        post: operations["assign"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/library/workouts/{id}/sections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Attach an existing section to a workout */
+        post: operations["attachSection"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/library/workouts/{id}/duplicate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Duplicate a workout (copies metadata + section assignments) */
+        post: operations["duplicate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/library/workout-templates/{id}/instantiate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a real workout for the current coach from this template */
+        post: operations["instantiate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/library/workout-sections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List all workout sections */
+        get: operations["listSections"];
+        put?: never;
+        /** Create a reusable workout section */
+        post: operations["createSection"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/library/workout-sections/{id}/exercises": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add an exercise entry to a section */
+        post: operations["addSectionExercise"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/library/programs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List all programs for the current coach */
+        get: operations["list_3"];
+        put?: never;
+        /** Create a program */
+        post: operations["create_2"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/library/programs/{id}/cover": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Initiate a cover-image upload
+         * @description Stores the S3 key and returns a pre-signed PUT URL for direct upload
+         */
+        post: operations["initiateCoverUpload"];
+        /** Remove a program's cover image */
+        delete: operations["deleteCover"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/library/programs/{id}/assignments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List active assignments for a program */
+        get: operations["listAssignments_1"];
+        put?: never;
+        /** Assign a program to one or more clients */
+        post: operations["assign_1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/library/exercises": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List all exercises for the current coach */
+        get: operations["list_4"];
+        put?: never;
+        /** Create an exercise */
+        post: operations["create_3"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/clients": {
         parameters: {
             query?: never;
@@ -163,10 +621,10 @@ export interface paths {
          * List clients
          * @description Returns all active clients for the authenticated coach. Filter by status using ?status=ACTIVE|ONBOARDING|INACTIVE
          */
-        get: operations["list_1"];
+        get: operations["list_5"];
         put?: never;
         /** Create client */
-        post: operations["create"];
+        post: operations["create_4"];
         delete?: never;
         options?: never;
         head?: never;
@@ -190,7 +648,7 @@ export interface paths {
          * Log progress
          * @description Creates or updates the progress entry for the given date (one per client per day)
          */
-        post: operations["log"];
+        post: operations["log_1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -229,10 +687,10 @@ export interface paths {
             cookie?: never;
         };
         /** List all meal plans for a client */
-        get: operations["list_2"];
+        get: operations["list_6"];
         put?: never;
         /** Create meal plan for a client */
-        post: operations["create_1"];
+        post: operations["create_5"];
         delete?: never;
         options?: never;
         head?: never;
@@ -256,7 +714,7 @@ export interface paths {
          * Create check-in
          * @description Records a weekly check-in with adherence % against an active meal plan. One check-in per date.
          */
-        post: operations["create_2"];
+        post: operations["create_6"];
         delete?: never;
         options?: never;
         head?: never;
@@ -440,7 +898,25 @@ export interface paths {
         patch: operations["updateStatus"];
         trace?: never;
     };
-    "/api/v1/portal/progress": {
+    "/api/v1/library/workout-sections/{id}/exercises/{entryId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove an exercise entry from a section */
+        delete: operations["removeSectionExercise"];
+        options?: never;
+        head?: never;
+        /** Update parameters on a section exercise entry */
+        patch: operations["updateSectionExercise"];
+        trace?: never;
+    };
+    "/api/v1/portal/workouts": {
         parameters: {
             query?: never;
             header?: never;
@@ -448,10 +924,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get my progress history
-         * @description Returns all progress logs sorted by date descending
+         * Get my upcoming workouts
+         * @description Derived live from assigned programs: each program day's workout dated from the assignment start date, today onward
          */
-        get: operations["getHistory"];
+        get: operations["getUpcoming"];
         put?: never;
         post?: never;
         delete?: never;
@@ -540,7 +1016,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/portal/check-ins": {
+    "/api/v1/messages/conversations": {
         parameters: {
             query?: never;
             header?: never;
@@ -548,10 +1024,61 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get my check-in history
-         * @description Returns all check-ins sorted by date descending
+         * List all conversations
+         * @description Returns one summary per client thread, sorted by most recent message
          */
-        get: operations["getHistory_1"];
+        get: operations["listConversations"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/library/workout-templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List all workout templates */
+        get: operations["list_2"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/library/workout-templates/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a single workout template */
+        get: operations["get_3"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/library/clients/{clientId}/schedules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List a client's scheduled workouts (optionally filter by date range) */
+        get: operations["listClientSchedules"];
         put?: never;
         post?: never;
         delete?: never;
@@ -588,7 +1115,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get food item by ID */
-        get: operations["get_2"];
+        get: operations["get_6"];
         put?: never;
         post?: never;
         delete?: never;
@@ -605,10 +1132,31 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get coach dashboard
-         * @description Returns client counts by status, meal plan totals, clients needing a plan, and 5 most recent clients
+         * Get coach dashboard (deprecated)
+         * @deprecated
+         * @description Deprecated — use GET /api/v1/coach/dashboard/overview. Returns client counts by status, meal plan totals, clients needing a plan, and 5 most recent clients
          */
         get: operations["getDashboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coach/dashboard/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get coach dashboard overview
+         * @description Everything the dashboard renders in one call: counts, a prioritised action queue (unanswered messages, overdue check-ins, expiring/missing meal plans, onboarding clients), today's sessions and check-ins, roster and tier limit, subscription/trial state, and a recent activity feed
+         */
+        get: operations["getDashboardOverview"];
         put?: never;
         post?: never;
         delete?: never;
@@ -706,6 +1254,74 @@ export interface paths {
         post?: never;
         /** Remove a food item from a meal (auto-recalculates day totals) */
         delete: operations["removeItem"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/library/workouts/{workoutId}/assignments/{assignmentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Soft-delete an assignment */
+        delete: operations["unassign"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/library/workouts/{id}/sections/{assignmentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Detach a section from a workout (section itself is preserved) */
+        delete: operations["detachSection"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/library/schedules/{scheduleId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Soft-delete a scheduled workout entry */
+        delete: operations["unschedule"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/library/programs/{id}/assignments/{assignmentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Soft-delete a program assignment */
+        delete: operations["unassign_1"];
         options?: never;
         head?: never;
         patch?: never;
@@ -841,6 +1457,215 @@ export interface components {
             sequenceOrder?: number;
             items?: components["schemas"]["MealItemResponse"][];
         };
+        UpdateWorkoutRequest: {
+            name?: string;
+            description?: string;
+            /** Format: int32 */
+            estimatedDurationMinutes?: number;
+            tags?: string[];
+        };
+        ApiResponseWorkoutSummaryResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["WorkoutSummaryResponse"];
+            errorCode?: string;
+        };
+        WorkoutSummaryResponse: {
+            /** Format: uuid */
+            id?: string;
+            name?: string;
+            description?: string;
+            /** Format: int32 */
+            estimatedDurationMinutes?: number;
+            tags?: string[];
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        ReorderRequest: {
+            orderedIds: string[];
+        };
+        ApiResponseWorkoutResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["WorkoutResponse"];
+            errorCode?: string;
+        };
+        SectionExerciseResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            exerciseId?: string;
+            exerciseName?: string;
+            /** Format: int32 */
+            position?: number;
+            /** Format: int32 */
+            sets?: number;
+            /** Format: int32 */
+            reps?: number;
+            /** Format: int32 */
+            durationSeconds?: number;
+            /** Format: int32 */
+            restSeconds?: number;
+            weight?: string;
+            notes?: string;
+        };
+        WorkoutResponse: {
+            /** Format: uuid */
+            id?: string;
+            name?: string;
+            description?: string;
+            /** Format: int32 */
+            estimatedDurationMinutes?: number;
+            tags?: string[];
+            sections?: components["schemas"]["WorkoutSectionResponse"][];
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        WorkoutSectionResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            assignmentId?: string;
+            name?: string;
+            /** @enum {string} */
+            sectionType?: "WARM_UP" | "MAIN" | "ACCESSORY" | "COOL_DOWN" | "FINISHER";
+            description?: string;
+            exercises?: components["schemas"]["SectionExerciseResponse"][];
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        UpdateWorkoutSectionRequest: {
+            name?: string;
+            /** @enum {string} */
+            sectionType?: "WARM_UP" | "MAIN" | "ACCESSORY" | "COOL_DOWN" | "FINISHER";
+            description?: string;
+        };
+        ApiResponseWorkoutSectionResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["WorkoutSectionResponse"];
+            errorCode?: string;
+        };
+        UpdateProgramRequest: {
+            name?: string;
+            description?: string;
+            /** Format: int32 */
+            weeks?: number;
+            /** Format: int32 */
+            durationDays?: number;
+            modality?: string;
+            experienceLevel?: string;
+            tags?: string[];
+        };
+        ApiResponseProgramSummaryResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["ProgramSummaryResponse"];
+            errorCode?: string;
+        };
+        ProgramSummaryResponse: {
+            /** Format: uuid */
+            id?: string;
+            name?: string;
+            description?: string;
+            /** Format: int32 */
+            durationDays?: number;
+            /** Format: int32 */
+            weeks?: number;
+            modality?: string;
+            experienceLevel?: string;
+            tags?: string[];
+            coverImageUrl?: string;
+            coverGradient?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        SetProgramDayRequest: {
+            /** Format: uuid */
+            workoutId?: string;
+            notes?: string;
+        };
+        ApiResponseProgramResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["ProgramResponse"];
+            errorCode?: string;
+        };
+        ProgramDayResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: int32 */
+            dayNumber?: number;
+            /** Format: uuid */
+            workoutId?: string;
+            workoutName?: string;
+            notes?: string;
+        };
+        ProgramResponse: {
+            /** Format: uuid */
+            id?: string;
+            name?: string;
+            description?: string;
+            /** Format: int32 */
+            durationDays?: number;
+            /** Format: int32 */
+            weeks?: number;
+            modality?: string;
+            experienceLevel?: string;
+            tags?: string[];
+            coverImageUrl?: string;
+            coverGradient?: string;
+            days?: components["schemas"]["ProgramDayResponse"][];
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        UpdateExerciseRequest: {
+            name?: string;
+            description?: string;
+            muscleGroup?: string;
+            equipment?: string;
+            videoUrl?: string;
+            notes?: string;
+            /** @enum {string} */
+            category?: "strength" | "bodyweight" | "timed" | "cardio" | "amrap" | "mobility" | "plyometric" | "skill";
+            movementPattern?: string;
+            tags?: string[];
+        };
+        ApiResponseExerciseResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["ExerciseResponse"];
+            errorCode?: string;
+        };
+        ExerciseResponse: {
+            /** Format: uuid */
+            id?: string;
+            name?: string;
+            description?: string;
+            muscleGroup?: string;
+            equipment?: string;
+            videoUrl?: string;
+            notes?: string;
+            /** @enum {string} */
+            category?: "strength" | "bodyweight" | "timed" | "cardio" | "amrap" | "mobility" | "plyometric" | "skill";
+            movementPattern?: string;
+            tags?: string[];
+            custom?: boolean;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
         UpdateCoachRequest: {
             name?: string;
             email?: string;
@@ -927,6 +1752,123 @@ export interface components {
             /** Format: date-time */
             updatedAt?: string;
         };
+        CompleteWorkoutRequest: {
+            /** Format: uuid */
+            workoutId: string;
+            /** Format: date */
+            date: string;
+        };
+        ApiResponseClientScheduledWorkoutResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["ClientScheduledWorkoutResponse"];
+            errorCode?: string;
+        };
+        ClientScheduledWorkoutResponse: {
+            /** Format: date */
+            date?: string;
+            /** Format: uuid */
+            programId?: string;
+            programName?: string;
+            /** Format: uuid */
+            workoutId?: string;
+            workoutName?: string;
+            /** Format: int32 */
+            exerciseCount?: number;
+            exercises?: components["schemas"]["ClientWorkoutLineResponse"][];
+            completed?: boolean;
+        };
+        ClientWorkoutLineResponse: {
+            name?: string;
+            /** Format: int32 */
+            sets?: number;
+            target?: string;
+        };
+        LogProgressRequest: {
+            /** Format: date */
+            loggedDate: string;
+            weightKg?: number;
+            bodyFatPercent?: number;
+            waistCm?: number;
+            chestCm?: number;
+            hipCm?: number;
+            /** Format: int32 */
+            adherencePercent?: number;
+            notes?: string;
+        };
+        ApiResponseProgressLogResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["ProgressLogResponse"];
+            errorCode?: string;
+        };
+        ProgressLogResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            clientId?: string;
+            /** Format: date */
+            loggedDate?: string;
+            weightKg?: number;
+            bodyFatPercent?: number;
+            waistCm?: number;
+            chestCm?: number;
+            hipCm?: number;
+            /** Format: int32 */
+            adherencePercent?: number;
+            notes?: string;
+        };
+        SendMessageRequest: {
+            content: string;
+        };
+        ApiResponseMessageResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["MessageResponse"];
+            errorCode?: string;
+        };
+        MessageResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            clientId?: string;
+            /** @enum {string} */
+            senderType?: "COACH" | "CLIENT";
+            content?: string;
+            read?: boolean;
+            /** Format: date-time */
+            sentAt?: string;
+        };
+        CreateCheckInRequest: {
+            /** Format: date */
+            checkInDate: string;
+            /** Format: uuid */
+            mealPlanId: string;
+            /** Format: int32 */
+            adherencePercent?: number;
+            clientNotes?: string;
+            coachNotes?: string;
+        };
+        ApiResponseCheckInResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["CheckInResponse"];
+            errorCode?: string;
+        };
+        CheckInResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            clientId?: string;
+            /** Format: uuid */
+            mealPlanId?: string;
+            /** Format: date */
+            checkInDate?: string;
+            /** Format: int32 */
+            adherencePercent?: number;
+            clientNotes?: string;
+            coachNotes?: string;
+        };
         ApiResponseVoid: {
             success?: boolean;
             message?: string;
@@ -971,6 +1913,147 @@ export interface components {
             data?: components["schemas"]["MealItemResponse"];
             errorCode?: string;
         };
+        CreateWorkoutRequest: {
+            name: string;
+            description?: string;
+            /** Format: int32 */
+            estimatedDurationMinutes?: number;
+            tags?: string[];
+        };
+        ScheduleWorkoutRequest: {
+            /** Format: uuid */
+            clientId: string;
+            /** Format: date */
+            date: string;
+            notes?: string;
+        };
+        ApiResponseScheduleResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["ScheduleResponse"];
+            errorCode?: string;
+        };
+        ScheduleResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            clientId?: string;
+            /** Format: uuid */
+            workoutId?: string;
+            /** Format: date */
+            date?: string;
+            notes?: string;
+        };
+        AssignWorkoutRequest: {
+            clientIds: string[];
+            notes?: string;
+        };
+        ApiResponseListAssignmentResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["AssignmentResponse"][];
+            errorCode?: string;
+        };
+        AssignmentResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            clientId?: string;
+            /** Format: uuid */
+            workoutId?: string;
+            /** Format: date-time */
+            assignedAt?: string;
+            notes?: string;
+        };
+        AttachSectionRequest: {
+            /** Format: uuid */
+            sectionId: string;
+            /** Format: int32 */
+            position?: number;
+        };
+        CreateWorkoutSectionRequest: {
+            name: string;
+            /** @enum {string} */
+            sectionType: "WARM_UP" | "MAIN" | "ACCESSORY" | "COOL_DOWN" | "FINISHER";
+            description?: string;
+        };
+        AddSectionExerciseRequest: {
+            /** Format: uuid */
+            exerciseId: string;
+            /** Format: int32 */
+            position?: number;
+            /** Format: int32 */
+            sets?: number;
+            /** Format: int32 */
+            reps?: number;
+            /** Format: int32 */
+            durationSeconds?: number;
+            /** Format: int32 */
+            restSeconds?: number;
+            weight?: string;
+            notes?: string;
+        };
+        CreateProgramRequest: {
+            name: string;
+            description?: string;
+            /** Format: int32 */
+            weeks?: number;
+            /** Format: int32 */
+            durationDays?: number;
+            modality?: string;
+            experienceLevel?: string;
+            tags?: string[];
+        };
+        ProgramCoverUploadRequest: {
+            contentType: string;
+        };
+        ApiResponseProgramCoverUploadResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["ProgramCoverUploadResponse"];
+            errorCode?: string;
+        };
+        ProgramCoverUploadResponse: {
+            uploadUrl?: string;
+            s3Key?: string;
+        };
+        AssignProgramRequest: {
+            clientIds: string[];
+            /** Format: date */
+            startDate?: string;
+            notes?: string;
+        };
+        ApiResponseListProgramAssignmentResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["ProgramAssignmentResponse"][];
+            errorCode?: string;
+        };
+        ProgramAssignmentResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            clientId?: string;
+            /** Format: uuid */
+            programId?: string;
+            /** Format: date-time */
+            assignedAt?: string;
+            /** Format: date */
+            startDate?: string;
+            notes?: string;
+        };
+        CreateExerciseRequest: {
+            name: string;
+            description?: string;
+            muscleGroup?: string;
+            equipment?: string;
+            videoUrl?: string;
+            notes?: string;
+            /** @enum {string} */
+            category?: "strength" | "bodyweight" | "timed" | "cardio" | "amrap" | "mobility" | "plyometric" | "skill";
+            movementPattern?: string;
+            tags?: string[];
+        };
         CreateClientRequest: {
             phone: string;
             name: string;
@@ -991,40 +2074,6 @@ export interface components {
             activityLevel?: "SEDENTARY" | "LIGHT" | "MODERATE" | "ACTIVE" | "VERY_ACTIVE";
             healthConditions?: string[];
             allergies?: string[];
-        };
-        LogProgressRequest: {
-            /** Format: date */
-            loggedDate: string;
-            weightKg?: number;
-            bodyFatPercent?: number;
-            waistCm?: number;
-            chestCm?: number;
-            hipCm?: number;
-            /** Format: int32 */
-            adherencePercent?: number;
-            notes?: string;
-        };
-        ApiResponseProgressLogResponse: {
-            success?: boolean;
-            message?: string;
-            data?: components["schemas"]["ProgressLogResponse"];
-            errorCode?: string;
-        };
-        ProgressLogResponse: {
-            /** Format: uuid */
-            id?: string;
-            /** Format: uuid */
-            clientId?: string;
-            /** Format: date */
-            loggedDate?: string;
-            weightKg?: number;
-            bodyFatPercent?: number;
-            waistCm?: number;
-            chestCm?: number;
-            hipCm?: number;
-            /** Format: int32 */
-            adherencePercent?: number;
-            notes?: string;
         };
         InitiatePhotoUploadRequest: {
             photoType: string;
@@ -1052,36 +2101,6 @@ export interface components {
             endDate?: string;
             /** Format: int32 */
             totalCaloriesTarget?: number;
-        };
-        CreateCheckInRequest: {
-            /** Format: date */
-            checkInDate: string;
-            /** Format: uuid */
-            mealPlanId: string;
-            /** Format: int32 */
-            adherencePercent?: number;
-            clientNotes?: string;
-            coachNotes?: string;
-        };
-        ApiResponseCheckInResponse: {
-            success?: boolean;
-            message?: string;
-            data?: components["schemas"]["CheckInResponse"];
-            errorCode?: string;
-        };
-        CheckInResponse: {
-            /** Format: uuid */
-            id?: string;
-            /** Format: uuid */
-            clientId?: string;
-            /** Format: uuid */
-            mealPlanId?: string;
-            /** Format: date */
-            checkInDate?: string;
-            /** Format: int32 */
-            adherencePercent?: number;
-            clientNotes?: string;
-            coachNotes?: string;
         };
         ClientVerifyOtpRequest: {
             phone: string;
@@ -1206,10 +2225,36 @@ export interface components {
             data?: components["schemas"]["AiJobResponse"];
             errorCode?: string;
         };
+        PatchSectionExerciseRequest: {
+            /** Format: int32 */
+            position?: number;
+            /** Format: int32 */
+            sets?: number;
+            /** Format: int32 */
+            reps?: number;
+            /** Format: int32 */
+            durationSeconds?: number;
+            /** Format: int32 */
+            restSeconds?: number;
+            weight?: string;
+            notes?: string;
+        };
+        ApiResponseListClientScheduledWorkoutResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["ClientScheduledWorkoutResponse"][];
+            errorCode?: string;
+        };
         ApiResponseListProgressLogResponse: {
             success?: boolean;
             message?: string;
             data?: components["schemas"]["ProgressLogResponse"][];
+            errorCode?: string;
+        };
+        ApiResponseListMessageResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["MessageResponse"][];
             errorCode?: string;
         };
         ApiResponseListMealPlanSummaryResponse: {
@@ -1250,6 +2295,87 @@ export interface components {
             success?: boolean;
             message?: string;
             data?: components["schemas"]["CheckInResponse"][];
+            errorCode?: string;
+        };
+        ApiResponseListConversationSummaryResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["ConversationSummaryResponse"][];
+            errorCode?: string;
+        };
+        ConversationSummaryResponse: {
+            /** Format: uuid */
+            clientId?: string;
+            clientName?: string;
+            clientPhone?: string;
+            lastMessage?: string;
+            /** @enum {string} */
+            lastSenderType?: "COACH" | "CLIENT";
+            /** Format: date-time */
+            lastMessageAt?: string;
+            /** Format: int64 */
+            unreadCount?: number;
+        };
+        ApiResponseListWorkoutSummaryResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["WorkoutSummaryResponse"][];
+            errorCode?: string;
+        };
+        ApiResponseListWorkoutTemplateResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["WorkoutTemplateResponse"][];
+            errorCode?: string;
+        };
+        Item: {
+            name?: string;
+            thumb?: string;
+            reps?: string;
+            note?: string;
+        };
+        Section: {
+            title?: string;
+            style?: string;
+            items?: components["schemas"]["Item"][];
+        };
+        WorkoutTemplateResponse: {
+            /** Format: uuid */
+            id?: string;
+            name?: string;
+            description?: string;
+            coverGradient?: string;
+            equipment?: string[];
+            sections?: components["schemas"]["Section"][];
+        };
+        ApiResponseWorkoutTemplateResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["WorkoutTemplateResponse"];
+            errorCode?: string;
+        };
+        ApiResponseListWorkoutSectionResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["WorkoutSectionResponse"][];
+            errorCode?: string;
+        };
+        ApiResponseListProgramSummaryResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["ProgramSummaryResponse"][];
+            errorCode?: string;
+        };
+        ApiResponseListExerciseResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["ExerciseResponse"][];
+            errorCode?: string;
+        };
+        ApiResponseListScheduleResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["ScheduleResponse"][];
             errorCode?: string;
         };
         ApiResponseListFoodItemResponse: {
@@ -1309,6 +2435,103 @@ export interface components {
             name?: string;
             phone?: string;
             status?: string;
+        };
+        ActionItem: {
+            type?: string;
+            /** Format: int32 */
+            priority?: number;
+            /** Format: uuid */
+            clientId?: string;
+            clientName?: string;
+            clientPhone?: string;
+            clientStatus?: string;
+            title?: string;
+            detail?: string;
+            /** Format: date-time */
+            occurredAt?: string;
+        };
+        ActivityItem: {
+            type?: string;
+            /** Format: uuid */
+            clientId?: string;
+            clientName?: string;
+            summary?: string;
+            /** Format: date-time */
+            occurredAt?: string;
+        };
+        ApiResponseDashboardOverviewResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["DashboardOverviewResponse"];
+            errorCode?: string;
+        };
+        CheckInToday: {
+            /** Format: uuid */
+            clientId?: string;
+            clientName?: string;
+            /** Format: int32 */
+            adherencePercent?: number;
+        };
+        Counts: {
+            /** Format: int64 */
+            totalClients?: number;
+            /** Format: int64 */
+            activeClients?: number;
+            /** Format: int64 */
+            onboardingClients?: number;
+            /** Format: int64 */
+            inactiveClients?: number;
+            /** Format: int64 */
+            unansweredMessages?: number;
+            /** Format: int64 */
+            overdueCheckIns?: number;
+            /** Format: int64 */
+            clientsNeedingPlan?: number;
+            /** Format: int64 */
+            plansExpiringSoon?: number;
+        };
+        DashboardOverviewResponse: {
+            counts?: components["schemas"]["Counts"];
+            actionQueue?: components["schemas"]["ActionItem"][];
+            today?: components["schemas"]["Today"];
+            roster?: components["schemas"]["Roster"];
+            subscription?: components["schemas"]["SubscriptionInfo"];
+            activity?: components["schemas"]["ActivityItem"][];
+        };
+        Roster: {
+            /** Format: int64 */
+            clientLimit?: number;
+            recentClients?: components["schemas"]["RosterClient"][];
+        };
+        RosterClient: {
+            /** Format: uuid */
+            id?: string;
+            name?: string;
+            phone?: string;
+            status?: string;
+            /** Format: date-time */
+            createdAt?: string;
+        };
+        ScheduledSession: {
+            /** Format: uuid */
+            clientId?: string;
+            clientName?: string;
+            /** Format: uuid */
+            workoutId?: string;
+            workoutName?: string;
+            source?: string;
+        };
+        SubscriptionInfo: {
+            tier?: string;
+            status?: string;
+            /** Format: date-time */
+            trialEndsAt?: string;
+            /** Format: int32 */
+            daysLeftInTrial?: number;
+        };
+        Today: {
+            sessions?: components["schemas"]["ScheduledSession"][];
+            checkIns?: components["schemas"]["CheckInToday"][];
         };
         ApiResponseListClientResponse: {
             success?: boolean;
@@ -1461,6 +2684,388 @@ export interface operations {
             };
         };
     };
+    get_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseWorkoutResponse"];
+                };
+            };
+        };
+    };
+    update_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateWorkoutRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseWorkoutSummaryResponse"];
+                };
+            };
+        };
+    };
+    delete_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseVoid"];
+                };
+            };
+        };
+    };
+    reorderWorkoutSections: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReorderRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseWorkoutResponse"];
+                };
+            };
+        };
+    };
+    getSection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseWorkoutSectionResponse"];
+                };
+            };
+        };
+    };
+    updateSection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateWorkoutSectionRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseWorkoutSectionResponse"];
+                };
+            };
+        };
+    };
+    deleteSection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseVoid"];
+                };
+            };
+        };
+    };
+    reorderSectionExercises: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReorderRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseWorkoutSectionResponse"];
+                };
+            };
+        };
+    };
+    get_4: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseProgramResponse"];
+                };
+            };
+        };
+    };
+    update_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateProgramRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseProgramSummaryResponse"];
+                };
+            };
+        };
+    };
+    delete_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseVoid"];
+                };
+            };
+        };
+    };
+    setDay: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                dayNumber: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetProgramDayRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseProgramResponse"];
+                };
+            };
+        };
+    };
+    clearDay: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                dayNumber: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseProgramResponse"];
+                };
+            };
+        };
+    };
+    get_5: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseExerciseResponse"];
+                };
+            };
+        };
+    };
+    update_3: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateExerciseRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseExerciseResponse"];
+                };
+            };
+        };
+    };
+    delete_3: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseVoid"];
+                };
+            };
+        };
+    };
     getProfile_1: {
         parameters: {
             query?: never;
@@ -1505,7 +3110,7 @@ export interface operations {
             };
         };
     };
-    get_3: {
+    get_7: {
         parameters: {
             query?: never;
             header?: never;
@@ -1527,7 +3132,7 @@ export interface operations {
             };
         };
     };
-    update_1: {
+    update_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -1553,7 +3158,7 @@ export interface operations {
             };
         };
     };
-    delete_1: {
+    delete_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -1571,6 +3176,210 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseVoid"];
+                };
+            };
+        };
+    };
+    complete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompleteWorkoutRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseClientScheduledWorkoutResponse"];
+                };
+            };
+        };
+    };
+    getHistory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListProgressLogResponse"];
+                };
+            };
+        };
+    };
+    log: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LogProgressRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseProgressLogResponse"];
+                };
+            };
+        };
+    };
+    getMessages: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListMessageResponse"];
+                };
+            };
+        };
+    };
+    sendMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendMessageRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseMessageResponse"];
+                };
+            };
+        };
+    };
+    getHistory_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListCheckInResponse"];
+                };
+            };
+        };
+    };
+    create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateCheckInRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseCheckInResponse"];
+                };
+            };
+        };
+    };
+    getMessages_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListMessageResponse"];
+                };
+            };
+        };
+    };
+    sendMessage_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendMessageRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseMessageResponse"];
                 };
             };
         };
@@ -1678,6 +3487,448 @@ export interface operations {
     };
     list_1: {
         parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListWorkoutSummaryResponse"];
+                };
+            };
+        };
+    };
+    create_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateWorkoutRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseWorkoutSummaryResponse"];
+                };
+            };
+        };
+    };
+    schedule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workoutId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScheduleWorkoutRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseScheduleResponse"];
+                };
+            };
+        };
+    };
+    listAssignments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workoutId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListAssignmentResponse"];
+                };
+            };
+        };
+    };
+    assign: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workoutId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssignWorkoutRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListAssignmentResponse"];
+                };
+            };
+        };
+    };
+    attachSection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttachSectionRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseWorkoutResponse"];
+                };
+            };
+        };
+    };
+    duplicate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseWorkoutResponse"];
+                };
+            };
+        };
+    };
+    instantiate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseWorkoutResponse"];
+                };
+            };
+        };
+    };
+    listSections: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListWorkoutSectionResponse"];
+                };
+            };
+        };
+    };
+    createSection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateWorkoutSectionRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseWorkoutSectionResponse"];
+                };
+            };
+        };
+    };
+    addSectionExercise: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddSectionExerciseRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseWorkoutSectionResponse"];
+                };
+            };
+        };
+    };
+    list_3: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListProgramSummaryResponse"];
+                };
+            };
+        };
+    };
+    create_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateProgramRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseProgramSummaryResponse"];
+                };
+            };
+        };
+    };
+    initiateCoverUpload: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProgramCoverUploadRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseProgramCoverUploadResponse"];
+                };
+            };
+        };
+    };
+    deleteCover: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseVoid"];
+                };
+            };
+        };
+    };
+    listAssignments_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListProgramAssignmentResponse"];
+                };
+            };
+        };
+    };
+    assign_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssignProgramRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListProgramAssignmentResponse"];
+                };
+            };
+        };
+    };
+    list_4: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListExerciseResponse"];
+                };
+            };
+        };
+    };
+    create_3: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateExerciseRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseExerciseResponse"];
+                };
+            };
+        };
+    };
+    list_5: {
+        parameters: {
             query?: {
                 status?: "ONBOARDING" | "ACTIVE" | "INACTIVE";
             };
@@ -1698,7 +3949,7 @@ export interface operations {
             };
         };
     };
-    create: {
+    create_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -1744,7 +3995,7 @@ export interface operations {
             };
         };
     };
-    log: {
+    log_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -1820,7 +4071,7 @@ export interface operations {
             };
         };
     };
-    list_2: {
+    list_6: {
         parameters: {
             query?: never;
             header?: never;
@@ -1842,7 +4093,7 @@ export interface operations {
             };
         };
     };
-    create_1: {
+    create_5: {
         parameters: {
             query?: never;
             header?: never;
@@ -1890,7 +4141,7 @@ export interface operations {
             };
         };
     };
-    create_2: {
+    create_6: {
         parameters: {
             query?: never;
             header?: never;
@@ -2132,7 +4383,57 @@ export interface operations {
             };
         };
     };
-    getHistory: {
+    removeSectionExercise: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                entryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseVoid"];
+                };
+            };
+        };
+    };
+    updateSectionExercise: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                entryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PatchSectionExerciseRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseWorkoutSectionResponse"];
+                };
+            };
+        };
+    };
+    getUpcoming: {
         parameters: {
             query?: never;
             header?: never;
@@ -2147,7 +4448,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ApiResponseListProgressLogResponse"];
+                    "*/*": components["schemas"]["ApiResponseListClientScheduledWorkoutResponse"];
                 };
             };
         };
@@ -2236,7 +4537,7 @@ export interface operations {
             };
         };
     };
-    getHistory_1: {
+    listConversations: {
         parameters: {
             query?: never;
             header?: never;
@@ -2251,7 +4552,74 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ApiResponseListCheckInResponse"];
+                    "*/*": components["schemas"]["ApiResponseListConversationSummaryResponse"];
+                };
+            };
+        };
+    };
+    list_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListWorkoutTemplateResponse"];
+                };
+            };
+        };
+    };
+    get_3: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseWorkoutTemplateResponse"];
+                };
+            };
+        };
+    };
+    listClientSchedules: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path: {
+                clientId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListScheduleResponse"];
                 };
             };
         };
@@ -2280,7 +4648,7 @@ export interface operations {
             };
         };
     };
-    get_2: {
+    get_6: {
         parameters: {
             query?: never;
             header?: never;
@@ -2318,6 +4686,26 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseDashboardResponse"];
+                };
+            };
+        };
+    };
+    getDashboardOverview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseDashboardOverviewResponse"];
                 };
             };
         };
@@ -2420,6 +4808,97 @@ export interface operations {
                 dayId: string;
                 mealId: string;
                 itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseVoid"];
+                };
+            };
+        };
+    };
+    unassign: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workoutId: string;
+                assignmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseVoid"];
+                };
+            };
+        };
+    };
+    detachSection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                assignmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseVoid"];
+                };
+            };
+        };
+    };
+    unschedule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                scheduleId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseVoid"];
+                };
+            };
+        };
+    };
+    unassign_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                assignmentId: string;
             };
             cookie?: never;
         };
