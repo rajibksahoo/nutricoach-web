@@ -133,6 +133,7 @@ export default function ProgramsLibrary() {
       <AssignProgramModal
         open={assignTarget !== null}
         programName={assignTarget?.name}
+        programId={assignTarget?.id ?? null}
         clients={clients}
         saving={assigning}
         onClose={() => setAssignTarget(null)}

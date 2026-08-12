@@ -68,12 +68,31 @@ export async function deleteProgramCover(id: string): Promise<void> {
 }
 
 // ── Assignment ────────────────────────────────────────────────────────────────
+export interface ProgramAssignment {
+  id: string;
+  clientId: string;
+  programId: string;
+  assignedAt: string;
+  startDate?: string | null;
+  notes?: string | null;
+}
+
 export async function assignProgram(
   id: string, clientIds: string[], opts?: { startDate?: string; notes?: string },
 ): Promise<void> {
   await api.post(`/api/v1/library/programs/${id}/assignments`, {
     clientIds, startDate: opts?.startDate ?? null, notes: opts?.notes ?? null,
   });
+}
+
+export async function listProgramAssignments(id: string): Promise<ProgramAssignment[]> {
+  const { data } = await api.get<ApiEnvelope<ProgramAssignment[]>>(
+    `/api/v1/library/programs/${id}/assignments`);
+  return data.data;
+}
+
+export async function unassignProgram(id: string, assignmentId: string): Promise<void> {
+  await api.delete(`/api/v1/library/programs/${id}/assignments/${assignmentId}`);
 }
 
 // ── Workout previews for planner cards ────────────────────────────────────────

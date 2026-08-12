@@ -111,6 +111,7 @@ export default function ProgramCalendarPage() {
       <AssignProgramModal
         open={assignTarget !== null}
         programName={assignTarget?.name}
+        programId={assignTarget?.id ?? null}
         clients={clients}
         saving={assigning}
         onClose={() => setAssignTarget(null)}

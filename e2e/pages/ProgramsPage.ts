@@ -52,13 +52,37 @@ export class ProgramsPage {
 
   /** Row Assign button → pick one client → Assign. */
   async assignToClient(clientName: string) {
-    await this.page.getByTitle("Assign").click();
+    await this.openAssign();
     await this.page.getByPlaceholder("Search clients by name or goal").fill(clientName);
-    await this.page.getByRole("button", { name: new RegExp(escapeRe(clientName)) }).click();
+    await this.pickerRow(clientName).click();
     await this.page.getByRole("button", { name: /Assign \(\d+\)/ }).click();
   }
-}
 
-function escapeRe(s: string): string {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  /** Row Assign button → opens AssignProgramModal (does not pick anyone). */
+  async openAssign() {
+    await this.page.getByTitle("Assign").click();
+  }
+
+  async closeAssign() {
+    await this.page.getByRole("button", { name: "Cancel" }).click();
+  }
+
+  /**
+   * A client row inside the modal's selectable picker list. Picker rows carry no
+   * aria-label, which distinguishes them from the "Unassign X" buttons in the
+   * "Currently assigned" block above (those render an icon, so no text to filter on).
+   */
+  pickerRow(clientName: string): Locator {
+    return this.page.locator("button:not([aria-label])").filter({ hasText: clientName }).last();
+  }
+
+  /** The "Currently assigned (N)" header, present only when the program has assignees. */
+  assignedHeader(): Locator {
+    return this.page.getByText(/Currently assigned \(\d+\)/);
+  }
+
+  /** Remove an assignee from the "Currently assigned" list. */
+  async unassign(clientName: string) {
+    await this.page.getByRole("button", { name: `Unassign ${clientName}` }).click();
+  }
 }
