@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import clientApi from "@/lib/client-api";
-import { formatDate } from "@/lib/utils";
+import { formatDate, planDayCount } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/Card";
 import Spinner from "@/components/ui/Spinner";
 import Badge from "@/components/ui/Badge";
@@ -16,7 +16,6 @@ interface MealPlan {
   status: "DRAFT" | "ACTIVE" | "ARCHIVED";
   startDate: string | null;
   endDate: string | null;
-  totalDays: number;
   aiGenerated: boolean;
 }
 
@@ -67,8 +66,9 @@ export default function ClientMealPlansPage() {
                     <div>
                       <p className="text-sm font-semibold text-slate-900">{plan.name}</p>
                       <p className="text-xs text-slate-400 mt-0.5">
-                        {plan.totalDays} day{plan.totalDays !== 1 ? "s" : ""}
-                        {plan.startDate && ` · ${formatDate(plan.startDate)}`}
+                        {(() => { const d = planDayCount(plan.startDate, plan.endDate);
+                          return d != null ? `${d} day${d !== 1 ? "s" : ""}` : null; })()}
+                        {plan.startDate && `${planDayCount(plan.startDate, plan.endDate) != null ? " · " : ""}${formatDate(plan.startDate)}`}
                         {plan.endDate && ` – ${formatDate(plan.endDate)}`}
                         {plan.aiGenerated && " · AI generated"}
                       </p>

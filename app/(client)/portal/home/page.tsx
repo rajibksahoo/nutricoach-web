@@ -5,7 +5,7 @@ import Link from "next/link";
 import toast from "react-hot-toast";
 import clientApi from "@/lib/client-api";
 import { getClientUser } from "@/lib/client-auth";
-import { formatDate } from "@/lib/utils";
+import { formatDate, planDayCount } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/Card";
 import Spinner from "@/components/ui/Spinner";
 import Badge from "@/components/ui/Badge";
@@ -17,7 +17,7 @@ interface MealPlan {
   name: string;
   status: "DRAFT" | "ACTIVE" | "ARCHIVED";
   startDate: string | null;
-  totalDays: number;
+  endDate: string | null;
   aiGenerated: boolean;
 }
 
@@ -151,8 +151,9 @@ export default function ClientHomePage() {
                   <div>
                     <p className="text-sm font-semibold text-slate-900">{activePlan.name}</p>
                     <p className="text-xs text-slate-400 mt-0.5">
-                      {activePlan.totalDays} days
-                      {activePlan.startDate && ` · From ${formatDate(activePlan.startDate)}`}
+                      {(() => { const d = planDayCount(activePlan.startDate, activePlan.endDate);
+                        return d != null ? `${d} day${d !== 1 ? "s" : ""}` : null; })()}
+                      {activePlan.startDate && `${planDayCount(activePlan.startDate, activePlan.endDate) != null ? " · " : ""}From ${formatDate(activePlan.startDate)}`}
                     </p>
                   </div>
                 </div>
