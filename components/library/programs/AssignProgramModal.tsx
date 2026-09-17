@@ -2,19 +2,28 @@
 
 import { useEffect, useState } from "react";
 import { Search, X, Check, Send } from "lucide-react";
+import toast from "react-hot-toast";
 import type { Client } from "@/app/(dashboard)/workout-builder/_components/data";
+import { listProgramAssignments, unassignProgram, type ProgramAssignment } from "@/lib/programs-api";
 
 function initialsOf(name: string): string {
   return name.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase() ?? "").join("");
 }
 
+function shortDate(value: string): string {
+  // startDate arrives as a bare LocalDate ("2026-08-12") — parse it as local, not UTC.
+  const d = /^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(`${value}T00:00:00`) : new Date(value);
+  return d.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+}
+
 export default function AssignProgramModal({
-  open, onClose, onAssign, programName, clients, saving = false,
+  open, onClose, onAssign, programName, programId, clients, saving = false,
 }: {
   open: boolean;
   onClose: () => void;
   onAssign: (clientIds: string[], opts: { startDate?: string; notes: string }) => void;
   programName?: string;
+  programId?: string | null;
   clients: Client[];
   saving?: boolean;
 }) {
@@ -22,9 +31,11 @@ export default function AssignProgramModal({
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [startDate, setStartDate] = useState("");
   const [notes, setNotes] = useState("");
+  const [assigned, setAssigned] = useState<ProgramAssignment[]>([]);
+  const [loadingAssigned, setLoadingAssigned] = useState(false);
 
   useEffect(() => {
-    if (open) { setQ(""); setPicked(new Set()); setStartDate(""); setNotes(""); }
+    if (open) { setQ(""); setPicked(new Set()); setStartDate(""); setNotes(""); setAssigned([]); }
   }, [open]);
 
   useEffect(() => {
@@ -33,6 +44,17 @@ export default function AssignProgramModal({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
+
+  useEffect(() => {
+    if (!open || !programId) { setAssigned([]); return; }
+    let cancelled = false;
+    setLoadingAssigned(true);
+    listProgramAssignments(programId)
+      .then((rows) => { if (!cancelled) setAssigned(rows); })
+      .catch((e) => { console.error(e); if (!cancelled) toast.error("Failed to load current assignments"); })
+      .finally(() => { if (!cancelled) setLoadingAssigned(false); });
+    return () => { cancelled = true; };
+  }, [open, programId]);
 
   if (!open) return null;
 
@@ -44,6 +66,30 @@ export default function AssignProgramModal({
     next.has(id) ? next.delete(id) : next.add(id);
     return next;
   });
+
+  const assignedClientIds = new Set(assigned.map((a) => a.clientId));
+  const clientName = (id: string) => clients.find((c) => c.id === id)?.name ?? "Client";
+
+  const handleUnassign = async (assignmentId: string) => {
+    if (!programId) return;
+    const prev = assigned;
+    setAssigned((rows) => rows.filter((a) => a.id !== assignmentId));
+    try {
+      await unassignProgram(programId, assignmentId);
+      toast.success("Assignment removed");
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to remove assignment");
+      setAssigned(prev);
+    }
+  };
+
+  const assignedSubtitle = (a: ProgramAssignment) =>
+    [
+      `Assigned ${shortDate(a.assignedAt)}`,
+      a.startDate ? `Starts ${shortDate(a.startDate)}` : null,
+      a.notes || null,
+    ].filter(Boolean).join(" · ");
 
   const inputStyle: React.CSSProperties = {
     width: "100%", padding: "8px 11px", border: "1px solid var(--border)",
@@ -79,6 +125,44 @@ export default function AssignProgramModal({
         </div>
 
         <div style={{ padding: "16px 22px", display: "flex", flexDirection: "column", gap: 14, overflow: "hidden", flex: 1 }}>
+          {programId && (loadingAssigned || assigned.length > 0) && (
+            <div>
+              <div style={{ fontSize: 11.5, fontWeight: 600, color: "var(--fg2)", marginBottom: 6 }}>
+                Currently assigned ({assigned.length})
+              </div>
+              <div style={{ border: "1px solid var(--border)", borderRadius: 8, overflow: "auto", maxHeight: 150 }}>
+                {loadingAssigned ? (
+                  <div style={{ padding: 12, textAlign: "center", color: "var(--fg3)", fontSize: 12 }}>Loading…</div>
+                ) : assigned.map((a, idx) => (
+                  <div key={a.id} style={{
+                    padding: "8px 12px", display: "flex", alignItems: "center", gap: 10,
+                    borderTop: idx === 0 ? "none" : "1px solid var(--border-subtle)",
+                  }}>
+                    <span style={{
+                      width: 28, height: 28, borderRadius: "50%", background: "#E0E7FF",
+                      color: "var(--brand-primary)", display: "flex", alignItems: "center",
+                      justifyContent: "center", fontSize: 10.5, fontWeight: 700, flexShrink: 0,
+                    }}>{initialsOf(clientName(a.clientId))}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12.5, fontWeight: 500, color: "var(--fg1)" }}>{clientName(a.clientId)}</div>
+                      <div style={{ fontSize: 11, color: "var(--fg3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {assignedSubtitle(a)}
+                      </div>
+                    </div>
+                    <button type="button" onClick={() => handleUnassign(a.id)}
+                      aria-label={`Unassign ${clientName(a.clientId)}`} style={{
+                        display: "inline-flex", alignItems: "center", justifyContent: "center",
+                        width: 24, height: 24, padding: 0, border: "none", borderRadius: 6,
+                        background: "transparent", color: "var(--fg3)", cursor: "pointer",
+                      }}>
+                      <X size={13} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div style={{ position: "relative" }}>
             <Search size={14} style={{ position: "absolute", left: 11, top: "50%", transform: "translateY(-50%)", color: "var(--fg4)" }} />
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search clients by name or goal…"
@@ -92,12 +176,16 @@ export default function AssignProgramModal({
               </div>
             ) : filtered.map((c, idx) => {
               const on = picked.has(c.id);
+              const already = assignedClientIds.has(c.id);
               return (
-                <button key={c.id} type="button" onClick={() => toggle(c.id)} style={{
+                <button key={c.id} type="button" disabled={already}
+                  onClick={() => { if (!already) toggle(c.id); }} style={{
                   width: "100%", padding: "9px 12px", border: "none",
                   borderTop: idx === 0 ? "none" : "1px solid var(--border-subtle)",
                   background: on ? "var(--brand-primary-50)" : "#fff",
-                  display: "flex", alignItems: "center", gap: 10, cursor: "pointer", textAlign: "left",
+                  display: "flex", alignItems: "center", gap: 10,
+                  cursor: already ? "default" : "pointer", textAlign: "left",
+                  opacity: already ? 0.55 : 1,
                 }}>
                   <span style={{
                     width: 32, height: 32, borderRadius: "50%", background: "#E0E7FF",
@@ -108,7 +196,13 @@ export default function AssignProgramModal({
                     <div style={{ fontSize: 13, fontWeight: 500, color: on ? "var(--brand-primary)" : "var(--fg1)" }}>{c.name}</div>
                     <div style={{ fontSize: 11, color: "var(--fg3)" }}>{c.goal} · {c.phone}</div>
                   </div>
-                  {on && <Check size={15} style={{ color: "var(--brand-primary)" }} />}
+                  {already ? (
+                    <span style={{
+                      fontSize: 9.5, padding: "1px 7px", borderRadius: 5,
+                      background: "var(--brand-primary-50)", color: "var(--brand-primary)",
+                      fontWeight: 600, letterSpacing: "0.05em",
+                    }}>ASSIGNED</span>
+                  ) : on && <Check size={15} style={{ color: "var(--brand-primary)" }} />}
                 </button>
               );
             })}
