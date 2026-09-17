@@ -50,7 +50,7 @@ const GROUPS: Group[] = [
       { href: "/library/meal-plans",   label: "Meal Plan Templates" },
       { href: "/library/recipes",      label: "Recipes" },
       { href: "/library/ingredients",  label: "Ingredients" },
-      { href: "/library/recipe-books", label: "Recipe Books", badge: "NEW" },
+      { href: "/library/recipe-books", label: "Recipe Books" },
     ],
   },
   {

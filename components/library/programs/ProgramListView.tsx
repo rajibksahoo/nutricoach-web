@@ -6,6 +6,8 @@ import {
   ChevronDown, ChevronUp, Send, MoreVertical, Pencil, Trash2,
 } from "lucide-react";
 import type { ProgramSummary } from "@/lib/library-types";
+import TrialChip from "@/components/dashboard/TrialChip";
+import { useSubscription } from "@/lib/use-subscription";
 
 function relativeTime(iso: string): string {
   const then = new Date(iso).getTime();
@@ -21,7 +23,7 @@ function relativeTime(iso: string): string {
   return `${Math.floor(days / 365)}y ago`;
 }
 
-const GRID = "36px 1fr 90px 200px 110px 80px 110px 120px";
+const GRID = "1fr 90px 200px 110px 80px 110px 120px";
 
 const iconBtn: React.CSSProperties = {
   width: 28, height: 28, padding: 0, border: "none", borderRadius: 6,
@@ -41,6 +43,7 @@ export default function ProgramListView({
 }) {
   const [q, setQ] = useState("");
   const [showBanner, setShowBanner] = useState(true);
+  const subscription = useSubscription();
   const filtered = programs.filter((p) => !q || p.name.toLowerCase().includes(q.toLowerCase()));
 
   return (
@@ -55,15 +58,7 @@ export default function ProgramListView({
           Program Library
         </h1>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <span style={{ fontSize: 12.5, color: "var(--fg3)" }}>
-            <span style={{ color: "var(--fg1)", fontWeight: 600 }}>29 days left</span> until trial ends
-          </span>
-          <button style={{
-            background: "linear-gradient(135deg, #F97316 0%, #EA580C 100%)",
-            border: "none", color: "#fff", padding: "8px 22px", borderRadius: 8,
-            fontWeight: 700, fontSize: 12.5, cursor: "pointer", letterSpacing: "0.02em",
-            boxShadow: "0 1px 2px rgba(234,88,12,.3)",
-          }}>Upgrade</button>
+          {subscription && <TrialChip subscription={subscription} />}
         </div>
       </div>
 
@@ -127,7 +122,6 @@ export default function ProgramListView({
           padding: "11px 18px", borderBottom: "1px solid var(--border-subtle)", background: "#fff",
           fontSize: 10.5, fontWeight: 600, color: "var(--fg3)", textTransform: "uppercase", letterSpacing: "0.06em",
         }}>
-          <input type="checkbox" />
           <span style={hdrCell}><SlidersHorizontal size={11} />Program ({filtered.length}) <ChevronDown size={11} /></span>
           <span style={hdrCell}><Tag size={11} />Tags</span>
           <span style={hdrCell}><Dumbbell size={11} />Equipment</span>
@@ -185,7 +179,6 @@ function ProgramRow({
         padding: "16px 18px", borderBottom: last ? "none" : "1px solid var(--border-subtle)",
         background: hov ? "var(--bg)" : "#fff", cursor: "pointer", transition: "background 100ms",
       }}>
-      <input type="checkbox" onClick={(e) => e.stopPropagation()} />
       <div style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 0 }}>
         <div style={{
           width: 60, height: 60, borderRadius: 10, flexShrink: 0,
