@@ -31,11 +31,7 @@ import { AssignWorkoutModal } from "@/app/(dashboard)/workout-builder/_component
 import { listClients, assignWorkout } from "@/lib/workout-builder-api";
 import type { Client } from "@/app/(dashboard)/workout-builder/_components/data";
 import { cn } from "@/lib/utils";
-import {
-  inferSectionType,
-  sectionPalette,
-} from "@/lib/library-categories";
-import type { ApiEnvelope, Workout, WorkoutSection } from "@/lib/library-types";
+import type { ApiEnvelope, Workout } from "@/lib/library-types";
 
 const PAGE_SIZE = 25;
 
@@ -45,9 +41,6 @@ interface WorkoutRow {
   id: string;
   name: string;
   description: string;
-  sections: WorkoutSection[];
-  exerciseCount: number;
-  sectionCount: number;
   updatedAt: string;
   owner: string;
 }
@@ -119,16 +112,12 @@ export default function WorkoutsPage() {
 
   function load() {
     setLoading(true);
+    // The list endpoint returns WorkoutSummaryResponse, which carries no sections.
+    // Per-workout section/exercise counts need a backend change before they can be shown here.
     api
-      .get<ApiEnvelope<Workout[]>>("/api/v1/library/workouts?detailed=true")
+      .get<ApiEnvelope<Workout[]>>("/api/v1/library/workouts")
       .then((r) => setWorkouts(r.data.data))
-      .catch(() => {
-        // Fall back to summary endpoint if detailed flag is unsupported
-        api
-          .get<ApiEnvelope<Workout[]>>("/api/v1/library/workouts")
-          .then((r) => setWorkouts(r.data.data))
-          .catch(() => toast.error("Failed to load workouts"));
-      })
+      .catch(() => toast.error("Failed to load workouts"))
       .finally(() => setLoading(false));
   }
 
@@ -143,23 +132,13 @@ export default function WorkoutsPage() {
   }, [menuFor]);
 
   const rows = useMemo<WorkoutRow[]>(() => {
-    return workouts.map((w) => {
-      const sections = w.sections ?? [];
-      const exerciseCount = sections.reduce(
-        (sum, s) => sum + (s.exercises?.length ?? 0),
-        0,
-      );
-      return {
-        id: w.id,
-        name: w.name,
-        description: w.description ?? "",
-        sections,
-        exerciseCount,
-        sectionCount: sections.length,
-        updatedAt: w.updatedAt,
-        owner: "You",
-      };
-    });
+    return workouts.map((w) => ({
+      id: w.id,
+      name: w.name,
+      description: w.description ?? "",
+      updatedAt: w.updatedAt,
+      owner: "You",
+    }));
   }, [workouts]);
 
   const filtered = useMemo(() => {
@@ -239,7 +218,7 @@ export default function WorkoutsPage() {
     }
   }
 
-  function handleAssign(picked: Client[], opts: { message: string; notify: boolean }) {
+  function handleAssign(picked: Client[], opts: { message: string }) {
     const target = assignFor;
     setAssignFor(null);
     if (!target || picked.length === 0) return;
@@ -446,65 +425,18 @@ export default function WorkoutsPage() {
                           style={{
                             fontSize: 12,
                             lineHeight: 1.45,
-                            marginBottom: 8,
                             maxWidth: 520,
                           }}
                         >
                           {row.description}
                         </div>
                       )}
-                      <div className="flex flex-wrap gap-1.5">
-                        {row.sections.slice(0, 6).map((s, i) => {
-                          const type = inferSectionType({
-                            sectionType: s.sectionType,
-                            name: s.name,
-                          });
-                          const p = sectionPalette(type);
-                          return (
-                            <span
-                              key={s.id ?? i}
-                              className={cn(
-                                "rounded-full border whitespace-nowrap",
-                                p.bg,
-                                p.text,
-                                p.border,
-                              )}
-                              style={{
-                                fontSize: 10.5,
-                                padding: "2px 8px",
-                                fontWeight: 500,
-                              }}
-                            >
-                              {s.name} ({s.exercises?.length ?? 0})
-                            </span>
-                          );
-                        })}
-                        {row.sections.length === 0 && (
-                          <span className="text-slate-300" style={{ fontSize: 11 }}>
-                            no sections yet
-                          </span>
-                        )}
-                      </div>
                     </Td>
                     <Td>
                       <span className="text-slate-300" style={{ fontSize: 12 }}>—</span>
                     </Td>
                     <Td>
-                      <div className="flex flex-col">
-                        <span
-                          className="text-slate-900 inline-flex items-center gap-1"
-                          style={{ fontSize: 13.5, fontWeight: 600 }}
-                        >
-                          <ArrowRight
-                            className="w-2.5 h-2.5 text-slate-400"
-                            style={{ transform: "rotate(90deg)" }}
-                          />
-                          {row.exerciseCount}
-                        </span>
-                        <span className="text-slate-400" style={{ fontSize: 11 }}>
-                          exercises · {row.sectionCount} sections
-                        </span>
-                      </div>
+                      <span className="text-slate-300" style={{ fontSize: 12 }}>—</span>
                     </Td>
                     <Td>
                       <span className="text-slate-700" style={{ fontSize: 12.5 }}>

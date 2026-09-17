@@ -176,7 +176,7 @@ export default function WorkoutBuilderPage() {
     } catch (e) { console.error(e); toast.error("Failed to delete workout"); }
   };
 
-  const handleAssign = async (picked: Client[], opts: { message: string; notify: boolean }) => {
+  const handleAssign = async (picked: Client[], opts: { message: string }) => {
     setAssignOpen(false);
     const target = actionWorkout;
     if (!target) { toast.error("No workout selected"); return; }
