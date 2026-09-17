@@ -27,9 +27,9 @@ import {
 import api from "@/lib/api";
 import Spinner from "@/components/ui/Spinner";
 import CreateWorkoutModal from "@/components/library/CreateWorkoutModal";
-import { AssignWorkoutModal } from "@/app/(dashboard)/workout-builder/_components/assign-schedule-modals";
+import { AssignWorkoutModal } from "@/components/library/AssignScheduleModals";
 import { listClients, assignWorkout } from "@/lib/workout-builder-api";
-import type { Client } from "@/app/(dashboard)/workout-builder/_components/data";
+import type { Client } from "@/lib/workout-types";
 import { cn } from "@/lib/utils";
 import type { ApiEnvelope, Workout } from "@/lib/library-types";
 

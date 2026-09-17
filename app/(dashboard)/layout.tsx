@@ -17,8 +17,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   // Sections that own their own chrome (two-pane layout, sticky headers) sit flush against the primary sidebar.
   const fullBleed =
     pathname.startsWith("/library") ||
-    pathname.startsWith("/workout-builder") ||
-    pathname === "/clients" ||
+    // /clients and /clients/{id} are the same two-pane screen; /clients/new is a form.
+    (pathname.startsWith("/clients") && pathname !== "/clients/new") ||
     pathname === "/messages" ||
     pathname === "/dashboard";
 

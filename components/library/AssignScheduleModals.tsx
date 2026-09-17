@@ -1,10 +1,23 @@
 "use client";
 import * as React from "react";
 import toast from "react-hot-toast";
-import { type Client } from "./data";
-import { Search, ChevLeft, ChevRight, X, Check, Send, Bell, Cal } from "./icons";
-import { Avatar } from "./shared";
+import type { Client } from "@/lib/workout-types";
+import { Search, ChevLeft, ChevRight, X, Check, Send, Bell, Cal } from "./builder-icons";
+
 import { listAssignments, unassignWorkout, type WorkoutAssignment } from "@/lib/workout-builder-api";
+
+/** Initials circle. Inlined from the deleted builder's `shared.tsx`. */
+function Avatar({ name, size = 28 }: { name: string; size?: number }) {
+  const initial = (name || "?").trim()[0]?.toUpperCase() || "?";
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: "50%",
+      background: "var(--brand-primary-50)", color: "#3730A3",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      fontWeight: 600, fontSize: Math.round(size * 0.42), flexShrink: 0,
+    }}>{initial}</div>
+  );
+}
 
 const inputStyle: React.CSSProperties = {
   width: "100%", padding: "7px 11px", border: "1px solid var(--border)",

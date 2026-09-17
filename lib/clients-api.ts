@@ -53,7 +53,7 @@ export async function getClientChart(clientId: string, days = 60): Promise<Backe
 }
 
 // ─── Mapping ───────────────────────────────────────────────────────────
-const STATUS_MAP: Record<BackendClient["status"], StatusKey> = {
+export const STATUS_MAP: Record<BackendClient["status"], StatusKey> = {
   ACTIVE:     "Connected",
   ONBOARDING: "Pending",
   PAUSED:     "Offline",

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import {
   Search, ChevronDown, ChevronUp, Plus, Edit, Bell, Calendar as Cal,
   MessageCircle as Msg, Star, Sliders, Activity, Dumbbell,
@@ -11,7 +12,7 @@ import {
   type ClientDetail, type StatusKey,
 } from "./data";
 import {
-  listClients, getClientChart, toClientDetail,
+  listClients, getClientChart, toClientDetail, STATUS_MAP,
 } from "@/lib/clients-api";
 import {
   listClientSchedules, unscheduleWorkout, listWorkouts,
@@ -21,6 +22,7 @@ import ClientAvatar from "@/components/ui/ClientAvatar";
 import StatusPill from "@/components/ui/StatusPill";
 import Spark from "@/components/ui/Spark";
 import ErrorState from "@/components/ui/ErrorState";
+import ClientSettingsTab from "./ClientSettingsTab";
 import Delta from "@/components/ui/Delta";
 
 // ─── Sub-pane: search + client list ────────────────────────────────────
@@ -122,9 +124,9 @@ function ClientsSubNav({ clients, selectedId, onSelect }: {
         fontSize: 11.5, color: "var(--fg3)",
       }}>
         <span>{filtered.length} of {clients.length}</span>
-        <button style={subAddBtnStyle}>
+        <Link href="/clients/new" style={subAddBtnStyle}>
           <Plus size={11} />Add client
-        </button>
+        </Link>
       </div>
     </aside>
   );
@@ -135,7 +137,7 @@ const subAddBtnStyle: React.CSSProperties = {
   padding: "5px 10px", borderRadius: 7,
   background: "var(--brand-primary-50)", color: "var(--brand-primary)",
   border: "1px dashed var(--brand-primary-200)",
-  fontSize: 11.5, fontWeight: 600, cursor: "pointer",
+  fontSize: 11.5, fontWeight: 600, cursor: "pointer", textDecoration: "none",
 };
 
 // ─── Detail header (avatar + tabs) ─────────────────────────────────────
@@ -844,7 +846,7 @@ function TrainingTab({ clientId }: { clientId: string }) {
 
 // ─── Top-level Clients screen ──────────────────────────────────────────
 
-export default function ClientsScreen() {
+export default function ClientsScreen({ initialClientId }: { initialClientId?: string } = {}) {
   const [clients, setClients] = React.useState<ClientDetail[]>([]);
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
   const [tab, setTab] = React.useState<DetailTab>("Overview");
@@ -867,7 +869,11 @@ export default function ClientsScreen() {
         if (cancelled) return;
         const mapped = rows.map((r) => toClientDetail(r));
         setClients(mapped);
-        setSelectedId(mapped[0]?.id ?? null);
+        // `/clients/{id}` deep-links into this screen — prefer that client.
+        const deepLinked = initialClientId && mapped.some((c) => c.id === initialClientId)
+          ? initialClientId
+          : null;
+        setSelectedId(deepLinked ?? mapped[0]?.id ?? null);
       })
       .catch(() => {
         if (cancelled) return;
@@ -877,7 +883,7 @@ export default function ClientsScreen() {
       })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [reloadKey]);
+  }, [reloadKey, initialClientId]);
 
   // Lazy-load progress chart for the selected client.
   React.useEffect(() => {
@@ -946,7 +952,24 @@ export default function ClientsScreen() {
         {tab === "Overview" && <OverviewTab client={client} />}
         {tab === "Metrics"  && <MetricsTab  client={client} />}
         {tab === "Training" && <TrainingTab clientId={client.id} />}
-        {!["Overview", "Metrics", "Training"].includes(tab) && (
+        {tab === "Settings" && (
+          <div style={{ padding: "24px 28px" }}>
+            <ClientSettingsTab
+              clientId={client.id}
+              onUpdated={(name, status) => setClients((prev) => prev.map((c) =>
+                c.id === client.id ? { ...c, name, status: STATUS_MAP[status as keyof typeof STATUS_MAP] ?? c.status } : c))}
+              onDeleted={() => {
+                setClients((prev) => {
+                  const next = prev.filter((c) => c.id !== client.id);
+                  setSelectedId(next[0]?.id ?? null);
+                  return next;
+                });
+                setTab("Overview");
+              }}
+            />
+          </div>
+        )}
+        {!["Overview", "Metrics", "Training", "Settings"].includes(tab) && (
           <div style={{
             margin: "40px 28px", padding: "60px 20px",
             background: "#fff", border: "1px dashed var(--border)", borderRadius: 12,

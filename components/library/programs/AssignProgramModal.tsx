@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Search, X, Check, Send } from "lucide-react";
 import toast from "react-hot-toast";
-import type { Client } from "@/app/(dashboard)/workout-builder/_components/data";
+import type { Client } from "@/lib/workout-types";
 import { listProgramAssignments, unassignProgram, type ProgramAssignment } from "@/lib/programs-api";
 
 function initialsOf(name: string): string {

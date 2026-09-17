@@ -10,7 +10,7 @@ import {
   updateProgram, uploadProgramCover,
 } from "@/lib/programs-api";
 import { listClients } from "@/lib/workout-builder-api";
-import type { Client } from "@/app/(dashboard)/workout-builder/_components/data";
+import type { Client } from "@/lib/workout-types";
 import ProgramListView from "./ProgramListView";
 import CreateProgramModal, { type ProgramFormPayload } from "./CreateProgramModal";
 import AssignProgramModal from "./AssignProgramModal";

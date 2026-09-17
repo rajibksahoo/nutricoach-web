@@ -2,7 +2,7 @@ import api from "./api";
 import type {
   CategoryKey, LibraryExercise, SavedWorkout, WorkoutSection,
   SectionExercise, SectionType, WorkoutTemplate, ThumbCat, Client,
-} from "@/app/(dashboard)/workout-builder/_components/data";
+} from "@/lib/workout-types";
 
 // ── Backend response shapes ──────────────────────────────────────────────────
 type ApiResp<T> = { success: boolean; message?: string; data: T };

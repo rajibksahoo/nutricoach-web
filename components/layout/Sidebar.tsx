@@ -26,19 +26,13 @@ type NavItem = {
   icon: React.ComponentType<{ className?: string }>;
   /** Renders the live unread-message count fetched below. */
   showsUnread?: boolean;
-  matchPrefixes?: string[];
 };
 
 const navItems: NavItem[] = [
   { href: "/dashboard",  label: "Dashboard",  icon: LayoutDashboard },
   { href: "/clients",    label: "Clients",    icon: Users },
   { href: "/meal-plans", label: "Meal plans", icon: Utensils },
-  {
-    href: "/library",
-    label: "Library",
-    icon: BookOpen,
-    matchPrefixes: ["/library", "/workout-builder"],
-  },
+  { href: "/library",    label: "Library",    icon: BookOpen },
   { href: "/progress",   label: "Progress",   icon: TrendingUp },
   { href: "/messages",   label: "Messaging",  icon: MessageCircle, showsUnread: true },
   { href: "/billing",    label: "Billing",    icon: CreditCard },
@@ -118,9 +112,8 @@ export default function Sidebar() {
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto px-2 py-2.5 flex flex-col gap-px">
-        {navItems.map(({ href, label, icon: Icon, showsUnread, matchPrefixes }) => {
-          const prefixes = matchPrefixes ?? [href];
-          const active = prefixes.some((p) => pathname.startsWith(p));
+        {navItems.map(({ href, label, icon: Icon, showsUnread }) => {
+          const active = pathname.startsWith(href);
           const badge = showsUnread ? unread : 0;
           return (
             <Link
