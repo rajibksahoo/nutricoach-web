@@ -1,7 +1,5 @@
 import api from "@/lib/api";
-import {
-  CLIENT_DETAILS, type ClientDetail, type StatusKey,
-} from "@/components/clients/data";
+import type { ClientDetail, StatusKey } from "@/components/clients/data";
 
 // ─── Backend types ─────────────────────────────────────────────────────
 // Mirror the Spring Boot ClientResponse / ProgressLogResponse shapes.
@@ -154,15 +152,4 @@ export function toClientDetail(c: BackendClient, progress: BackendProgressLog[] 
     photos: [],
     updates: [],
   };
-}
-
-// Dev-time fallback: when there's no API URL configured, or the API
-// returns an empty list, fall back to the design's static fixture so
-// the screen still demos.
-export function isMockFallbackEnv(): boolean {
-  return !process.env.NEXT_PUBLIC_API_URL;
-}
-
-export function mockFallbackClients(): ClientDetail[] {
-  return CLIENT_DETAILS;
 }

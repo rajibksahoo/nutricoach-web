@@ -11,7 +11,7 @@ import {
   type ClientDetail, type StatusKey,
 } from "./data";
 import {
-  listClients, getClientChart, toClientDetail, isMockFallbackEnv, mockFallbackClients,
+  listClients, getClientChart, toClientDetail,
 } from "@/lib/clients-api";
 import {
   listClientSchedules, unscheduleWorkout, listWorkouts,
@@ -20,6 +20,7 @@ import {
 import ClientAvatar from "@/components/ui/ClientAvatar";
 import StatusPill from "@/components/ui/StatusPill";
 import Spark from "@/components/ui/Spark";
+import ErrorState from "@/components/ui/ErrorState";
 import Delta from "@/components/ui/Delta";
 
 // ─── Sub-pane: search + client list ────────────────────────────────────
@@ -782,7 +783,6 @@ function TrainingTab({ clientId }: { clientId: string }) {
   const [names, setNames] = React.useState<Map<string, string>>(new Map());
 
   React.useEffect(() => {
-    if (useMock) { setSchedules([]); return; }
     let cancelled = false;
     setSchedules(null);
     Promise.all([listClientSchedules(clientId), getWorkoutNames()])
@@ -843,55 +843,45 @@ function TrainingTab({ clientId }: { clientId: string }) {
 }
 
 // ─── Top-level Clients screen ──────────────────────────────────────────
-const useMock = isMockFallbackEnv();
 
 export default function ClientsScreen() {
   const [clients, setClients] = React.useState<ClientDetail[]>([]);
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
   const [tab, setTab] = React.useState<DetailTab>("Overview");
   const [loading, setLoading] = React.useState(true);
+  const [loadError, setLoadError] = React.useState(false);
+  const [reloadKey, setReloadKey] = React.useState(0);
   // Cache of progress arrays keyed by client id; merged into the
   // selected client's `metrics` so sparklines come from real logs.
   const [chartById, setChartById] = React.useState<Record<string, ClientDetail["metrics"]>>({});
 
-  // Initial load: fetch the coach's clients (or fall back to fixtures
-  // when no API URL is configured / API returns empty in dev).
+  // Initial load: fetch the coach's clients. An empty roster is a real
+  // state (new coach) and an error is a real error — neither falls back
+  // to fixtures, which used to make both look like a populated account.
   React.useEffect(() => {
-    if (useMock) {
-      const list = mockFallbackClients();
-      setClients(list);
-      setSelectedId(list[0]?.id ?? null);
-      setLoading(false);
-      return;
-    }
+    let cancelled = false;
+    setLoading(true);
+    setLoadError(false);
     listClients()
       .then((rows) => {
-        if (rows.length === 0) {
-          // Empty backend → keep fixtures so the screen still demos.
-          const list = mockFallbackClients();
-          setClients(list);
-          setSelectedId(list[0]?.id ?? null);
-          return;
-        }
+        if (cancelled) return;
         const mapped = rows.map((r) => toClientDetail(r));
         setClients(mapped);
         setSelectedId(mapped[0]?.id ?? null);
       })
-      .catch((e) => {
-        console.error(e);
-        toast.error("Failed to load clients");
-        const list = mockFallbackClients();
-        setClients(list);
-        setSelectedId(list[0]?.id ?? null);
+      .catch(() => {
+        if (cancelled) return;
+        setClients([]);
+        setSelectedId(null);
+        setLoadError(true);
       })
-      .finally(() => setLoading(false));
-  }, []);
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [reloadKey]);
 
   // Lazy-load progress chart for the selected client.
   React.useEffect(() => {
-    if (useMock || !selectedId || chartById[selectedId]) return;
-    // Skip fixture rows — real backend IDs are UUIDs (contain dashes).
-    if (!selectedId.includes("-")) return;
+    if (!selectedId || chartById[selectedId]) return;
     getClientChart(selectedId, 60)
       .then((logs) => {
         const sorted = [...logs].sort((a, b) => a.loggedDate.localeCompare(b.loggedDate));
@@ -911,6 +901,16 @@ export default function ClientsScreen() {
       }}>
         Loading clients…
       </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <ErrorState
+        title="Couldn't load your clients"
+        message="We couldn't reach the server. Your roster is safe — this is a connection problem."
+        onRetry={() => setReloadKey((k) => k + 1)}
+      />
     );
   }
 
