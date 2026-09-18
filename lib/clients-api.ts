@@ -1,5 +1,6 @@
 import api from "@/lib/api";
 import type { ClientDetail, ClientPhoto, StatusKey } from "@/components/clients/data";
+import type { components } from "@/types/api";
 
 // ─── Backend types ─────────────────────────────────────────────────────
 // Mirror the Spring Boot ClientResponse / ProgressLogResponse shapes.
@@ -148,7 +149,9 @@ export function toClientDetail(c: BackendClient, progress: BackendProgressLog[] 
     metrics: { weight, bf, steps: [] },
     goalDesc: c.goal ? `Working towards: ${goalLabel}.` : "",
     notes: [],
-    limitations: (c.healthConditions || []).map((h) => ({ text: h, date: fmtJoined(c.createdAt) })),
+    // No date: health_conditions is a plain string list. This used to fill in
+    // the client's join date, which read as "recorded on" and was never true.
+    limitations: (c.healthConditions || []).map((h) => ({ text: h, date: "" })),
     updates: [],
   };
 }
@@ -166,4 +169,45 @@ export async function listClientPhotos(clientId: string): Promise<ClientPhoto[]>
     photoType: p.photoType,
     downloadUrl: p.downloadUrl,
   }));
+}
+
+// ─── Client detail cards ──────────────────────────────────────────────────────
+type Schemas = components["schemas"];
+export type ClientTrainingStats = Schemas["ClientTrainingStatsResponse"];
+export type ClientActivity = Schemas["ClientActivityResponse"];
+export type CoachNote = Schemas["ClientNoteResponse"];
+
+/** Planned vs completed workouts, and the most recent completion. */
+export async function getClientTrainingStats(clientId: string): Promise<ClientTrainingStats> {
+  const { data } = await api.get<ApiEnvelope<ClientTrainingStats>>(
+    `/api/v1/clients/${clientId}/training-stats`);
+  return data.data;
+}
+
+/** Recent activity, newest first. Derived server-side; there is no activity log. */
+export async function listClientActivity(clientId: string): Promise<ClientActivity[]> {
+  const { data } = await api.get<ApiEnvelope<ClientActivity[]>>(
+    `/api/v1/clients/${clientId}/activity`);
+  return data.data ?? [];
+}
+
+export async function listCoachNotes(clientId: string): Promise<CoachNote[]> {
+  const { data } = await api.get<ApiEnvelope<CoachNote[]>>(`/api/v1/clients/${clientId}/notes`);
+  return data.data ?? [];
+}
+
+export async function createCoachNote(clientId: string, body: string): Promise<CoachNote> {
+  const { data } = await api.post<ApiEnvelope<CoachNote>>(
+    `/api/v1/clients/${clientId}/notes`, { body });
+  return data.data;
+}
+
+export async function updateCoachNote(clientId: string, noteId: string, body: string): Promise<CoachNote> {
+  const { data } = await api.put<ApiEnvelope<CoachNote>>(
+    `/api/v1/clients/${clientId}/notes/${noteId}`, { body });
+  return data.data;
+}
+
+export async function deleteCoachNote(clientId: string, noteId: string): Promise<void> {
+  await api.delete(`/api/v1/clients/${clientId}/notes/${noteId}`);
 }
