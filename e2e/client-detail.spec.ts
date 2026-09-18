@@ -33,7 +33,11 @@ test.describe("client detail", () => {
     await page.goto(`/clients/${client.id}`);
     await page.getByText("Settings", { exact: true }).first().click();
 
-    await expect(page.getByText("Profile", { exact: true })).toBeVisible();
+    // Scope to the detail pane: the app sidebar also has a "Profile" link, so
+    // an unscoped match either trips strict mode or passes on the wrong node
+    // before the Settings panel has rendered.
+    const pane = page.getByRole("main");
+    await expect(pane.getByText("Profile", { exact: true })).toBeVisible();
     await expect(page.getByText("Delete client")).toBeVisible();
     await expect(page.getByText("coming soon")).toHaveCount(0);
 

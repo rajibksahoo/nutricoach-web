@@ -3,6 +3,7 @@ import type {
   CategoryKey, LibraryExercise, SavedWorkout, WorkoutSection,
   SectionExercise, SectionType, WorkoutTemplate, ThumbCat, Client,
 } from "@/lib/workout-types";
+import type { components } from "@/types/api";
 
 // ── Backend response shapes ──────────────────────────────────────────────────
 type ApiResp<T> = { success: boolean; message?: string; data: T };
@@ -241,6 +242,8 @@ export interface WorkoutAssignment {
 
 export interface WorkoutScheduleEntry {
   id: string; clientId: string; workoutId: string;
+  /** Resolved server-side — see ScheduleResponse. */
+  workoutName?: string | null;
   date: string; notes?: string | null;
 }
 
@@ -260,6 +263,30 @@ export async function listClientSchedules(clientId: string): Promise<WorkoutSche
 
 export async function unscheduleWorkout(scheduleId: string): Promise<void> {
   await api.delete(`/api/v1/library/schedules/${scheduleId}`);
+}
+
+// ── Per-client assignments (coach-side Training tab) ──────────────────────────
+// Assignments are otherwise only queryable by program or by workout, which is
+// the wrong axis for a client-detail screen. Names come from the server, so
+// there is no id-to-label lookup (and no stale name cache) on this side.
+export type ClientProgramAssignmentItem = NonNullable<
+  components["schemas"]["ClientAssignmentsResponse"]["programs"]>[number];
+export type ClientWorkoutAssignmentItem = NonNullable<
+  components["schemas"]["ClientAssignmentsResponse"]["workouts"]>[number];
+
+export interface ClientAssignments {
+  programs: ClientProgramAssignmentItem[];
+  workouts: ClientWorkoutAssignmentItem[];
+}
+
+export async function listClientAssignments(clientId: string): Promise<ClientAssignments> {
+  const { data } = await api.get<ApiResp<components["schemas"]["ClientAssignmentsResponse"]>>(
+    `/api/v1/library/clients/${clientId}/assignments`);
+  return { programs: data.data.programs ?? [], workouts: data.data.workouts ?? [] };
+}
+
+export async function unassignProgramFromClient(programId: string, assignmentId: string): Promise<void> {
+  await api.delete(`/api/v1/library/programs/${programId}/assignments/${assignmentId}`);
 }
 
 export interface BuilderSectionPayload {
