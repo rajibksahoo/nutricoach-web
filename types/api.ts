@@ -226,6 +226,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/clients/{clientId}/notes/{noteId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Edit a note */
+        put: operations["updateNote"];
+        post?: never;
+        /** Delete a note */
+        delete: operations["deleteNote"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/portal/workouts/complete": {
         parameters: {
             query?: never;
@@ -713,6 +731,24 @@ export interface paths {
          * @description Saves a photo record and returns a pre-signed S3 URL for direct upload
          */
         post: operations["initiateUpload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/clients/{clientId}/notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List coach notes on a client */
+        get: operations["listNotes"];
+        put?: never;
+        /** Add a note to a client */
+        post: operations["createNote"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1222,6 +1258,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/clients/{clientId}/training-stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Training volume for a client
+         * @description Planned vs completed workouts over the last 7 and 30 days, what is planned for the next week, and the most recent completion
+         */
+        get: operations["trainingStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/clients/{clientId}/progress/photos": {
         parameters: {
             query?: never;
@@ -1254,6 +1310,26 @@ export interface paths {
          * @description Returns progress logs for the last N days (default 30, max 90), sorted ascending for charting
          */
         get: operations["getChart_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/clients/{clientId}/activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Recent activity for a client
+         * @description Messages, check-ins, progress logs, completed workouts and the join event, newest first
+         */
+        get: operations["activity"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1829,6 +1905,24 @@ export interface components {
             allergies?: string[];
             /** @enum {string} */
             status?: "ONBOARDING" | "ACTIVE" | "INACTIVE";
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        ClientNoteRequest: {
+            body: string;
+        };
+        ApiResponseClientNoteResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["ClientNoteResponse"];
+            errorCode?: string;
+        };
+        ClientNoteResponse: {
+            /** Format: uuid */
+            id?: string;
+            body?: string;
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
@@ -2659,6 +2753,31 @@ export interface components {
             data?: components["schemas"]["ClientResponse"][];
             errorCode?: string;
         };
+        ApiResponseClientTrainingStatsResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["ClientTrainingStatsResponse"];
+            errorCode?: string;
+        };
+        ClientTrainingStatsResponse: {
+            last7Days?: components["schemas"]["Window"];
+            last30Days?: components["schemas"]["Window"];
+            nextWeek?: components["schemas"]["Window"];
+            lastWorkout?: components["schemas"]["LastWorkout"];
+        };
+        LastWorkout: {
+            workoutName?: string;
+            /** Format: date */
+            date?: string;
+            /** Format: int32 */
+            daysAgo?: number;
+        };
+        Window: {
+            /** Format: int32 */
+            done?: number;
+            /** Format: int32 */
+            planned?: number;
+        };
         ApiResponseListPhotoResponse: {
             success?: boolean;
             message?: string;
@@ -2690,6 +2809,26 @@ export interface components {
             downloadUrl?: string;
             /** Format: date-time */
             createdAt?: string;
+        };
+        ApiResponseListClientNoteResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["ClientNoteResponse"][];
+            errorCode?: string;
+        };
+        ApiResponseListClientActivityResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["ClientActivityResponse"][];
+            errorCode?: string;
+        };
+        ClientActivityResponse: {
+            type?: string;
+            /** Format: uuid */
+            clientId?: string;
+            summary?: string;
+            /** Format: date-time */
+            occurredAt?: string;
         };
     };
     responses: never;
@@ -3328,6 +3467,56 @@ export interface operations {
             header?: never;
             path: {
                 id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseVoid"];
+                };
+            };
+        };
+    };
+    updateNote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+                noteId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClientNoteRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseClientNoteResponse"];
+                };
+            };
+        };
+    };
+    deleteNote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+                noteId: string;
             };
             cookie?: never;
         };
@@ -4263,6 +4452,54 @@ export interface operations {
             };
         };
     };
+    listNotes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListClientNoteResponse"];
+                };
+            };
+        };
+    };
+    createNote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClientNoteRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseClientNoteResponse"];
+                };
+            };
+        };
+    };
     list_6: {
         parameters: {
             query?: never;
@@ -4924,6 +5161,28 @@ export interface operations {
             };
         };
     };
+    trainingStats: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseClientTrainingStatsResponse"];
+                };
+            };
+        };
+    };
     getPhotos: {
         parameters: {
             query?: never;
@@ -4966,6 +5225,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseListProgressLogResponse"];
+                };
+            };
+        };
+    };
+    activity: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListClientActivityResponse"];
                 };
             };
         };

@@ -11,7 +11,8 @@ import {
   type ClientDetail, type ClientPhoto, type StatusKey,
 } from "./data";
 import {
-  listClients, getClientChart, listClientPhotos, toClientDetail, STATUS_MAP,
+  listClients, getClientChart, listClientPhotos, getClientTrainingStats,
+  toClientDetail, STATUS_MAP, type ClientTrainingStats,
 } from "@/lib/clients-api";
 import ClientAvatar from "@/components/ui/ClientAvatar";
 import StatusPill from "@/components/ui/StatusPill";
@@ -20,6 +21,8 @@ import ErrorState from "@/components/ui/ErrorState";
 import ClientSettingsTab from "./ClientSettingsTab";
 import TrainingTab from "./TrainingTab";
 import ProgressPhotos from "./ProgressPhotos";
+import CoachNotesCard from "./CoachNotesCard";
+import UpdatesCard from "./UpdatesCard";
 import { Card, CardTitle, iconBtnStyle } from "./detail-ui";
 import Delta from "@/components/ui/Delta";
 
@@ -274,7 +277,13 @@ function SmallBtn({ icon: Icon, children, primary }: { icon?: React.ComponentTyp
 // ─── Overview tab ──────────────────────────────────────────────────────
 // `photos` stays undefined until its fetch resolves, so the card can tell
 // "still loading" from "this client has none".
-function OverviewTab({ client, photos }: { client: ClientDetail; photos?: ClientPhoto[] }) {
+function OverviewTab({ client, photos, stats }: {
+  client: ClientDetail; photos?: ClientPhoto[]; stats?: ClientTrainingStats;
+}) {
+  const w7 = stats?.last7Days;
+  const w30 = stats?.last30Days;
+  const wNext = stats?.nextWeek;
+  const last = stats?.lastWorkout;
   return (
     <div style={{
       display: "grid",
@@ -286,10 +295,12 @@ function OverviewTab({ client, photos }: { client: ClientDetail; photos?: Client
         <Card>
           <CardTitle>Training</CardTitle>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", padding: "6px 0 14px" }}>
-            <TrainStat label="LAST 7 DAYS"  done={client.train7d.done}  total={client.train7d.total}/>
-            <TrainStat label="LAST 30 DAYS" done={client.train30d.done} total={client.train30d.total}/>
-            <TrainStat label="NEXT WEEK"    done={client.nextWeek.done} total={client.nextWeek.total}
-              color="#EAB308" emptyText="Not assigned yet"/>
+            <TrainStat label="LAST 7 DAYS"  done={w7?.done ?? 0}  total={w7?.planned ?? 0}
+              emptyText={stats ? "Nothing planned" : "Loading…"}/>
+            <TrainStat label="LAST 30 DAYS" done={w30?.done ?? 0} total={w30?.planned ?? 0}
+              emptyText={stats ? "Nothing planned" : "Loading…"}/>
+            <TrainStat label="NEXT WEEK"    done={wNext?.done ?? 0} total={wNext?.planned ?? 0}
+              color="#EAB308" emptyText={stats ? "Not assigned yet" : "Loading…"}/>
           </div>
           <div style={{
             display: "flex", alignItems: "center", gap: 10,
@@ -299,13 +310,19 @@ function OverviewTab({ client, photos }: { client: ClientDetail; photos?: Client
             <Dumbbell size={14} style={{ color: "var(--brand-primary)" }} />
             <div style={{ flex: 1, fontSize: 12.5, color: "var(--fg2)" }}>
               <span style={{ color: "var(--fg3)" }}>Last Workout: </span>
-              <span style={{ color: "var(--fg1)", fontWeight: 600 }}>{client.lastWorkout.name}</span>
-              <span style={{ color: "var(--fg4)" }}> · {client.lastWorkout.days === 0 ? "today" : `${client.lastWorkout.days}d ago`}</span>
+              {last ? (
+                <>
+                  <span style={{ color: "var(--fg1)", fontWeight: 600 }}>{last.workoutName}</span>
+                  <span style={{ color: "var(--fg4)" }}>
+                    {" · "}{last.daysAgo === 0 ? "today" : `${last.daysAgo}d ago`}
+                  </span>
+                </>
+              ) : (
+                <span style={{ color: "var(--fg4)" }}>
+                  {stats ? "none completed yet" : "loading…"}
+                </span>
+              )}
             </div>
-            <button style={{
-              padding: "5px 11px", borderRadius: 7, border: "1px solid var(--border)",
-              background: "#fff", color: "var(--fg1)", fontSize: 12, fontWeight: 500, cursor: "pointer",
-            }}>Check Result</button>
           </div>
         </Card>
 
@@ -347,24 +364,7 @@ function OverviewTab({ client, photos }: { client: ClientDetail; photos?: Client
         </Card>
 
         <Card>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 16 }}>📝</span>
-              <div style={{ fontSize: 14.5, fontWeight: 600, color: "var(--fg1)" }}>Notes</div>
-            </div>
-            <Edit size={13} style={{ color: "var(--fg4)", cursor: "pointer" }} />
-          </div>
-          {client.notes.length === 0 ? (
-            <div style={{ fontSize: 12, color: "var(--fg4)" }}>No notes yet.</div>
-          ) : client.notes.map((n, i) => (
-            <div key={i} style={{
-              borderLeft: "2px solid var(--brand-primary)",
-              paddingLeft: 10, marginBottom: i < client.notes.length - 1 ? 10 : 0,
-            }}>
-              <div style={{ fontSize: 12.5, color: "var(--fg1)", lineHeight: 1.45, fontWeight: 500 }}>{n.text}</div>
-              <div style={{ fontSize: 11, color: "var(--fg4)", marginTop: 3 }}>{n.date}</div>
-            </div>
-          ))}
+          <CoachNotesCard clientId={client.id} />
         </Card>
 
         <Card>
@@ -383,7 +383,9 @@ function OverviewTab({ client, photos }: { client: ClientDetail; photos?: Client
               paddingLeft: 10, marginBottom: i < client.limitations.length - 1 ? 10 : 0,
             }}>
               <div style={{ fontSize: 12.5, color: "var(--fg1)", lineHeight: 1.45, fontWeight: 500 }}>{n.text}</div>
-              <div style={{ fontSize: 11, color: "var(--fg4)", marginTop: 3 }}>{n.date}</div>
+              {n.date && (
+                <div style={{ fontSize: 11, color: "var(--fg4)", marginTop: 3 }}>{n.date}</div>
+              )}
             </div>
           ))}
         </Card>
@@ -411,36 +413,7 @@ function OverviewTab({ client, photos }: { client: ClientDetail; photos?: Client
         </Card>
 
         <Card>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-            <div style={{ fontSize: 14.5, fontWeight: 600, color: "var(--fg1)" }}>Updates</div>
-            <button style={{
-              display: "inline-flex", alignItems: "center", gap: 5,
-              padding: "4px 9px", borderRadius: 7, border: "1px solid var(--border)",
-              background: "#fff", fontSize: 11.5, color: "var(--fg2)", cursor: "pointer",
-            }}>
-              Filter: All <ChevronDown size={11} />
-            </button>
-          </div>
-          {client.updates.length === 0 ? (
-            <div style={{ fontSize: 12, color: "var(--fg4)" }}>No recent updates.</div>
-          ) : client.updates.map((u, i) => (
-            <div key={i} style={{
-              display: "flex", alignItems: "flex-start", gap: 10,
-              padding: "10px 0", borderTop: i > 0 ? "1px solid var(--border-subtle)" : "none",
-            }}>
-              <ClientAvatar
-                name={u.who === "You" ? "Coach R" : client.name}
-                tone={u.who === "You" ? "#0F766E" : client.avatarTone}
-                size={28}
-              />
-              <div style={{ flex: 1, minWidth: 0, fontSize: 12.5, color: "var(--fg2)", lineHeight: 1.4 }}>
-                <span style={{ color: "var(--fg1)", fontWeight: 600 }}>
-                  {u.who === "You" ? "You" : client.name}
-                </span>{" "}{u.text}
-              </div>
-              <div style={{ fontSize: 11, color: "var(--fg4)", flexShrink: 0, marginTop: 2 }}>{u.time}</div>
-            </div>
-          ))}
+          <UpdatesCard clientId={client.id} />
         </Card>
       </div>
     </div>
@@ -681,6 +654,7 @@ export default function ClientsScreen({ initialClientId }: { initialClientId?: s
   // endpoint doesn't carry them and presigning every roster client's URLs up
   // front would be wasted work.
   const [photosById, setPhotosById] = React.useState<Record<string, ClientPhoto[]>>({});
+  const [statsById, setStatsById] = React.useState<Record<string, ClientTrainingStats>>({});
 
   // Initial load: fetch the coach's clients. An empty roster is a real
   // state (new coach) and an error is a real error — neither falls back
@@ -731,6 +705,14 @@ export default function ClientsScreen({ initialClientId }: { initialClientId?: s
       .catch((e) => { console.error(e); });
   }, [selectedId, clients]);
 
+  // Lazy-load training stats for the selected client.
+  React.useEffect(() => {
+    if (!selectedId || statsById[selectedId]) return;
+    getClientTrainingStats(selectedId)
+      .then((stats) => setStatsById((prev) => ({ ...prev, [selectedId]: stats })))
+      .catch((e) => { console.error(e); });
+  }, [selectedId, clients]);
+
   if (loading) {
     return (
       <div style={{
@@ -769,6 +751,7 @@ export default function ClientsScreen({ initialClientId }: { initialClientId?: s
   const baseClient = clients.find((c) => c.id === selectedId) || clients[0];
   const chart = selectedId ? chartById[selectedId] : undefined;
   const photos = selectedId ? photosById[selectedId] : undefined;
+  const stats = selectedId ? statsById[selectedId] : undefined;
   const client: ClientDetail = chart ? { ...baseClient, metrics: chart } : baseClient;
 
   return (
@@ -783,7 +766,7 @@ export default function ClientsScreen({ initialClientId }: { initialClientId?: s
       />
       <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
         <ClientDetailHeader client={client} tab={tab} onTab={setTab} />
-        {tab === "Overview" && <OverviewTab client={client} photos={photos} />}
+        {tab === "Overview" && <OverviewTab client={client} photos={photos} stats={stats} />}
         {tab === "Metrics"  && <MetricsTab  client={client} />}
         {tab === "Training" && <TrainingTab clientId={client.id} />}
         {tab === "Settings" && (
