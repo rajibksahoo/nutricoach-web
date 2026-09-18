@@ -1591,6 +1591,7 @@ export interface components {
             /** Format: uuid */
             foodItemId?: string;
             foodItemName?: string;
+            custom?: boolean;
             quantityGrams?: number;
             quantityUnit?: string;
             /** Format: int32 */
@@ -2398,6 +2399,14 @@ export interface components {
             errorMessage?: string;
             /** Format: uuid */
             generatedMealPlanId?: string;
+            /** Format: int32 */
+            dayCount?: number;
+            /** Format: int32 */
+            mealCount?: number;
+            /** Format: int32 */
+            itemCount?: number;
+            /** Format: int32 */
+            unmatchedCount?: number;
         };
         ApiResponseAiJobResponse: {
             success?: boolean;
