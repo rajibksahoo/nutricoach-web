@@ -1,7 +1,5 @@
 import api from "@/lib/api";
-import {
-  CLIENT_DETAILS, type ClientDetail, type StatusKey,
-} from "@/components/clients/data";
+import type { ClientDetail, ClientPhoto, StatusKey } from "@/components/clients/data";
 
 // ─── Backend types ─────────────────────────────────────────────────────
 // Mirror the Spring Boot ClientResponse / ProgressLogResponse shapes.
@@ -55,7 +53,7 @@ export async function getClientChart(clientId: string, days = 60): Promise<Backe
 }
 
 // ─── Mapping ───────────────────────────────────────────────────────────
-const STATUS_MAP: Record<BackendClient["status"], StatusKey> = {
+export const STATUS_MAP: Record<BackendClient["status"], StatusKey> = {
   ACTIVE:     "Connected",
   ONBOARDING: "Pending",
   PAUSED:     "Offline",
@@ -151,18 +149,21 @@ export function toClientDetail(c: BackendClient, progress: BackendProgressLog[] 
     goalDesc: c.goal ? `Working towards: ${goalLabel}.` : "",
     notes: [],
     limitations: (c.healthConditions || []).map((h) => ({ text: h, date: fmtJoined(c.createdAt) })),
-    photos: [],
     updates: [],
   };
 }
 
-// Dev-time fallback: when there's no API URL configured, or the API
-// returns an empty list, fall back to the design's static fixture so
-// the screen still demos.
-export function isMockFallbackEnv(): boolean {
-  return !process.env.NEXT_PUBLIC_API_URL;
-}
-
-export function mockFallbackClients(): ClientDetail[] {
-  return CLIENT_DETAILS;
+/**
+ * Every progress photo for a client, newest log first. Photos hang off progress
+ * logs on the backend, so this is the only way to get them per client.
+ */
+export async function listClientPhotos(clientId: string): Promise<ClientPhoto[]> {
+  const { data } = await api.get<{ data: ClientPhoto[] }>(
+    `/api/v1/clients/${clientId}/progress/photos`);
+  return (data.data ?? []).map((p) => ({
+    id: p.id,
+    loggedDate: p.loggedDate,
+    photoType: p.photoType,
+    downloadUrl: p.downloadUrl,
+  }));
 }

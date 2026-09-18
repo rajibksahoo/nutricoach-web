@@ -7,13 +7,14 @@ import api from "@/lib/api";
 import { saveAuth } from "@/lib/auth";
 import Button from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
+import { IS_DEV_MODE } from "@/lib/dev-mode";
 
 function OtpForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const phone = searchParams.get("phone") ?? "";
 
-  const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === "true";
+  const isDevMode = IS_DEV_MODE;
   const DEV_OTP = "111111";
 
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -55,11 +56,17 @@ function OtpForm() {
     setLoading(true);
     try {
       const res = await api.post("/api/v1/auth/otp/verify", { phone, otp: code });
-      const { token, coachId, phone: coachPhone, name, subscriptionTier, subscriptionStatus } = res.data.data;
+      const {
+        token, coachId, phone: coachPhone, name,
+        subscriptionTier, subscriptionStatus, isNewCoach,
+      } = res.data.data;
 
       saveAuth(token, { id: coachId, phone: coachPhone, name, subscriptionTier, subscriptionStatus });
       toast.success("Login successful!");
-      router.push("/dashboard");
+      // First-time coaches get the setup flow; the backend already tells us
+      // via isNewCoach. A coach with no name set yet is also treated as new,
+      // so an interrupted first run is picked back up.
+      router.push(isNewCoach || !name ? "/onboarding" : "/dashboard");
     } catch (err: any) {
       localStorage.removeItem("nc_token");
       setError(err.response?.data?.message ?? "Invalid OTP");

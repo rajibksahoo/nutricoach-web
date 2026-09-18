@@ -10,7 +10,7 @@ import {
   updateProgram, uploadProgramCover,
 } from "@/lib/programs-api";
 import { listClients } from "@/lib/workout-builder-api";
-import type { Client } from "@/app/(dashboard)/workout-builder/_components/data";
+import type { Client } from "@/lib/workout-types";
 import ProgramListView from "./ProgramListView";
 import CreateProgramModal, { type ProgramFormPayload } from "./CreateProgramModal";
 import AssignProgramModal from "./AssignProgramModal";
@@ -69,6 +69,7 @@ export default function ProgramsLibrary() {
         weeks: payload.weeks,
         modality: payload.modality || null,
         experienceLevel: payload.experienceLevel || null,
+        tags: payload.tags,
       };
       if (modalMode === "edit" && editTarget) {
         await updateProgram(editTarget.id, body);
@@ -133,6 +134,7 @@ export default function ProgramsLibrary() {
       <AssignProgramModal
         open={assignTarget !== null}
         programName={assignTarget?.name}
+        programId={assignTarget?.id ?? null}
         clients={clients}
         saving={assigning}
         onClose={() => setAssignTarget(null)}

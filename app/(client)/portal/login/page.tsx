@@ -8,6 +8,7 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Leaf } from "lucide-react";
+import { IS_DEV_MODE } from "@/lib/dev-mode";
 
 function ClientLoginForm() {
   const router = useRouter();
@@ -56,7 +57,7 @@ function ClientLoginForm() {
 
         <Card>
           <CardContent className="pt-6">
-            {process.env.NEXT_PUBLIC_DEV_MODE === "true" && (
+            {IS_DEV_MODE && (
               <div className="mb-5 px-3 py-2.5 bg-amber-50 border border-amber-200 rounded-lg">
                 <p className="text-xs font-semibold text-amber-700">DEV MODE — no real SMS sent</p>
                 <p className="text-xs text-amber-600 mt-0.5">OTP will be <span className="font-mono font-bold">111111</span></p>

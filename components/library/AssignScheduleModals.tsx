@@ -1,10 +1,23 @@
 "use client";
 import * as React from "react";
 import toast from "react-hot-toast";
-import { type Client } from "./data";
-import { Search, ChevLeft, ChevRight, X, Check, Send, Bell, Cal } from "./icons";
-import { Avatar } from "./shared";
+import type { Client } from "@/lib/workout-types";
+import { Search, ChevLeft, ChevRight, X, Check, Send, Bell, Cal } from "./builder-icons";
+
 import { listAssignments, unassignWorkout, type WorkoutAssignment } from "@/lib/workout-builder-api";
+
+/** Initials circle. Inlined from the deleted builder's `shared.tsx`. */
+function Avatar({ name, size = 28 }: { name: string; size?: number }) {
+  const initial = (name || "?").trim()[0]?.toUpperCase() || "?";
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: "50%",
+      background: "var(--brand-primary-50)", color: "#3730A3",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      fontWeight: 600, fontSize: Math.round(size * 0.42), flexShrink: 0,
+    }}>{initial}</div>
+  );
+}
 
 const inputStyle: React.CSSProperties = {
   width: "100%", padding: "7px 11px", border: "1px solid var(--border)",
@@ -57,7 +70,7 @@ function ModalFrame({
   );
 }
 
-export interface AssignOpts { message: string; notify: boolean; }
+export interface AssignOpts { message: string; }
 
 export function AssignWorkoutModal({
   open, onClose, onAssign, workoutName, workoutId, clients,
@@ -72,12 +85,11 @@ export function AssignWorkoutModal({
   const [q, setQ] = React.useState("");
   const [picked, setPicked] = React.useState<string | null>(null);
   const [message, setMessage] = React.useState("");
-  const [notify, setNotify] = React.useState(true);
   const [assigned, setAssigned] = React.useState<WorkoutAssignment[]>([]);
   const [loadingAssigned, setLoadingAssigned] = React.useState(false);
 
   React.useEffect(() => {
-    if (open) { setQ(""); setPicked(null); setMessage(""); setNotify(true); }
+    if (open) { setQ(""); setPicked(null); setMessage(""); }
   }, [open]);
 
   React.useEffect(() => {
@@ -116,7 +128,7 @@ export function AssignWorkoutModal({
     if (!picked) return;
     const target = clients.find(c => c.id === picked);
     if (!target) return;
-    onAssign([target], { message: message.trim(), notify });
+    onAssign([target], { message: message.trim() });
   };
 
   return (
@@ -246,15 +258,6 @@ export function AssignWorkoutModal({
             rows={2}
             style={{ ...inputStyle, resize: "vertical", minHeight: 56, fontFamily: "var(--font-sans)" }} />
         </Field>
-
-        <label style={{
-          display: "flex", alignItems: "center", gap: 8,
-          fontSize: 12.5, color: "var(--fg2)", cursor: "pointer",
-        }}>
-          <input type="checkbox" checked={notify} onChange={(e) => setNotify(e.target.checked)}
-            style={{ accentColor: "var(--brand-primary)" }} />
-          Send WhatsApp notification when delivered
-        </label>
       </div>
 
       <div style={{
@@ -363,7 +366,7 @@ export function ScheduleWorkoutModal({
           display: "flex", alignItems: "center", gap: 8,
         }}>
           <Bell size={14} />
-          <span>Client gets a push notification 30 min before the scheduled time.</span>
+          <span>Appears on the client&rsquo;s Training tab. No reminder is sent.</span>
         </div>
       </div>
 

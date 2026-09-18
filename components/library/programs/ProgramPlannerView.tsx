@@ -7,6 +7,8 @@ import {
   Pencil, X, MoreHorizontal, Search, Copy, Trash2, BookmarkPlus, ClipboardPaste,
 } from "lucide-react";
 import type { Program, ProgramSummary } from "@/lib/library-types";
+import TrialChip from "@/components/dashboard/TrialChip";
+import { useSubscription } from "@/lib/use-subscription";
 import {
   clearProgramDay, getProgram, getWorkoutPreview, listWorkoutOptions,
   setProgramDay, updateProgram, type WorkoutOption, type WorkoutPreview,
@@ -22,12 +24,12 @@ export default function ProgramPlannerView({
   onEditInfo: (p: ProgramSummary) => void;
   onAssign: (p: ProgramSummary) => void;
 }) {
+  const subscription = useSubscription();
   const [program, setProgram] = useState<Program>(initialProgram);
   const [weeks, setWeeks] = useState(program.weeks ?? Math.max(1, Math.ceil(program.durationDays / 7)));
   const [days, setDays] = useState<Map<number, DayEntry>>(() => buildDays(initialProgram));
   const [weekView, setWeekView] = useState<1 | 2 | 4>(2);
   const [weekOffset, setWeekOffset] = useState(0);
-  const [liveSync, setLiveSync] = useState(false);
   const [toastInfo, setToastInfo] = useState(false);
   const [dragging, setDragging] = useState<number | null>(null);
   const [previews, setPreviews] = useState<Map<string, WorkoutPreview>>(new Map());
@@ -121,13 +123,6 @@ export default function ProgramPlannerView({
     }
   };
 
-  const saveToLibrary = () => {
-    toast.success("Workout saved to Library", {
-      style: { background: "#16A34A", color: "#fff" },
-      iconTheme: { primary: "#fff", secondary: "#16A34A" },
-    });
-  };
-
   const copyWorkout = (entry: DayEntry) => {
     setCopied(entry);
     toast("Workout copied, Click on the date to paste workout", { icon: "📋", duration: 5000 });
@@ -172,13 +167,7 @@ export default function ProgramPlannerView({
           <Pencil size={12} />Edit Info
         </button>
         <div style={{ flex: 1 }} />
-        <span style={{ fontSize: 12.5, color: "var(--fg3)" }}>
-          <span style={{ color: "var(--fg1)", fontWeight: 600 }}>29 days left</span> until trial ends
-        </span>
-        <button style={{
-          background: "linear-gradient(135deg, #F97316 0%, #EA580C 100%)", border: "none", color: "#fff",
-          padding: "8px 22px", borderRadius: 8, fontWeight: 700, fontSize: 12.5, cursor: "pointer",
-        }}>Upgrade</button>
+        {subscription && <TrialChip subscription={subscription} />}
       </div>
 
       {/* Control bar */}
@@ -222,21 +211,6 @@ export default function ProgramPlannerView({
 
         <div style={{ flex: 1 }} />
 
-        <label style={{ display: "inline-flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
-          <span onClick={() => setLiveSync((s) => !s)} style={{
-            position: "relative", width: 36, height: 20, borderRadius: 99,
-            background: liveSync ? "var(--brand-primary)" : "#CBD5E1", transition: "background 150ms",
-          }}>
-            <span style={{
-              position: "absolute", top: 2, left: liveSync ? 18 : 2, width: 16, height: 16,
-              borderRadius: "50%", background: "#fff", transition: "left 150ms", boxShadow: "0 1px 2px rgba(0,0,0,.2)",
-            }} />
-          </span>
-          <span style={{ fontSize: 9.5, fontWeight: 700, color: "var(--fg2)", textTransform: "uppercase", letterSpacing: "0.08em", lineHeight: 1.1 }}>
-            ENABLE<br />LIVE SYNC
-          </span>
-        </label>
-
         <div style={{ display: "inline-flex", gap: 0, padding: 3, background: "var(--bg)", borderRadius: 9, border: "1px solid var(--border)" }}>
           {([1, 2, 4] as const).map((v) => {
             const on = weekView === v;
@@ -265,7 +239,6 @@ export default function ProgramPlannerView({
             onPick={(day) => setPickFor(day)}
             pasteMode={copied !== null}
             onPaste={pasteWorkout}
-            onSaveToLibrary={saveToLibrary}
             onCopy={(day) => { const e = days.get(day); if (e) copyWorkout(e); }}
             onDelete={(day) => setConfirmDay(day)} />
         ))}
@@ -318,14 +291,14 @@ function buildDays(p: Program): Map<number, DayEntry> {
 
 function WeekRow({
   weekIdx, days, previews, weekView, onDragStart, onDragEnd, onDrop, onPick,
-  pasteMode, onPaste, onSaveToLibrary, onCopy, onDelete,
+  pasteMode, onPaste, onCopy, onDelete,
 }: {
   weekIdx: number; days: Map<number, DayEntry>; previews: Map<string, WorkoutPreview>; weekView: 1 | 2 | 4;
   onDragStart: (day: number) => void; onDragEnd: () => void;
   onDrop: (targetDay: number, shift: boolean) => void;
   onPick: (day: number) => void;
   pasteMode: boolean; onPaste: (day: number) => void;
-  onSaveToLibrary: (day: number) => void; onCopy: (day: number) => void; onDelete: (day: number) => void;
+  onCopy: (day: number) => void; onDelete: (day: number) => void;
 }) {
   const weekNum = weekIdx + 1;
   const dayStart = weekIdx * 7 + 1;
@@ -345,7 +318,7 @@ function WeekRow({
             minH={cellMinH} weekView={weekView} onDragStart={onDragStart} onDragEnd={onDragEnd}
             onDrop={(shift) => onDrop(day, shift)} onPick={() => onPick(day)}
             pasteMode={pasteMode} onPaste={() => onPaste(day)}
-            onSaveToLibrary={() => onSaveToLibrary(day)} onCopy={() => onCopy(day)} onDelete={() => onDelete(day)} />
+            onCopy={() => onCopy(day)} onDelete={() => onDelete(day)} />
         );
       })}
     </div>
@@ -354,13 +327,13 @@ function WeekRow({
 
 function DayCell({
   day, entry, preview, minH, weekView, onDragStart, onDragEnd, onDrop, onPick,
-  pasteMode, onPaste, onSaveToLibrary, onCopy, onDelete,
+  pasteMode, onPaste, onCopy, onDelete,
 }: {
   day: number; entry?: DayEntry; preview?: WorkoutPreview; minH: number; weekView: 1 | 2 | 4;
   onDragStart: (day: number) => void; onDragEnd: () => void;
   onDrop: (shift: boolean) => void; onPick: () => void;
   pasteMode: boolean; onPaste: () => void;
-  onSaveToLibrary: () => void; onCopy: () => void; onDelete: () => void;
+  onCopy: () => void; onDelete: () => void;
 }) {
   const [over, setOver] = useState(false);
   const [hover, setHover] = useState(false);
@@ -390,7 +363,7 @@ function DayCell({
       {entry && (
         <WorkoutCard entry={entry} preview={preview} weekView={weekView}
           onDragStart={() => onDragStart(day)} onDragEnd={onDragEnd}
-          onSaveToLibrary={onSaveToLibrary} onCopy={onCopy} onDelete={onDelete} />
+          onCopy={onCopy} onDelete={onDelete} />
       )}
 
       {/* Paste affordance — shown on hover while a workout is on the clipboard */}
@@ -417,11 +390,11 @@ function DayCell({
 }
 
 function WorkoutCard({
-  entry, preview, weekView, onDragStart, onDragEnd, onSaveToLibrary, onCopy, onDelete,
+  entry, preview, weekView, onDragStart, onDragEnd, onCopy, onDelete,
 }: {
   entry: DayEntry; preview?: WorkoutPreview; weekView: 1 | 2 | 4;
   onDragStart: () => void; onDragEnd: () => void;
-  onSaveToLibrary: () => void; onCopy: () => void; onDelete: () => void;
+  onCopy: () => void; onDelete: () => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [tip, setTip] = useState(false);
@@ -477,8 +450,9 @@ function WorkoutCard({
               background: "#fff", border: "1px solid var(--border)", borderRadius: 8,
               boxShadow: "var(--shadow-xl)", padding: 4, display: "flex", flexDirection: "column",
             }}>
-              <MenuItem icon={<BookmarkPlus size={14} />} label="Save to Library"
-                onClick={() => { setMenuOpen(false); onSaveToLibrary(); }} />
+              <MenuItem icon={<BookmarkPlus size={14} />} label="Save to Library" disabled
+                title="Not available yet — saving a day as a reusable template needs backend support"
+                onClick={() => {}} />
               <MenuItem icon={<Copy size={14} />} label="Copy"
                 onClick={() => { setMenuOpen(false); onCopy(); }} />
               <MenuItem icon={<Trash2 size={14} />} label="Delete" danger
@@ -562,17 +536,22 @@ function WorkoutPickerModal({
 }
 
 function MenuItem({
-  icon, label, onClick, danger,
+  icon, label, onClick, danger, disabled, title,
 }: {
-  icon: React.ReactNode; label: string; onClick: () => void; danger?: boolean;
+  icon: React.ReactNode; label: string; onClick: () => void;
+  danger?: boolean; disabled?: boolean; title?: string;
 }) {
   return (
-    <button role="menuitem" onClick={onClick}
-      onMouseEnter={(e) => (e.currentTarget.style.background = danger ? "#FEF2F2" : "var(--bg)")}
+    <button role="menuitem" onClick={onClick} disabled={disabled} title={title}
+      onMouseEnter={(e) => {
+        if (!disabled) e.currentTarget.style.background = danger ? "#FEF2F2" : "var(--bg)";
+      }}
       onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
       style={{
         display: "flex", alignItems: "center", gap: 9, width: "100%", padding: "8px 10px",
-        border: "none", background: "transparent", borderRadius: 6, cursor: "pointer", textAlign: "left",
+        border: "none", background: "transparent", borderRadius: 6,
+        cursor: disabled ? "not-allowed" : "pointer", textAlign: "left",
+        opacity: disabled ? 0.45 : 1,
         font: "500 12.5px var(--font-sans)", color: danger ? "#DC2626" : "var(--fg1)",
       }}>
       {icon}{label}

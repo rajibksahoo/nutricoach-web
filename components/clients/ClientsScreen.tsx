@@ -1,25 +1,26 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import {
   Search, ChevronDown, ChevronUp, Plus, Edit, Bell, Calendar as Cal,
   MessageCircle as Msg, Star, Sliders, Activity, Dumbbell,
 } from "lucide-react";
-import toast from "react-hot-toast";
 import {
   STATUS_COLORS,
-  type ClientDetail, type StatusKey,
+  type ClientDetail, type ClientPhoto, type StatusKey,
 } from "./data";
 import {
-  listClients, getClientChart, toClientDetail, isMockFallbackEnv, mockFallbackClients,
+  listClients, getClientChart, listClientPhotos, toClientDetail, STATUS_MAP,
 } from "@/lib/clients-api";
-import {
-  listClientSchedules, unscheduleWorkout, listWorkouts,
-  type WorkoutScheduleEntry,
-} from "@/lib/workout-builder-api";
 import ClientAvatar from "@/components/ui/ClientAvatar";
 import StatusPill from "@/components/ui/StatusPill";
 import Spark from "@/components/ui/Spark";
+import ErrorState from "@/components/ui/ErrorState";
+import ClientSettingsTab from "./ClientSettingsTab";
+import TrainingTab from "./TrainingTab";
+import ProgressPhotos from "./ProgressPhotos";
+import { Card, CardTitle, iconBtnStyle } from "./detail-ui";
 import Delta from "@/components/ui/Delta";
 
 // ─── Sub-pane: search + client list ────────────────────────────────────
@@ -121,9 +122,9 @@ function ClientsSubNav({ clients, selectedId, onSelect }: {
         fontSize: 11.5, color: "var(--fg3)",
       }}>
         <span>{filtered.length} of {clients.length}</span>
-        <button style={subAddBtnStyle}>
+        <Link href="/clients/new" style={subAddBtnStyle}>
           <Plus size={11} />Add client
-        </button>
+        </Link>
       </div>
     </aside>
   );
@@ -134,7 +135,7 @@ const subAddBtnStyle: React.CSSProperties = {
   padding: "5px 10px", borderRadius: 7,
   background: "var(--brand-primary-50)", color: "var(--brand-primary)",
   border: "1px dashed var(--brand-primary-200)",
-  fontSize: 11.5, fontWeight: 600, cursor: "pointer",
+  fontSize: 11.5, fontWeight: 600, cursor: "pointer", textDecoration: "none",
 };
 
 // ─── Detail header (avatar + tabs) ─────────────────────────────────────
@@ -183,34 +184,7 @@ function ClientDetailHeader({ client, tab, onTab }: { client: ClientDetail; tab:
   );
 }
 
-const iconBtnStyle: React.CSSProperties = {
-  display: "inline-flex", alignItems: "center", justifyContent: "center",
-  width: 30, height: 30, padding: 0, border: "none", borderRadius: 7,
-  background: "transparent", color: "var(--fg2)", cursor: "pointer",
-};
-
 // ─── Overview helpers ──────────────────────────────────────────────────
-function Card({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
-  return (
-    <div style={{
-      background: "#fff", border: "1px solid var(--border)",
-      borderRadius: 12, boxShadow: "var(--shadow-sm)",
-      padding: "16px 18px",
-      ...style,
-    }}>{children}</div>
-  );
-}
-
-function CardTitle({ children, inline }: { children: React.ReactNode; inline?: boolean }) {
-  return (
-    <div style={{
-      fontSize: 14.5, fontWeight: 600, color: "var(--fg1)",
-      marginBottom: inline ? 0 : 14,
-      letterSpacing: "-0.005em",
-    }}>{children}</div>
-  );
-}
-
 function TrainStat({ label, done, total, color = "#22C55E", emptyText }: {
   label: string; done: number; total: number; color?: string; emptyText?: string;
 }) {
@@ -298,7 +272,9 @@ function SmallBtn({ icon: Icon, children, primary }: { icon?: React.ComponentTyp
 }
 
 // ─── Overview tab ──────────────────────────────────────────────────────
-function OverviewTab({ client }: { client: ClientDetail }) {
+// `photos` stays undefined until its fetch resolves, so the card can tell
+// "still loading" from "this client has none".
+function OverviewTab({ client, photos }: { client: ClientDetail; photos?: ClientPhoto[] }) {
   return (
     <div style={{
       display: "grid",
@@ -413,39 +389,7 @@ function OverviewTab({ client }: { client: ClientDetail }) {
         </Card>
 
         <Card>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 16 }}>📸</span>
-              <div style={{ fontSize: 14.5, fontWeight: 600, color: "var(--fg1)" }}>Progress Photos</div>
-            </div>
-          </div>
-          {client.photos.length === 0 ? (
-            <div style={{ fontSize: 12, color: "var(--fg4)" }}>No photos uploaded yet.</div>
-          ) : (
-            <>
-              <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
-                {client.photos.map((d, i) => (
-                  <div key={i} style={{ flex: 1 }}>
-                    <div style={{
-                      aspectRatio: "3 / 4", width: "100%", borderRadius: 8,
-                      background: "linear-gradient(135deg, #F1F5F9 0%, #E2E8F0 100%)",
-                      border: "1px dashed var(--border-strong)",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      color: "var(--fg4)", fontSize: 10.5, fontFamily: "var(--font-mono)",
-                    }}>progress {i + 1}</div>
-                    <div style={{
-                      fontSize: 11.5, color: "var(--fg2)", textAlign: "center",
-                      marginTop: 5, fontWeight: 500,
-                    }}>{d}</div>
-                  </div>
-                ))}
-              </div>
-              <div style={{ display: "flex", gap: 8, fontSize: 12 }}>
-                <SmallBtn icon={Search}>View All</SmallBtn>
-                <SmallBtn icon={Sliders}>Compare</SmallBtn>
-              </div>
-            </>
-          )}
+          <ProgressPhotos photos={photos} />
         </Card>
       </div>
 
@@ -721,177 +665,54 @@ function MetricChartCard({ def, data, large }: {
   );
 }
 
-// ─── Training tab ──────────────────────────────────────────────────────
-// Workout names are stable within a session — fetch the list once and share
-// across clients (schedule DTOs carry workoutId only).
-let workoutNamesCache: Map<string, string> | null = null;
-async function getWorkoutNames(): Promise<Map<string, string>> {
-  if (!workoutNamesCache) {
-    const ws = await listWorkouts();
-    workoutNamesCache = new Map(ws.map((w) => [w.id, w.name]));
-  }
-  return workoutNamesCache;
-}
-
-function fmtScheduleDate(d: string) {
-  return new Date(d + "T00:00:00").toLocaleDateString(undefined, {
-    weekday: "short", day: "numeric", month: "short", year: "numeric",
-  });
-}
-
-function ScheduleGroup({ label, entries, names, onRemove }: {
-  label: string; entries: WorkoutScheduleEntry[];
-  names: Map<string, string>; onRemove: (id: string) => void;
-}) {
-  if (entries.length === 0) return null;
-  return (
-    <div>
-      <div style={{
-        fontSize: 10, fontWeight: 700, color: "var(--fg4)",
-        textTransform: "uppercase", letterSpacing: "0.06em", margin: "4px 0 8px",
-      }}>{label}</div>
-      <div style={{ border: "1px solid var(--border)", borderRadius: 9, overflow: "hidden" }}>
-        {entries.map((s, idx) => (
-          <div key={s.id} style={{
-            padding: "10px 14px", display: "flex", alignItems: "center", gap: 12,
-            borderTop: idx === 0 ? "none" : "1px solid var(--border-subtle)",
-            background: "#fff",
-          }}>
-            <Dumbbell size={15} style={{ color: "var(--brand-primary)", flexShrink: 0 }} />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13, fontWeight: 500, color: "var(--fg1)" }}>
-                {names.get(s.workoutId) ?? "Workout"}
-              </div>
-              <div style={{ fontSize: 11.5, color: "var(--fg3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {fmtScheduleDate(s.date)}{s.notes ? ` · ${s.notes}` : ""}
-              </div>
-            </div>
-            <button type="button" onClick={() => onRemove(s.id)} aria-label="Remove from schedule"
-              style={{ ...iconBtnStyle, width: 26, height: 26, color: "var(--fg3)" }}>
-              ✕
-            </button>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function TrainingTab({ clientId }: { clientId: string }) {
-  const [schedules, setSchedules] = React.useState<WorkoutScheduleEntry[] | null>(null);
-  const [names, setNames] = React.useState<Map<string, string>>(new Map());
-
-  React.useEffect(() => {
-    if (useMock) { setSchedules([]); return; }
-    let cancelled = false;
-    setSchedules(null);
-    Promise.all([listClientSchedules(clientId), getWorkoutNames()])
-      .then(([rows, n]) => { if (!cancelled) { setSchedules(rows); setNames(n); } })
-      .catch((e) => {
-        console.error(e);
-        if (!cancelled) { toast.error("Failed to load schedule"); setSchedules([]); }
-      });
-    return () => { cancelled = true; };
-  }, [clientId]);
-
-  const handleUnschedule = async (id: string) => {
-    const prev = schedules;
-    setSchedules((rows) => (rows ?? []).filter((s) => s.id !== id));
-    try {
-      await unscheduleWorkout(id);
-      toast.success("Removed from schedule");
-    } catch (e) {
-      console.error(e);
-      toast.error("Failed to remove from schedule");
-      setSchedules(prev);
-    }
-  };
-
-  const now = new Date();
-  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-  const rows = schedules ?? [];
-  const upcoming = rows.filter((s) => s.date >= today).sort((a, b) => a.date.localeCompare(b.date));
-  const past = rows.filter((s) => s.date < today).sort((a, b) => b.date.localeCompare(a.date));
-
-  return (
-    <div style={{ padding: "24px 28px 60px", maxWidth: 720 }}>
-      <Card>
-        <CardTitle>Scheduled workouts</CardTitle>
-        {schedules === null ? (
-          <div style={{ padding: "20px 0", textAlign: "center", color: "var(--fg3)", fontSize: 12.5 }}>
-            Loading…
-          </div>
-        ) : rows.length === 0 ? (
-          <div style={{
-            padding: "36px 20px", textAlign: "center",
-            border: "1px dashed var(--border)", borderRadius: 10,
-            color: "var(--fg3)", fontSize: 12.5,
-          }}>
-            <Dumbbell size={20} style={{ color: "var(--fg4)", marginBottom: 8 }} />
-            <div style={{ fontWeight: 600, color: "var(--fg2)", marginBottom: 3 }}>No workouts scheduled yet</div>
-            <div>Schedule one from the Workout Builder.</div>
-          </div>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-            <ScheduleGroup label="Upcoming" entries={upcoming} names={names} onRemove={handleUnschedule} />
-            <ScheduleGroup label="Past" entries={past} names={names} onRemove={handleUnschedule} />
-          </div>
-        )}
-      </Card>
-    </div>
-  );
-}
-
 // ─── Top-level Clients screen ──────────────────────────────────────────
-const useMock = isMockFallbackEnv();
 
-export default function ClientsScreen() {
+export default function ClientsScreen({ initialClientId }: { initialClientId?: string } = {}) {
   const [clients, setClients] = React.useState<ClientDetail[]>([]);
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
   const [tab, setTab] = React.useState<DetailTab>("Overview");
   const [loading, setLoading] = React.useState(true);
+  const [loadError, setLoadError] = React.useState(false);
+  const [reloadKey, setReloadKey] = React.useState(0);
   // Cache of progress arrays keyed by client id; merged into the
   // selected client's `metrics` so sparklines come from real logs.
   const [chartById, setChartById] = React.useState<Record<string, ClientDetail["metrics"]>>({});
+  // Progress photos are fetched per selected client, like the chart — the list
+  // endpoint doesn't carry them and presigning every roster client's URLs up
+  // front would be wasted work.
+  const [photosById, setPhotosById] = React.useState<Record<string, ClientPhoto[]>>({});
 
-  // Initial load: fetch the coach's clients (or fall back to fixtures
-  // when no API URL is configured / API returns empty in dev).
+  // Initial load: fetch the coach's clients. An empty roster is a real
+  // state (new coach) and an error is a real error — neither falls back
+  // to fixtures, which used to make both look like a populated account.
   React.useEffect(() => {
-    if (useMock) {
-      const list = mockFallbackClients();
-      setClients(list);
-      setSelectedId(list[0]?.id ?? null);
-      setLoading(false);
-      return;
-    }
+    let cancelled = false;
+    setLoading(true);
+    setLoadError(false);
     listClients()
       .then((rows) => {
-        if (rows.length === 0) {
-          // Empty backend → keep fixtures so the screen still demos.
-          const list = mockFallbackClients();
-          setClients(list);
-          setSelectedId(list[0]?.id ?? null);
-          return;
-        }
+        if (cancelled) return;
         const mapped = rows.map((r) => toClientDetail(r));
         setClients(mapped);
-        setSelectedId(mapped[0]?.id ?? null);
+        // `/clients/{id}` deep-links into this screen — prefer that client.
+        const deepLinked = initialClientId && mapped.some((c) => c.id === initialClientId)
+          ? initialClientId
+          : null;
+        setSelectedId(deepLinked ?? mapped[0]?.id ?? null);
       })
-      .catch((e) => {
-        console.error(e);
-        toast.error("Failed to load clients");
-        const list = mockFallbackClients();
-        setClients(list);
-        setSelectedId(list[0]?.id ?? null);
+      .catch(() => {
+        if (cancelled) return;
+        setClients([]);
+        setSelectedId(null);
+        setLoadError(true);
       })
-      .finally(() => setLoading(false));
-  }, []);
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [reloadKey, initialClientId]);
 
   // Lazy-load progress chart for the selected client.
   React.useEffect(() => {
-    if (useMock || !selectedId || chartById[selectedId]) return;
-    // Skip fixture rows — real backend IDs are UUIDs (contain dashes).
-    if (!selectedId.includes("-")) return;
+    if (!selectedId || chartById[selectedId]) return;
     getClientChart(selectedId, 60)
       .then((logs) => {
         const sorted = [...logs].sort((a, b) => a.loggedDate.localeCompare(b.loggedDate));
@@ -899,6 +720,14 @@ export default function ClientsScreen() {
         const bf = sorted.map((p) => p.bodyFatPercent).filter((v): v is string => !!v).map(Number);
         setChartById((prev) => ({ ...prev, [selectedId]: { weight, bf, steps: [] } }));
       })
+      .catch((e) => { console.error(e); });
+  }, [selectedId, clients]);
+
+  // Lazy-load progress photos for the selected client.
+  React.useEffect(() => {
+    if (!selectedId || photosById[selectedId]) return;
+    listClientPhotos(selectedId)
+      .then((photos) => setPhotosById((prev) => ({ ...prev, [selectedId]: photos })))
       .catch((e) => { console.error(e); });
   }, [selectedId, clients]);
 
@@ -911,6 +740,16 @@ export default function ClientsScreen() {
       }}>
         Loading clients…
       </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <ErrorState
+        title="Couldn't load your clients"
+        message="We couldn't reach the server. Your roster is safe — this is a connection problem."
+        onRetry={() => setReloadKey((k) => k + 1)}
+      />
     );
   }
 
@@ -929,6 +768,7 @@ export default function ClientsScreen() {
 
   const baseClient = clients.find((c) => c.id === selectedId) || clients[0];
   const chart = selectedId ? chartById[selectedId] : undefined;
+  const photos = selectedId ? photosById[selectedId] : undefined;
   const client: ClientDetail = chart ? { ...baseClient, metrics: chart } : baseClient;
 
   return (
@@ -943,10 +783,27 @@ export default function ClientsScreen() {
       />
       <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
         <ClientDetailHeader client={client} tab={tab} onTab={setTab} />
-        {tab === "Overview" && <OverviewTab client={client} />}
+        {tab === "Overview" && <OverviewTab client={client} photos={photos} />}
         {tab === "Metrics"  && <MetricsTab  client={client} />}
         {tab === "Training" && <TrainingTab clientId={client.id} />}
-        {!["Overview", "Metrics", "Training"].includes(tab) && (
+        {tab === "Settings" && (
+          <div style={{ padding: "24px 28px" }}>
+            <ClientSettingsTab
+              clientId={client.id}
+              onUpdated={(name, status) => setClients((prev) => prev.map((c) =>
+                c.id === client.id ? { ...c, name, status: STATUS_MAP[status as keyof typeof STATUS_MAP] ?? c.status } : c))}
+              onDeleted={() => {
+                setClients((prev) => {
+                  const next = prev.filter((c) => c.id !== client.id);
+                  setSelectedId(next[0]?.id ?? null);
+                  return next;
+                });
+                setTab("Overview");
+              }}
+            />
+          </div>
+        )}
+        {!["Overview", "Metrics", "Training", "Settings"].includes(tab) && (
           <div style={{
             margin: "40px 28px", padding: "60px 20px",
             background: "#fff", border: "1px dashed var(--border)", borderRadius: 12,

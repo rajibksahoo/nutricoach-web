@@ -69,6 +69,8 @@ export interface ProgramSummary {
   modality?: string | null;
   experienceLevel?: string | null;
   tags?: string[] | null;
+  /** Derived server-side from the exercises in the program's workouts. */
+  equipment?: string[] | null;
   coverImageUrl?: string | null;
   coverGradient?: string | null;
   createdAt: string;

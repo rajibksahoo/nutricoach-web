@@ -98,6 +98,24 @@ export async function ensureClientSlot(page: Page) {
  * Avoids the STARTER plan's 5-client cap (HTTP 402) when prior tests have
  * already populated clients — assign tests just need *a* client to pick.
  */
+export async function ensureClient(
+  page: Page,
+  preferredName: string,
+): Promise<{ id: string; name: string }> {
+  const token = await getToken(page);
+  const res = await page.request.get(`${API_URL}/api/v1/clients`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (res.ok()) {
+    const list = (await res.json()).data;
+    if (Array.isArray(list) && list.length > 0) {
+      return { id: list[0].id as string, name: list[0].name as string };
+    }
+  }
+  const seeded = await seedClient(page, preferredName);
+  return { id: seeded.id as string, name: seeded.name as string };
+}
+
 export async function ensureClientName(page: Page, preferredName: string): Promise<string> {
   const token = await getToken(page);
   const res = await page.request.get(`${API_URL}/api/v1/clients`, {
@@ -108,4 +126,31 @@ export async function ensureClientName(page: Page, preferredName: string): Promi
     if (Array.isArray(list) && list.length > 0) return list[0].name as string;
   }
   return (await seedClient(page, preferredName)).name;
+}
+
+/**
+ * Mint a brand-new coach with an empty roster via the dev-only demo login.
+ * Use this for any spec that must not be perturbed by the shared coach's
+ * 5-client trial cap or by `ensureClientSlot` deleting rows underneath it.
+ */
+export async function freshCoachToken(page: Page): Promise<string> {
+  const res = await page.request.post(`${API_URL}/api/v1/auth/demo-login`, {
+    data: { phone: uniquePhone() },
+  });
+  if (!res.ok()) {
+    throw new Error(`demo-login failed (needs the backend local profile): ${res.status()}`);
+  }
+  return (await res.json()).data.token as string;
+}
+
+/** Put a coach token into localStorage so the client-side guards let us in. */
+export async function signInAs(page: Page, token: string) {
+  await page.goto("/login");
+  await page.evaluate((t) => {
+    localStorage.setItem("nc_token", t);
+    localStorage.setItem("nc_coach", JSON.stringify({
+      id: "e2e", name: "Fresh Coach", phone: "9000000000",
+      subscriptionTier: "TRIAL", subscriptionStatus: "TRIAL",
+    }));
+  }, token);
 }

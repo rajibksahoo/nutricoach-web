@@ -1087,6 +1087,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/library/clients/{clientId}/assignments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List the programs and workouts assigned to a client (coach-side Training tab) */
+        get: operations["listAssignments_2"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/food-items": {
         parameters: {
             query?: never;
@@ -1581,6 +1598,7 @@ export interface components {
             modality?: string;
             experienceLevel?: string;
             tags?: string[];
+            equipment?: string[];
             coverImageUrl?: string;
             coverGradient?: string;
             /** Format: date-time */
@@ -1940,6 +1958,7 @@ export interface components {
             clientId?: string;
             /** Format: uuid */
             workoutId?: string;
+            workoutName?: string;
             /** Format: date */
             date?: string;
             notes?: string;
@@ -2377,6 +2396,40 @@ export interface components {
             message?: string;
             data?: components["schemas"]["ScheduleResponse"][];
             errorCode?: string;
+        };
+        ApiResponseClientAssignmentsResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["ClientAssignmentsResponse"];
+            errorCode?: string;
+        };
+        ClientAssignmentsResponse: {
+            programs?: components["schemas"]["ProgramAssignmentItem"][];
+            workouts?: components["schemas"]["WorkoutAssignmentItem"][];
+        };
+        ProgramAssignmentItem: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            programId?: string;
+            name?: string;
+            /** Format: date */
+            startDate?: string;
+            /** Format: int32 */
+            weeks?: number;
+            /** Format: date-time */
+            assignedAt?: string;
+            notes?: string;
+        };
+        WorkoutAssignmentItem: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            workoutId?: string;
+            name?: string;
+            /** Format: date-time */
+            assignedAt?: string;
+            notes?: string;
         };
         ApiResponseListFoodItemResponse: {
             success?: boolean;
@@ -4620,6 +4673,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseListScheduleResponse"];
+                };
+            };
+        };
+    };
+    listAssignments_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseClientAssignmentsResponse"];
                 };
             };
         };

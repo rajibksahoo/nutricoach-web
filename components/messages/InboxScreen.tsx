@@ -4,15 +4,16 @@ import * as React from "react";
 import toast from "react-hot-toast";
 import {
   Search, Send, Edit, MoreHorizontal as MoreH, ChevronDown,
-  Video, Activity, Bookmark, Clock,
+  Video, Activity, Bookmark,
 } from "lucide-react";
-import { CLIENT_DETAILS, type ClientDetail } from "@/components/clients/data";
+import type { ClientDetail } from "@/components/clients/data";
 import {
-  listConversations, getThread, sendMessage, isMockFallbackEnv,
+  listConversations, getThread, sendMessage,
   toneFromId, fmtRelative, fmtMessageDate, fmtMessageTime,
   type ConversationSummary, type BackendMessage,
 } from "@/lib/messaging-api";
 import ClientAvatar from "@/components/ui/ClientAvatar";
+import ErrorState from "@/components/ui/ErrorState";
 
 interface ThreadMsg {
   d: string;
@@ -29,34 +30,6 @@ interface Thread {
   unread: number;
   msgs: ThreadMsg[];
 }
-
-const FALLBACK_THREADS: Thread[] = [
-  {
-    id: "c1", clientId: "c1", lastDate: "Mar 31",
-    preview: "Sounds good — see you Tuesday!",
-    unread: 0, msgs: [
-      { d: "Mon, 27 Nov 2023", side: "in",  text: "Hey hey, just a reminder that I will be out of town for a wedding next week!", time: "03:10 PM" },
-      { d: "Mon, 27 Nov 2023", side: "out", text: "Ok, thanks Priya. Want me to pre-load 2 hotel-friendly sessions?", time: "03:14 PM" },
-      { d: "Tue, 31 Mar 2026", side: "in",  text: "Yes please 🙏 also sending Friday's check-in late.", time: "11:18 PM" },
-      { d: "Tue, 31 Mar 2026", side: "out", text: "Got it. Pushed Day 4/5 with bands only.", time: "11:32 PM" },
-    ],
-  },
-  { id: "c2", clientId: "c2", lastDate: "Just now", preview: "PR! Bench 80 × 5 🎉", unread: 2, msgs: [
-    { d: "Wed, 6 May 2026", side: "in", text: "Bench felt insane today.", time: "08:40 AM" },
-    { d: "Wed, 6 May 2026", side: "in", text: "PR! Bench 80 × 5 🎉", time: "08:42 AM" },
-  ]},
-  { id: "c3", clientId: "c3", lastDate: "1d", preview: "Thinking of moving to bi-weekly cadence next month.", unread: 0, msgs: [
-    { d: "Tue, 5 May 2026", side: "in",  text: "Quick thought — feeling really steady. Wonder if bi-weekly check-ins make sense?", time: "06:22 PM" },
-    { d: "Tue, 5 May 2026", side: "out", text: "Totally fine. Let's revisit on Saturday's call.", time: "06:40 PM" },
-  ]},
-  { id: "c4", clientId: "c4", lastDate: "4d", preview: "Filled out the PAR-Q form.", unread: 1, msgs: [
-    { d: "Sat, 2 May 2026", side: "in", text: "Filled out the PAR-Q form.", time: "10:05 AM" },
-  ]},
-  { id: "c5", clientId: "c5", lastDate: "3h", preview: "Cycle log submitted ✅", unread: 0, msgs: [
-    { d: "Wed, 6 May 2026", side: "in",  text: "Cycle log submitted ✅", time: "04:01 PM" },
-    { d: "Wed, 6 May 2026", side: "out", text: "Nice. Bumping protein +10g for next 2 weeks.", time: "04:18 PM" },
-  ]},
-];
 
 // ─── Map backend types → render-shape ─────────────────────────────────
 function conversationToThread(c: ConversationSummary, msgs: BackendMessage[] = []): Thread {
@@ -88,12 +61,9 @@ const ibBtn: React.CSSProperties = {
 
 type EnrichedThread = Thread & { client: ClientDetail | { name: string; avatarTone: string; timezone?: string; notes?: ClientDetail["notes"]; updates?: ClientDetail["updates"] } };
 
-const useMock = isMockFallbackEnv();
-
-// In dev fallback the "client" lookup uses CLIENT_DETAILS (rich notes
-// + updates). For real backend rows we synthesize a minimal client
-// from the conversation row + a deterministic avatar tone.
-function fallbackClient(name: string, clientId: string) {
+// Conversation rows carry only a name, so synthesize a minimal client
+// from the row plus a deterministic avatar tone.
+function clientFromSummary(name: string, clientId: string) {
   return { name, avatarTone: toneFromId(clientId) } as { name: string; avatarTone: string };
 }
 
@@ -106,14 +76,10 @@ export default function InboxScreen() {
   const [draft, setDraft] = React.useState("");
   const [sending, setSending] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
+  const [loadError, setLoadError] = React.useState(false);
 
   // ─── Initial load: conversations ────────────────────────────────────
   const refreshConversations = React.useCallback(async () => {
-    if (useMock) {
-      setThreads(FALLBACK_THREADS);
-      setActiveId((prev) => prev ?? FALLBACK_THREADS[0]?.id ?? null);
-      return;
-    }
     try {
       const list = await listConversations();
       setConversations(list);
@@ -124,11 +90,12 @@ export default function InboxScreen() {
         return list.map((c) => ({ ...conversationToThread(c, []), msgs: byId.get(c.clientId) || [] }));
       });
       setActiveId((prev) => prev ?? list[0]?.clientId ?? null);
-    } catch (e) {
-      console.error(e);
-      toast.error("Failed to load conversations");
-      setThreads(FALLBACK_THREADS);
-      setActiveId((prev) => prev ?? FALLBACK_THREADS[0]?.id ?? null);
+      setLoadError(false);
+    } catch {
+      // No fixture fallback: a failed load must not look like a full inbox.
+      setThreads([]);
+      setActiveId(null);
+      setLoadError(true);
     }
   }, []);
 
@@ -138,7 +105,7 @@ export default function InboxScreen() {
 
   // ─── Lazy-load thread messages on selection ────────────────────────
   React.useEffect(() => {
-    if (useMock || !activeId) return;
+    if (!activeId) return;
     let cancelled = false;
     getThread(activeId)
       .then((msgs) => {
@@ -156,12 +123,8 @@ export default function InboxScreen() {
 
   // ─── Enrich for render ──────────────────────────────────────────────
   const enriched: EnrichedThread[] = threads.map((t) => {
-    if (useMock) {
-      const c = CLIENT_DETAILS.find((cl) => cl.id === t.clientId);
-      if (c) return { ...t, client: c };
-    }
     const summary = conversations.find((s) => s.clientId === t.clientId);
-    return { ...t, client: fallbackClient(summary?.clientName || "Client", t.clientId) };
+    return { ...t, client: clientFromSummary(summary?.clientName || "Client", t.clientId) };
   });
 
   const filtered = enriched.filter((t) => {
@@ -182,15 +145,6 @@ export default function InboxScreen() {
   const handleSend = async () => {
     const body = draft.trim();
     if (!body || !active || sending) return;
-    if (useMock) {
-      // Just append locally so the screen demos.
-      const now = new Date().toISOString();
-      const m: ThreadMsg = { d: fmtMessageDate(now), side: "out", text: body, time: fmtMessageTime(now) };
-      setThreads((prev) => prev.map((t) => t.clientId === active.clientId
-        ? { ...t, msgs: [...t.msgs, m], preview: body, lastDate: "Just now" } : t));
-      setDraft("");
-      return;
-    }
     setSending(true);
     try {
       const sent = await sendMessage(active.clientId, body);
@@ -217,6 +171,16 @@ export default function InboxScreen() {
       }}>
         Loading conversations…
       </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <ErrorState
+        title="Couldn't load your inbox"
+        message="We couldn't reach the server. No messages have been lost — this is a connection problem."
+        onRetry={() => { setLoading(true); refreshConversations().finally(() => setLoading(false)); }}
+      />
     );
   }
 
@@ -257,11 +221,6 @@ export default function InboxScreen() {
               display: "flex", alignItems: "center", justifyContent: "center", color: "var(--fg2)",
             }}>
               <Send size={14} />
-              <span style={{
-                position: "absolute", top: -4, right: -4, width: 14, height: 14, borderRadius: 7,
-                background: "#F97316", color: "#fff", fontSize: 9, fontWeight: 700,
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}>↑</span>
             </button>
             <button title="Compose" style={{
               width: 34, height: 34, padding: 0, border: "1px solid var(--border)",
@@ -389,13 +348,6 @@ export default function InboxScreen() {
               <div style={{
                 fontSize: 16, fontWeight: 600, color: "var(--fg1)", letterSpacing: "-0.01em",
               }}>{active.client.name}</div>
-              <div style={{ fontSize: 11.5, color: "var(--fg3)", marginTop: 1 }}>
-                <span style={{
-                  display: "inline-block", width: 6, height: 6, borderRadius: "50%",
-                  background: "#22C55E", marginRight: 5,
-                }} />
-                Active now · {active.client.timezone || "Asia/Kolkata"}
-              </div>
             </div>
           </div>
           <button title="More" style={{
@@ -422,7 +374,7 @@ export default function InboxScreen() {
                   alignItems: "flex-end",
                 }}>
                   <ClientAvatar
-                    name={m.side === "out" ? "Coach Rajib" : active.client.name}
+                    name={m.side === "out" ? "You" : active.client.name}
                     tone={m.side === "out" ? "#0F766E" : active.client.avatarTone}
                     size={28}
                   />
@@ -468,12 +420,8 @@ export default function InboxScreen() {
                 ...ibBtn, fontFamily: "var(--font-mono)",
                 fontSize: 10.5, fontWeight: 700, color: "var(--fg2)",
               }}>GIF</button>
-              <button title="Saved" style={{ ...ibBtn, position: "relative" }}>
+              <button title="Saved" style={{ ...ibBtn }}>
                 <Bookmark size={15} />
-                <span style={{
-                  position: "absolute", top: 0, right: 0, width: 8, height: 8, borderRadius: "50%",
-                  background: "#F97316", border: "2px solid var(--bg)",
-                }} />
               </button>
             </div>
             <input
@@ -516,12 +464,6 @@ export default function InboxScreen() {
             fontFamily: "var(--font-display-xl)", fontSize: 17, fontWeight: 700,
             letterSpacing: "-0.02em", color: "var(--fg1)",
           }}>{active.client.name}</div>
-          <div style={{
-            display: "inline-flex", alignItems: "center", gap: 6,
-            marginTop: 6, color: "var(--fg3)", fontSize: 11.5,
-          }}>
-            <Clock size={11} />{active.client.timezone || "11:05 AM (GMT-07:00)"}
-          </div>
         </div>
 
         <div style={{ borderTop: "1px solid var(--border-subtle)", paddingTop: 14, marginBottom: 14 }}>
@@ -529,17 +471,14 @@ export default function InboxScreen() {
             display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10,
           }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: "var(--fg1)" }}>
-              Notes ({(active.client.notes || []).length || 2})
+              Notes ({(active.client.notes || []).length})
             </div>
             <Edit size={13} style={{ color: "var(--fg4)", cursor: "pointer" }} />
           </div>
-          {((active.client.notes && active.client.notes.length)
-            ? active.client.notes
-            : [
-                { text: "Goes to Barry's bootcamp and Soul Cycle once a week with friends", date: "Nov 27, 2023 · 3:10 PM" },
-                { text: "She is a vegan and has gluten intolerance", date: "Nov 22, 2023 · 3:10 PM" },
-              ]
-          ).map((n, i, arr) => (
+          {(active.client.notes ?? []).length === 0 && (
+            <div style={{ fontSize: 12, color: "var(--fg4)" }}>No notes yet.</div>
+          )}
+          {(active.client.notes ?? []).map((n, i, arr) => (
             <div key={i} style={{
               borderLeft: "2px solid var(--brand-primary)",
               paddingLeft: 10, marginBottom: i < arr.length - 1 ? 12 : 0,
@@ -563,19 +502,17 @@ export default function InboxScreen() {
               background: "#fff", fontSize: 11.5, color: "var(--fg2)", cursor: "pointer",
             }}>Filter: All <ChevronDown size={11} /></button>
           </div>
-          {(active.client.updates || [
-            { who: active.client.name, text: "logged a workout for Mon 11/27", time: "2y" },
-            { who: active.client.name, text: "logged a workout for Mon 11/20", time: "2y" },
-            { who: active.client.name, text: "added a progress photo", time: "2y" },
-            { who: active.client.name, text: "added a progress photo", time: "2y" },
-          ]).map((u, i) => (
+          {(active.client.updates ?? []).length === 0 && (
+            <div style={{ fontSize: 12, color: "var(--fg4)" }}>No updates yet.</div>
+          )}
+          {(active.client.updates ?? []).map((u, i) => (
             <div key={i} style={{
               display: "flex", alignItems: "flex-start", gap: 10,
               padding: "10px 0",
               borderTop: i > 0 ? "1px solid var(--border-subtle)" : "none",
             }}>
               <ClientAvatar
-                name={u.who === "You" ? "Coach R" : (u.who || active.client.name)}
+                name={u.who === "You" ? "You" : (u.who || active.client.name)}
                 tone={u.who === "You" ? "#0F766E" : active.client.avatarTone}
                 size={26}
               />

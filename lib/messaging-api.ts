@@ -47,12 +47,6 @@ export async function sendMessage(clientId: string, content: string): Promise<Ba
   return r.data.data;
 }
 
-// Dev fallback: when there's no API URL configured, fall back to the
-// design's static fixtures so the screen still demos.
-export function isMockFallbackEnv(): boolean {
-  return !process.env.NEXT_PUBLIC_API_URL;
-}
-
 // ─── Helpers shared with ClientsScreen ────────────────────────────────
 const TONE_PALETTE = [
   "#4F46E5", "#0D9488", "#F59E0B", "#A855F7", "#DC2626",

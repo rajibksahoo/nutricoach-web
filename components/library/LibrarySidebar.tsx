@@ -8,7 +8,6 @@ type Item = {
   href: string;
   label: string;
   badge?: "NEW";
-  matchPrefixes?: string[];
 };
 
 type Group = {
@@ -22,26 +21,10 @@ const GROUPS: Group[] = [
   {
     title: "Fitness",
     items: [
-      {
-        href: "/library/exercises",
-        label: "Exercises",
-        matchPrefixes: ["/library/exercises", "/library/fitness/exercises"],
-      },
-      {
-        href: "/library/workouts",
-        label: "Workouts",
-        matchPrefixes: ["/library/workouts", "/library/fitness/workouts"],
-      },
-      {
-        href: "/library/sections",
-        label: "Sections",
-        matchPrefixes: ["/library/sections"],
-      },
-      {
-        href: "/library/programs",
-        label: "Programs",
-        matchPrefixes: ["/library/programs", "/library/fitness/programs"],
-      },
+      { href: "/library/exercises", label: "Exercises" },
+      { href: "/library/workouts",  label: "Workouts"  },
+      { href: "/library/sections",  label: "Sections"  },
+      { href: "/library/programs",  label: "Programs"  },
     ],
   },
   {
@@ -50,7 +33,7 @@ const GROUPS: Group[] = [
       { href: "/library/meal-plans",   label: "Meal Plan Templates" },
       { href: "/library/recipes",      label: "Recipes" },
       { href: "/library/ingredients",  label: "Ingredients" },
-      { href: "/library/recipe-books", label: "Recipe Books", badge: "NEW" },
+      { href: "/library/recipe-books", label: "Recipe Books" },
     ],
   },
   {
@@ -109,11 +92,8 @@ export default function LibrarySidebar() {
           >
             {g.title}
           </div>
-          {g.items.map(({ href, label, badge, matchPrefixes }) => {
-            const prefixes = matchPrefixes ?? [href];
-            const active = prefixes.some(
-              (p) => pathname === p || pathname.startsWith(p + "/")
-            );
+          {g.items.map(({ href, label, badge }) => {
+            const active = pathname === href || pathname.startsWith(href + "/");
             return (
               <Link
                 key={href}

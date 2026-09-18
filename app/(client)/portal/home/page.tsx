@@ -5,11 +5,11 @@ import Link from "next/link";
 import toast from "react-hot-toast";
 import clientApi from "@/lib/client-api";
 import { getClientUser } from "@/lib/client-auth";
-import { formatDate } from "@/lib/utils";
+import { formatDate, planDayCount } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/Card";
 import Spinner from "@/components/ui/Spinner";
 import Badge from "@/components/ui/Badge";
-import { UtensilsCrossed, TrendingUp, ClipboardList, ChevronRight, Sparkles, Dumbbell } from "lucide-react";
+import { UtensilsCrossed, TrendingUp, ClipboardList, ChevronRight, Sparkles, Dumbbell, Check } from "lucide-react";
 import { listUpcomingWorkouts, type ClientScheduledWorkout } from "@/lib/client-workouts-api";
 
 interface MealPlan {
@@ -17,7 +17,7 @@ interface MealPlan {
   name: string;
   status: "DRAFT" | "ACTIVE" | "ARCHIVED";
   startDate: string | null;
-  totalDays: number;
+  endDate: string | null;
   aiGenerated: boolean;
 }
 
@@ -107,8 +107,10 @@ export default function ClientHomePage() {
                 <Card className="hover:border-indigo-200 hover:shadow-md transition-all cursor-pointer">
                   <CardContent className="flex items-center justify-between py-4">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="p-2 bg-indigo-50 rounded-lg">
-                        <Dumbbell className="w-4 h-4 text-indigo-600" />
+                      <div className={`p-2 rounded-lg ${w.completed ? "bg-teal-100" : "bg-indigo-50"}`}>
+                        {w.completed
+                          ? <Check className="w-4 h-4 text-teal-600" />
+                          : <Dumbbell className="w-4 h-4 text-indigo-600" />}
                       </div>
                       <div className="min-w-0">
                         <p className="text-sm font-semibold text-slate-900 truncate">{w.workoutName}</p>
@@ -117,7 +119,14 @@ export default function ClientHomePage() {
                         </p>
                       </div>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-slate-300 shrink-0" />
+                    <div className="flex items-center gap-2 shrink-0">
+                      {w.completed && (
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-teal-700 bg-teal-100 rounded-full px-2 py-0.5">
+                          <Check className="w-3 h-3" />Done
+                        </span>
+                      )}
+                      <ChevronRight className="w-4 h-4 text-slate-300" />
+                    </div>
                   </CardContent>
                 </Card>
               </Link>
@@ -142,8 +151,9 @@ export default function ClientHomePage() {
                   <div>
                     <p className="text-sm font-semibold text-slate-900">{activePlan.name}</p>
                     <p className="text-xs text-slate-400 mt-0.5">
-                      {activePlan.totalDays} days
-                      {activePlan.startDate && ` · From ${formatDate(activePlan.startDate)}`}
+                      {(() => { const d = planDayCount(activePlan.startDate, activePlan.endDate);
+                        return d != null ? `${d} day${d !== 1 ? "s" : ""}` : null; })()}
+                      {activePlan.startDate && `${planDayCount(activePlan.startDate, activePlan.endDate) != null ? " · " : ""}From ${formatDate(activePlan.startDate)}`}
                     </p>
                   </div>
                 </div>
