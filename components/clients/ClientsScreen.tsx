@@ -8,10 +8,10 @@ import {
 } from "lucide-react";
 import {
   STATUS_COLORS,
-  type ClientDetail, type StatusKey,
+  type ClientDetail, type ClientPhoto, type StatusKey,
 } from "./data";
 import {
-  listClients, getClientChart, toClientDetail, STATUS_MAP,
+  listClients, getClientChart, listClientPhotos, toClientDetail, STATUS_MAP,
 } from "@/lib/clients-api";
 import ClientAvatar from "@/components/ui/ClientAvatar";
 import StatusPill from "@/components/ui/StatusPill";
@@ -19,6 +19,7 @@ import Spark from "@/components/ui/Spark";
 import ErrorState from "@/components/ui/ErrorState";
 import ClientSettingsTab from "./ClientSettingsTab";
 import TrainingTab from "./TrainingTab";
+import ProgressPhotos from "./ProgressPhotos";
 import { Card, CardTitle, iconBtnStyle } from "./detail-ui";
 import Delta from "@/components/ui/Delta";
 
@@ -271,7 +272,9 @@ function SmallBtn({ icon: Icon, children, primary }: { icon?: React.ComponentTyp
 }
 
 // ─── Overview tab ──────────────────────────────────────────────────────
-function OverviewTab({ client }: { client: ClientDetail }) {
+// `photos` stays undefined until its fetch resolves, so the card can tell
+// "still loading" from "this client has none".
+function OverviewTab({ client, photos }: { client: ClientDetail; photos?: ClientPhoto[] }) {
   return (
     <div style={{
       display: "grid",
@@ -386,39 +389,7 @@ function OverviewTab({ client }: { client: ClientDetail }) {
         </Card>
 
         <Card>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 16 }}>📸</span>
-              <div style={{ fontSize: 14.5, fontWeight: 600, color: "var(--fg1)" }}>Progress Photos</div>
-            </div>
-          </div>
-          {client.photos.length === 0 ? (
-            <div style={{ fontSize: 12, color: "var(--fg4)" }}>No photos uploaded yet.</div>
-          ) : (
-            <>
-              <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
-                {client.photos.map((d, i) => (
-                  <div key={i} style={{ flex: 1 }}>
-                    <div style={{
-                      aspectRatio: "3 / 4", width: "100%", borderRadius: 8,
-                      background: "linear-gradient(135deg, #F1F5F9 0%, #E2E8F0 100%)",
-                      border: "1px dashed var(--border-strong)",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      color: "var(--fg4)", fontSize: 10.5, fontFamily: "var(--font-mono)",
-                    }}>progress {i + 1}</div>
-                    <div style={{
-                      fontSize: 11.5, color: "var(--fg2)", textAlign: "center",
-                      marginTop: 5, fontWeight: 500,
-                    }}>{d}</div>
-                  </div>
-                ))}
-              </div>
-              <div style={{ display: "flex", gap: 8, fontSize: 12 }}>
-                <SmallBtn icon={Search}>View All</SmallBtn>
-                <SmallBtn icon={Sliders}>Compare</SmallBtn>
-              </div>
-            </>
-          )}
+          <ProgressPhotos photos={photos} />
         </Card>
       </div>
 
@@ -706,6 +677,10 @@ export default function ClientsScreen({ initialClientId }: { initialClientId?: s
   // Cache of progress arrays keyed by client id; merged into the
   // selected client's `metrics` so sparklines come from real logs.
   const [chartById, setChartById] = React.useState<Record<string, ClientDetail["metrics"]>>({});
+  // Progress photos are fetched per selected client, like the chart — the list
+  // endpoint doesn't carry them and presigning every roster client's URLs up
+  // front would be wasted work.
+  const [photosById, setPhotosById] = React.useState<Record<string, ClientPhoto[]>>({});
 
   // Initial load: fetch the coach's clients. An empty roster is a real
   // state (new coach) and an error is a real error — neither falls back
@@ -748,6 +723,14 @@ export default function ClientsScreen({ initialClientId }: { initialClientId?: s
       .catch((e) => { console.error(e); });
   }, [selectedId, clients]);
 
+  // Lazy-load progress photos for the selected client.
+  React.useEffect(() => {
+    if (!selectedId || photosById[selectedId]) return;
+    listClientPhotos(selectedId)
+      .then((photos) => setPhotosById((prev) => ({ ...prev, [selectedId]: photos })))
+      .catch((e) => { console.error(e); });
+  }, [selectedId, clients]);
+
   if (loading) {
     return (
       <div style={{
@@ -785,6 +768,7 @@ export default function ClientsScreen({ initialClientId }: { initialClientId?: s
 
   const baseClient = clients.find((c) => c.id === selectedId) || clients[0];
   const chart = selectedId ? chartById[selectedId] : undefined;
+  const photos = selectedId ? photosById[selectedId] : undefined;
   const client: ClientDetail = chart ? { ...baseClient, metrics: chart } : baseClient;
 
   return (
@@ -799,7 +783,7 @@ export default function ClientsScreen({ initialClientId }: { initialClientId?: s
       />
       <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
         <ClientDetailHeader client={client} tab={tab} onTab={setTab} />
-        {tab === "Overview" && <OverviewTab client={client} />}
+        {tab === "Overview" && <OverviewTab client={client} photos={photos} />}
         {tab === "Metrics"  && <MetricsTab  client={client} />}
         {tab === "Training" && <TrainingTab clientId={client.id} />}
         {tab === "Settings" && (

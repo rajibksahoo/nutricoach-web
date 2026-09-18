@@ -1,5 +1,5 @@
 import api from "@/lib/api";
-import type { ClientDetail, StatusKey } from "@/components/clients/data";
+import type { ClientDetail, ClientPhoto, StatusKey } from "@/components/clients/data";
 
 // ─── Backend types ─────────────────────────────────────────────────────
 // Mirror the Spring Boot ClientResponse / ProgressLogResponse shapes.
@@ -149,7 +149,21 @@ export function toClientDetail(c: BackendClient, progress: BackendProgressLog[] 
     goalDesc: c.goal ? `Working towards: ${goalLabel}.` : "",
     notes: [],
     limitations: (c.healthConditions || []).map((h) => ({ text: h, date: fmtJoined(c.createdAt) })),
-    photos: [],
     updates: [],
   };
+}
+
+/**
+ * Every progress photo for a client, newest log first. Photos hang off progress
+ * logs on the backend, so this is the only way to get them per client.
+ */
+export async function listClientPhotos(clientId: string): Promise<ClientPhoto[]> {
+  const { data } = await api.get<{ data: ClientPhoto[] }>(
+    `/api/v1/clients/${clientId}/progress/photos`);
+  return (data.data ?? []).map((p) => ({
+    id: p.id,
+    loggedDate: p.loggedDate,
+    photoType: p.photoType,
+    downloadUrl: p.downloadUrl,
+  }));
 }

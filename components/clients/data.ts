@@ -21,6 +21,17 @@ export interface ClientNote {
   date: string;
 }
 
+/**
+ * One progress photo, as the Progress Photos grid needs it. `downloadUrl` is a
+ * pre-signed S3 link valid for 60 minutes, so the UI must handle it failing.
+ */
+export interface ClientPhoto {
+  id: string;
+  loggedDate: string;
+  photoType: string;
+  downloadUrl: string;
+}
+
 export interface ClientDetail {
   id: string;
   name: string;
@@ -60,7 +71,6 @@ export interface ClientDetail {
   goalDesc: string;
   notes: ClientNote[];
   limitations: ClientNote[];
-  photos: string[];
   updates: ClientUpdate[];
 }
 
