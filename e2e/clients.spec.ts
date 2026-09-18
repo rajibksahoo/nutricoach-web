@@ -18,8 +18,10 @@ test("coach can add a client and find it in the list", async ({ page }) => {
   // New-client page redirects to the client detail page on success.
   await expect(page).toHaveURL(/\/clients\/[0-9a-f-]{36}/);
 
-  // And the client shows up in the list sidebar.
+  // And the client shows up in the list sidebar. Scope to the sidebar row: the
+  // detail pane auto-selects a client and renders its name as a heading too, so
+  // an unscoped match trips strict mode whenever that happens to be this one.
   await clients.gotoList();
   await clients.search(name);
-  await expect(page.getByText(name)).toBeVisible();
+  await expect(page.getByRole("button", { name: new RegExp(name) })).toBeVisible();
 });
