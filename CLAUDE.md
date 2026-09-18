@@ -41,7 +41,7 @@ using the dev-mode OTP bypass (`111111`). They are NOT mocked.
 
 ### Route groups
 - `(auth)` — unauthenticated coach pages (login, otp). Centered card layout.
-- `(dashboard)` — authenticated coach pages with sidebar: dashboard, clients, meal-plans, library, workout-builder, messages, progress, billing, profile. Redirects to `/login` if no token.
+- `(dashboard)` — authenticated coach pages with sidebar: dashboard, clients, meal-plans, library, messages, progress, billing, profile. Redirects to `/login` if no token.
 - `(client)` — client-facing portal under `/portal`: its own login/otp, home, meal-plans, check-ins, chat, progress, profile. Separate auth from the coach side.
 
 ### Key files

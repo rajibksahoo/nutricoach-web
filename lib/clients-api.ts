@@ -20,7 +20,7 @@ export interface BackendClient {
   activityLevel: string | null;
   healthConditions: string[] | null;
   allergies: string[] | null;
-  status: "ACTIVE" | "ONBOARDING" | "PAUSED" | "INACTIVE";
+  status: "ACTIVE" | "ONBOARDING" | "INACTIVE";
   createdAt: string;
 }
 
@@ -57,7 +57,6 @@ export async function getClientChart(clientId: string, days = 60): Promise<Backe
 export const STATUS_MAP: Record<BackendClient["status"], StatusKey> = {
   ACTIVE:     "Connected",
   ONBOARDING: "Pending",
-  PAUSED:     "Offline",
   INACTIVE:   "Archived",
 };
 

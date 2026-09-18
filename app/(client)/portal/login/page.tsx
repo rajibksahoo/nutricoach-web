@@ -27,15 +27,13 @@ function ClientLoginForm() {
       setError("Enter a valid 10-digit Indian mobile number");
       return;
     }
-    if (!coachId) {
-      setError("Invalid portal link. Please use the link provided by your coach.");
-      return;
-    }
     setLoading(true);
     try {
       await clientApi.post("/api/v1/client-auth/otp/send", { phone });
       toast.success("OTP sent to your phone");
-      router.push(`/portal/otp?phone=${phone}&coach=${coachId}`);
+      // coach is carried through only when the link supplied it; the backend
+      // resolves it from the phone otherwise.
+      router.push(`/portal/otp?phone=${phone}${coachId ? `&coach=${coachId}` : ""}`);
     } catch (err: any) {
       const msg = err.response?.data?.message ?? "Failed to send OTP";
       setError(msg);

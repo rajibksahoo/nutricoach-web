@@ -7,8 +7,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Spinner from "@/components/ui/Spinner";
-import { Pencil, Trash2, ExternalLink } from "lucide-react";
-import { getCoach } from "@/lib/auth";
+import { Pencil, Trash2 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -112,7 +111,7 @@ function splitTags(value: string): string[] {
   return value.split(",").map((s) => s.trim()).filter(Boolean);
 }
 import ErrorState from "@/components/ui/ErrorState";
-import { IS_DEV_MODE } from "@/lib/dev-mode";
+import ClientAccessCard from "./ClientAccessCard";
 
 
 // ─── Settings tab ─────────────────────────────────────────────────────────────
@@ -137,11 +136,9 @@ export default function ClientSettingsTab({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [coachId, setCoachId] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
-    setCoachId(getCoach()?.id ?? null);
     let cancelled = false;
     setLoading(true);
     setLoadFailed(false);
@@ -248,18 +245,6 @@ export default function ClientSettingsTab({
       <div className="flex items-center justify-end gap-2">
         {!editing ? (
           <>
-            {IS_DEV_MODE && coachId && (
-              <a
-                href={`/portal/login?coach=${coachId}&phone=${client.phone}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Button size="sm" variant="ghost">
-                  <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
-                  Client View
-                </Button>
-              </a>
-            )}
             <Button size="sm" variant="secondary" onClick={startEdit}>
               <Pencil className="w-3.5 h-3.5 mr-1.5" /> Edit
             </Button>
@@ -271,6 +256,14 @@ export default function ClientSettingsTab({
           </>
         )}
       </div>
+
+      {!editing && (
+        <ClientAccessCard
+          clientId={client.id}
+          clientName={client.name}
+          clientPhone={client.phone}
+        />
+      )}
 
       {editing && form ? (
         <EditProfileCard form={form} errors={errors} onChange={setField} />

@@ -26,9 +26,9 @@ function ClientOtpForm() {
   const inputs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
-    if (!phone || !coachId) router.push("/portal/login");
+    if (!phone) router.push("/portal/login");
     inputs.current[0]?.focus();
-  }, [phone, coachId, router]);
+  }, [phone, router]);
 
   useEffect(() => {
     if (resendCountdown <= 0) return;
@@ -60,7 +60,9 @@ function ClientOtpForm() {
       const res = await clientApi.post("/api/v1/client-auth/otp/verify", {
         phone,
         otp: code,
-        coachId,
+        // Optional: a client's phone identifies exactly one coach, so the
+        // server resolves it when the link did not carry one.
+        ...(coachId ? { coachId } : {}),
       });
       const { token, clientId, coachId: resCoachId, name, phone: resPhone } = res.data.data;
       saveClientAuth(token, { id: clientId, coachId: resCoachId, name, phone: resPhone });
