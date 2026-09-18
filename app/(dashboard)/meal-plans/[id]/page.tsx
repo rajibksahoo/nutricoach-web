@@ -17,8 +17,11 @@ import {
 
 interface MealItem {
   id: string;
-  foodItemId: string;
+  /** Null when the item names a food outside the curated list. */
+  foodItemId: string | null;
   foodItemName: string;
+  /** True when the macros came with the item rather than from our food data. */
+  custom: boolean;
   quantityGrams: number;
   quantityUnit: string;
   calories: number | null;
@@ -504,6 +507,17 @@ function MealCard({
           >
             <div className="flex-1 min-w-0">
               <span className="text-sm text-slate-800">{item.foodItemName}</span>
+              {item.custom && (
+                // AI-generated plans can name foods we do not stock. Flagging them
+                // tells the coach which macros came from the model rather than
+                // from our own per-100g data, so they know what to check.
+                <span
+                  title="Not in the food library — macros supplied with the plan"
+                  className="ml-2 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200"
+                >
+                  unverified
+                </span>
+              )}
               <span className="text-xs text-slate-400 ml-2">
                 {item.quantityGrams}{item.quantityUnit}
               </span>

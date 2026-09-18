@@ -217,6 +217,11 @@ interface AiJobResponse {
   completedAt: string | null;
   errorMessage: string | null;
   generatedMealPlanId: string | null;
+  dayCount: number | null;
+  mealCount: number | null;
+  itemCount: number | null;
+  /** Items naming a food outside the curated list — their macros came from the model. */
+  unmatchedCount: number | null;
 }
 
 const POLL_INTERVAL_MS = 1500;
@@ -265,7 +270,16 @@ function AiGenerateModal({ client, onClose, onGenerated }: {
         setStatus(job.status);
 
         if (job.status === "COMPLETED" && job.generatedMealPlanId) {
-          toast.success("Meal plan generated");
+          // Report what was actually produced. This flow used to land the coach
+          // on an empty plan while claiming success, so a bare "generated" toast
+          // is exactly what we do not want back.
+          const days = job.dayCount ?? 0;
+          const meals = job.mealCount ?? 0;
+          const unverified = job.unmatchedCount ?? 0;
+          toast.success(
+            `Generated ${days} day${days === 1 ? "" : "s"}, ${meals} meal${meals === 1 ? "" : "s"}` +
+            (unverified > 0 ? ` — ${unverified} item${unverified === 1 ? "" : "s"} to check` : ""),
+          );
           onGenerated(job.generatedMealPlanId);
           return;
         }
