@@ -145,7 +145,7 @@ export function toClientDetail(c: BackendClient, progress: BackendProgressLog[] 
     train30d: { done: 0, total: 0 },
     nextWeek: { done: 0, total: 0 },
     lastWorkout: { name: "—", days: 0 },
-    metrics: { weight, bf, steps: [] },
+    metrics: { weight, bf, steps: [], dates: [] },
     goalDesc: c.goal ? `Working towards: ${goalLabel}.` : "",
     notes: [],
     // No date: health_conditions is a plain string list. This used to fill in
