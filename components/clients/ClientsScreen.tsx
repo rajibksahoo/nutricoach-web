@@ -212,9 +212,49 @@ function TrainStat({ label, done, total, color = "#22C55E", emptyText }: {
   );
 }
 
-function MetricRow({ label, unit, data, color, deltaPct, dir, positiveIsDown }: {
-  label: string; unit: string; data: number[]; color: string; deltaPct: number; dir: "up" | "down"; positiveIsDown?: boolean;
+/**
+ * Percentage change across a series, or null when there is not enough data.
+ *
+ * The Metrics and Overview cards used to hardcode these (1.5%, 8%, 12%) for
+ * every client, which read as real measurement. An honest empty state beats a
+ * plausible invented number.
+ */
+function seriesDelta(data: number[]): { pct: number; dir: "up" | "down" } | null {
+  if (!data || data.length < 2) return null;
+  const first = data[0];
+  const last = data[data.length - 1];
+  if (!Number.isFinite(first) || !Number.isFinite(last) || first === 0) return null;
+  const pct = ((last - first) / Math.abs(first)) * 100;
+  if (Math.abs(pct) < 0.05) return null;
+  return { pct: Math.abs(pct), dir: pct >= 0 ? "up" : "down" };
+}
+
+/** The numeric series for a metric key; `dates` is not one of them. */
+function seriesFor(metrics: ClientDetail["metrics"], key: string): number[] {
+  if (key === "weight") return metrics.weight;
+  if (key === "bf") return metrics.bf;
+  if (key === "steps") return metrics.steps;
+  return [];
+}
+
+/** Evenly spaced labels across the real log dates, for the chart x-axis. */
+function axisLabels(dates: string[], count = 6): string[] {
+  if (!dates || dates.length === 0) return [];
+  if (dates.length <= count) return dates.map(fmtAxisDate);
+  const step = (dates.length - 1) / (count - 1);
+  return Array.from({ length: count }, (_, i) => fmtAxisDate(dates[Math.round(i * step)]));
+}
+
+function fmtAxisDate(iso: string): string {
+  return new Date(iso + "T00:00:00")
+    .toLocaleDateString(undefined, { day: "numeric", month: "short" })
+    .toUpperCase();
+}
+
+function MetricRow({ label, unit, data, color, positiveIsDown }: {
+  label: string; unit: string; data: number[]; color: string; positiveIsDown?: boolean;
 }) {
+  const delta = seriesDelta(data);
   return (
     <div>
       <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 8 }}>
@@ -226,7 +266,9 @@ function MetricRow({ label, unit, data, color, deltaPct, dir, positiveIsDown }: 
           {data[data.length - 1]}
         </span>
         <span style={{ fontSize: 13, color: "var(--fg3)" }}>{unit}</span>
-        <Delta pct={deltaPct} dir={dir} positiveIsDown={positiveIsDown} />
+        {delta
+          ? <Delta pct={Number(delta.pct.toFixed(1))} dir={delta.dir} positiveIsDown={positiveIsDown} />
+          : <span style={{ fontSize: 11.5, color: "var(--fg4)" }}>not enough data</span>}
       </div>
       <Spark data={data} color={color} w={460} h={64} fill axis />
     </div>
@@ -246,29 +288,52 @@ function ProfileRow({ icon, value }: { icon: string; value: string }) {
   );
 }
 
+/**
+ * The chart window. Fixed for now, and labelled with the window actually
+ * fetched — it used to read "Last 4 weeks" while `getClientChart` asked for 60
+ * days, so the control was both inert and wrong.
+ */
 function RangeSelect() {
   return (
-    <button style={{
-      display: "inline-flex", alignItems: "center", gap: 6,
-      padding: "5px 11px", borderRadius: 7, border: "1px solid var(--border)",
-      background: "#fff", fontSize: 12, color: "var(--fg2)", cursor: "pointer",
-      fontWeight: 500,
-    }}>
-      Last 4 weeks <ChevronDown size={11} />
+    <button
+      disabled
+      title="Choosing a range is planned"
+      style={{
+        display: "inline-flex", alignItems: "center", gap: 6,
+        padding: "5px 11px", borderRadius: 7, border: "1px solid var(--border)",
+        background: "var(--bg-subtle)", fontSize: 12, color: "var(--fg4)",
+        cursor: "not-allowed", fontWeight: 500,
+      }}>
+      Last 60 days <ChevronDown size={11} />
     </button>
   );
 }
 
-function SmallBtn({ icon: Icon, children, primary }: { icon?: React.ComponentType<{ size?: number }>; children: React.ReactNode; primary?: boolean }) {
+/**
+ * @param planned marks a control that is on the roadmap but not built. It is
+ *   shown disabled with a tooltip rather than looking live and doing nothing —
+ *   a button that silently ignores a click teaches a coach the product is
+ *   broken.
+ */
+function SmallBtn({ icon: Icon, children, primary, planned }: {
+  icon?: React.ComponentType<{ size?: number }>;
+  children: React.ReactNode;
+  primary?: boolean;
+  planned?: boolean;
+}) {
   return (
-    <button style={{
-      display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6,
-      padding: "6px 11px", borderRadius: 7, cursor: "pointer",
-      background: primary ? "var(--brand-primary)" : "#fff",
-      color: primary ? "#fff" : "var(--fg1)",
-      border: primary ? "none" : "1px solid var(--border)",
-      fontSize: 12, fontWeight: 500, flex: 1,
-    }}>
+    <button
+      disabled={planned}
+      title={planned ? "Planned — not available yet" : undefined}
+      style={{
+        display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6,
+        padding: "6px 11px", borderRadius: 7,
+        cursor: planned ? "not-allowed" : "pointer",
+        background: planned ? "var(--bg-subtle)" : primary ? "var(--brand-primary)" : "#fff",
+        color: planned ? "var(--fg4)" : primary ? "#fff" : "var(--fg1)",
+        border: planned ? "1px solid var(--border)" : primary ? "none" : "1px solid var(--border)",
+        fontSize: 12, fontWeight: 500, flex: 1,
+      }}>
       {Icon && <Icon size={12} />}{children}
     </button>
   );
@@ -331,9 +396,9 @@ function OverviewTab({ client, photos, stats }: {
             <CardTitle inline>Body Metrics Overview</CardTitle>
             <RangeSelect />
           </div>
-          <MetricRow label="Weight"   unit="kg" data={client.metrics.weight} color="#4F46E5" deltaPct={1.5} dir="down" positiveIsDown />
+          <MetricRow label="Weight"   unit="kg" data={client.metrics.weight} color="#4F46E5" positiveIsDown />
           <div style={{ height: 1, background: "var(--border-subtle)", margin: "14px 0" }} />
-          <MetricRow label="Body Fat" unit="%"  data={client.metrics.bf}     color="#EC4899" deltaPct={8}   dir="down" positiveIsDown />
+          <MetricRow label="Body Fat" unit="%"  data={client.metrics.bf}     color="#EC4899" positiveIsDown />
         </Card>
       </div>
 
@@ -373,7 +438,8 @@ function OverviewTab({ client, photos, stats }: {
               <span style={{ fontSize: 16 }}>🩹</span>
               <div style={{ fontSize: 14.5, fontWeight: 600, color: "var(--fg1)" }}>Limitations / Injuries</div>
             </div>
-            <Edit size={13} style={{ color: "var(--fg4)", cursor: "pointer" }} />
+            <Edit size={13} aria-label="Editing limitations is planned"
+              style={{ color: "var(--fg4)", cursor: "not-allowed", opacity: 0.5 }} />
           </div>
           {client.limitations.length === 0 ? (
             <div style={{ fontSize: 12, color: "var(--fg4)" }}>No limitations recorded.</div>
@@ -403,8 +469,8 @@ function OverviewTab({ client, photos, stats }: {
             <Star size={14} style={{ color: "var(--fg4)", cursor: "pointer" }} />
           </div>
           <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-            <SmallBtn icon={Msg}>Message</SmallBtn>
-            <SmallBtn icon={Plus}>Assign</SmallBtn>
+            <SmallBtn icon={Msg} planned>Message</SmallBtn>
+            <SmallBtn icon={Plus} planned>Assign</SmallBtn>
           </div>
           <ProfileRow icon="✉️" value={client.email} />
           <ProfileRow icon="📞" value={client.phone} />
@@ -422,12 +488,17 @@ function OverviewTab({ client, photos, stats }: {
 
 // ─── Metrics tab ───────────────────────────────────────────────────────
 const METRIC_DEFS = [
-  { key: "weight", label: "Weight",   unit: "kg", color: "#4F46E5", deltaPct: 1.5, dir: "down" as const, positiveIsDown: true,  group: "body" },
-  { key: "bf",     label: "Body Fat", unit: "%",  color: "#EC4899", deltaPct: 8,   dir: "down" as const, positiveIsDown: true,  group: "body" },
-  { key: "steps",  label: "Steps",    unit: "",   color: "#0D9488", deltaPct: 12,  dir: "up" as const,   positiveIsDown: false, group: "body" },
+  { key: "weight", label: "Weight",   unit: "kg", color: "#4F46E5", positiveIsDown: true,  group: "body" },
+  { key: "bf",     label: "Body Fat", unit: "%",  color: "#EC4899", positiveIsDown: true,  group: "body" },
+  { key: "steps",  label: "Steps",    unit: "",   color: "#0D9488", positiveIsDown: false, group: "body" },
 ];
 
 function MetricsTab({ client }: { client: ClientDetail }) {
+  const dates = client.metrics.dates;
+  const lastLogged = dates.length
+    ? new Date(dates[dates.length - 1] + "T00:00:00")
+        .toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })
+    : "—";
   const [group, setGroup] = React.useState<"body" | "exercise">("body");
   const [q] = React.useState("");
   const metrics = METRIC_DEFS.filter((m) => m.group === group)
@@ -508,7 +579,7 @@ function MetricsTab({ client }: { client: ClientDetail }) {
               </thead>
               <tbody>
                 {metrics.map((m) => {
-                  const arr = (client.metrics as Record<string, number[]>)[m.key] || [];
+                  const arr = seriesFor(client.metrics, m.key);
                   const v = arr.length ? arr[arr.length - 1] : null;
                   return (
                     <tr key={m.key} style={{ borderTop: "1px solid var(--border-subtle)" }}>
@@ -524,7 +595,7 @@ function MetricsTab({ client }: { client: ClientDetail }) {
                           : <span style={{ color: "var(--fg1)", fontWeight: 600 }}>{v}{m.unit && " " + m.unit}</span>}
                       </td>
                       <td style={{ ...mTd, textAlign: "right" }}>
-                        <span style={{ color: "var(--fg3)" }}>{v == null ? "—" : "May 6, 2026"}</span>
+                        <span style={{ color: "var(--fg3)" }}>{v == null ? "—" : lastLogged}</span>
                       </td>
                     </tr>
                   );
@@ -573,7 +644,8 @@ function MetricsTab({ client }: { client: ClientDetail }) {
           {metrics.map((m) => (
             <MetricChartCard
               key={m.key} def={m}
-              data={(client.metrics as Record<string, number[]>)[m.key] || []}
+              data={seriesFor(client.metrics, m.key)}
+              dates={client.metrics.dates}
               large={m.key === "weight"}
             />
           ))}
@@ -591,10 +663,11 @@ const mTh: React.CSSProperties = {
 };
 const mTd: React.CSSProperties = { padding: "12px 16px", verticalAlign: "middle" };
 
-function MetricChartCard({ def, data, large }: {
-  def: { label: string; unit: string; color: string; deltaPct: number; dir: "up" | "down"; positiveIsDown: boolean };
-  data: number[]; large?: boolean;
+function MetricChartCard({ def, data, dates, large }: {
+  def: { label: string; unit: string; color: string; positiveIsDown: boolean };
+  data: number[]; dates: string[]; large?: boolean;
 }) {
+  const delta = seriesDelta(data);
   const empty = !data.length;
   const v = empty ? null : data[data.length - 1];
   return (
@@ -609,7 +682,7 @@ function MetricChartCard({ def, data, large }: {
             color: "var(--fg1)", letterSpacing: "-0.01em", fontVariantNumeric: "tabular-nums",
           }}>{v}</span>
           {def.unit && <span style={{ fontSize: 13, color: "var(--fg3)" }}>{def.unit}</span>}
-          <Delta pct={def.deltaPct} dir={def.dir} positiveIsDown={def.positiveIsDown} />
+          {delta && <Delta pct={Number(delta.pct.toFixed(1))} dir={delta.dir} positiveIsDown={def.positiveIsDown} />}
         </div>
       )}
       {empty || data.length < 2 ? (
@@ -631,7 +704,7 @@ function MetricChartCard({ def, data, large }: {
           fontSize: 10, color: "var(--fg4)", marginTop: 6, fontFamily: "var(--font-mono)",
           letterSpacing: "0.04em",
         }}>
-          {["APR 13", "APR 18", "APR 23", "APR 28", "MAY 3", "MAY 8"].map((d) => <span key={d}>{d}</span>)}
+          {axisLabels(dates).map((d, i) => <span key={`${d}-${i}`}>{d}</span>)}
         </div>
       )}
     </Card>
@@ -692,7 +765,10 @@ export default function ClientsScreen({ initialClientId }: { initialClientId?: s
         const sorted = [...logs].sort((a, b) => a.loggedDate.localeCompare(b.loggedDate));
         const weight = sorted.map((p) => p.weightKg).filter((v): v is string => !!v).map(Number);
         const bf = sorted.map((p) => p.bodyFatPercent).filter((v): v is string => !!v).map(Number);
-        setChartById((prev) => ({ ...prev, [selectedId]: { weight, bf, steps: [] } }));
+        // Dates come along so the chart axis and "last update" show what was
+        // actually logged instead of hardcoded labels.
+        const dates = sorted.map((p) => p.loggedDate);
+        setChartById((prev) => ({ ...prev, [selectedId]: { weight, bf, steps: [], dates } }));
       })
       .catch((e) => { console.error(e); });
   }, [selectedId, clients]);
@@ -793,7 +869,18 @@ export default function ClientsScreen({ initialClientId }: { initialClientId?: s
             textAlign: "center", color: "var(--fg3)",
           }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: "var(--fg2)", marginBottom: 4 }}>{tab}</div>
-            <div style={{ fontSize: 12.5 }}>This tab is part of the broader client roadmap — coming soon.</div>
+            <div style={{
+              display: "inline-block", padding: "2px 8px", borderRadius: 99, marginBottom: 8,
+              background: "var(--bg-subtle)", border: "1px solid var(--border)",
+              fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", color: "var(--fg4)",
+            }}>PLANNED</div>
+            <div style={{ fontSize: 12.5 }}>
+              {tab === "Food Journal"
+                ? "Client food logging is planned. Meal plans live under Meal plans in the sidebar."
+                : tab === "Meal Plan"
+                  ? "Meal plans are created from Meal plans in the sidebar; showing them here is planned."
+                  : "This part of the client roadmap is not built yet."}
+            </div>
           </div>
         )}
       </div>

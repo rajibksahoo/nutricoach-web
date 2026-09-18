@@ -12,10 +12,37 @@ export class ClientsPage {
     await this.page.goto("/clients");
   }
 
-  async createClient({ name, phone, goal }: { name: string; phone: string; goal?: string }) {
+  /**
+   * Add a client. The form is two steps — essentials, then an optional profile
+   * — so pass `profile` to fill step two, or omit it to skip straight through.
+   */
+  async createClient({ name, phone, goal, profile }: {
+    name: string;
+    phone: string;
+    goal?: string;
+    profile?: Partial<Record<
+      "dateOfBirth" | "gender" | "heightCm" | "weightKg" | "dietaryPref"
+      | "activityLevel" | "healthConditions" | "allergies", string>>;
+  }) {
     await this.page.locator("#name").fill(name);
     await this.page.locator("#phone").fill(phone);
     if (goal) await this.page.locator("#goal").selectOption(goal);
+    await this.page.getByRole("button", { name: "Continue" }).click();
+
+    if (!profile) {
+      await this.page.getByRole("button", { name: /Skip and add/ }).click();
+      return;
+    }
+
+    for (const [field, value] of Object.entries(profile)) {
+      if (!value) continue;
+      const el = this.page.locator(`#${field}`);
+      if (["gender", "dietaryPref", "activityLevel"].includes(field)) {
+        await el.selectOption(value);
+      } else {
+        await el.fill(value);
+      }
+    }
     await this.page.getByRole("button", { name: "Add Client" }).click();
   }
 

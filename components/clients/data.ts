@@ -67,7 +67,8 @@ export interface ClientDetail {
   train30d: { done: number; total: number };
   nextWeek: { done: number; total: number };
   lastWorkout: { name: string; days: number };
-  metrics: { weight: number[]; bf: number[]; steps: number[] };
+  /** `dates` are the ISO log dates behind the series, for axis labels and "last update". */
+  metrics: { weight: number[]; bf: number[]; steps: number[]; dates: string[] };
   goalDesc: string;
   notes: ClientNote[];
   limitations: ClientNote[];

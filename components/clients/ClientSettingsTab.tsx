@@ -48,46 +48,6 @@ interface EditForm {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const GOALS = [
-  { value: "WEIGHT_LOSS", label: "Weight Loss" },
-  { value: "WEIGHT_GAIN", label: "Weight Gain" },
-  { value: "MUSCLE_GAIN", label: "Muscle Gain" },
-  { value: "MAINTENANCE", label: "Maintenance" },
-];
-
-const DIETARY_PREFS = [
-  { value: "VEG", label: "Vegetarian" },
-  { value: "NON_VEG", label: "Non-Veg" },
-  { value: "VEGAN", label: "Vegan" },
-  { value: "JAIN", label: "Jain" },
-  { value: "EGGETARIAN", label: "Eggetarian" },
-];
-
-const ACTIVITY_LEVELS = [
-  { value: "SEDENTARY", label: "Sedentary" },
-  { value: "LIGHT", label: "Light" },
-  { value: "MODERATE", label: "Moderate" },
-  { value: "ACTIVE", label: "Active" },
-  { value: "VERY_ACTIVE", label: "Very Active" },
-];
-
-const GENDERS = [
-  { value: "MALE", label: "Male" },
-  { value: "FEMALE", label: "Female" },
-  { value: "OTHER", label: "Other" },
-];
-
-const STATUSES = [
-  { value: "ONBOARDING", label: "Onboarding" },
-  { value: "ACTIVE", label: "Active" },
-  { value: "INACTIVE", label: "Inactive" },
-];
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function optionLabel(options: { value: string; label: string }[], value: string | null) {
-  return options.find((o) => o.value === value)?.label ?? value ?? "—";
-}
 
 function toEditForm(c: Client): EditForm {
   return {
@@ -111,6 +71,9 @@ function splitTags(value: string): string[] {
   return value.split(",").map((s) => s.trim()).filter(Boolean);
 }
 import ErrorState from "@/components/ui/ErrorState";
+import {
+  GOALS, DIETARY_PREFS, ACTIVITY_LEVELS, GENDERS, STATUSES, optionLabel,
+} from "@/lib/client-options";
 import ClientAccessCard from "./ClientAccessCard";
 
 
