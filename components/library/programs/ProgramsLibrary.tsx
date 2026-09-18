@@ -7,13 +7,14 @@ import Spinner from "@/components/ui/Spinner";
 import type { ProgramSummary } from "@/lib/library-types";
 import {
   assignProgram, createProgram, deleteProgram, listPrograms,
-  updateProgram, uploadProgramCover,
+  updateProgram, uploadProgramCover, setProgramTemplate, instantiateProgram,
 } from "@/lib/programs-api";
 import { listClients } from "@/lib/workout-builder-api";
 import type { Client } from "@/lib/workout-types";
 import ProgramListView from "./ProgramListView";
 import CreateProgramModal, { type ProgramFormPayload } from "./CreateProgramModal";
 import AssignProgramModal from "./AssignProgramModal";
+import TemplatePickerModal from "./TemplatePickerModal";
 
 export default function ProgramsLibrary() {
   const router = useRouter();
@@ -28,9 +29,13 @@ export default function ProgramsLibrary() {
   const [assigning, setAssigning] = useState(false);
   const [clients, setClients] = useState<Client[]>([]);
 
+  const [templatesOpen, setTemplatesOpen] = useState(false);
+  const [templates, setTemplates] = useState<ProgramSummary[] | null>(null);
+  const [instantiating, setInstantiating] = useState(false);
+
   function load() {
     setLoading(true);
-    listPrograms()
+    listPrograms(false)
       .then(setPrograms)
       .catch(() => toast.error("Failed to load programs"))
       .finally(() => setLoading(false));
@@ -107,6 +112,42 @@ export default function ProgramsLibrary() {
     }
   }
 
+  async function handleToggleTemplate(p: ProgramSummary) {
+    const next = !p.isTemplate;
+    try {
+      await setProgramTemplate(p.id, next);
+      toast.success(next ? "Saved as template" : "Removed from templates");
+      // A promoted program leaves the library list, so reload rather than patch.
+      setTemplates(null);
+      load();
+    } catch {
+      toast.error(next ? "Failed to save as template" : "Failed to remove from templates");
+    }
+  }
+
+  function openTemplates() {
+    setTemplatesOpen(true);
+    if (templates !== null) return;
+    listPrograms(true)
+      .then(setTemplates)
+      .catch(() => { toast.error("Failed to load templates"); setTemplatesOpen(false); });
+  }
+
+  async function handleInstantiate(template: ProgramSummary, name: string) {
+    setInstantiating(true);
+    try {
+      const created = await instantiateProgram(template.id, name);
+      toast.success("Program created from template");
+      setTemplatesOpen(false);
+      load();
+      openPlanner(created);
+    } catch {
+      toast.error("Failed to create from template");
+    } finally {
+      setInstantiating(false);
+    }
+  }
+
   if (loading) {
     return <div style={{ padding: "60px 0", display: "flex", justifyContent: "center" }}><Spinner /></div>;
   }
@@ -120,7 +161,18 @@ export default function ProgramsLibrary() {
         onEdit={(p) => { setEditTarget(p); setModalMode("edit"); }}
         onAssign={openAssign}
         onDelete={handleDelete}
+        onExploreTemplates={openTemplates}
+        onToggleTemplate={handleToggleTemplate}
       />
+
+      {templatesOpen && (
+        <TemplatePickerModal
+          templates={templates}
+          busy={instantiating}
+          onClose={() => setTemplatesOpen(false)}
+          onPick={handleInstantiate}
+        />
+      )}
 
       <CreateProgramModal
         open={modalMode !== null}

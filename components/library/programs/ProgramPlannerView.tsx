@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import {
   ChevronLeft, ChevronRight, Calendar, Plus, SlidersHorizontal, ArrowRight,
-  Pencil, X, MoreHorizontal, Search, Copy, Trash2, BookmarkPlus, ClipboardPaste,
+  Pencil, X, MoreHorizontal, Search, Copy, Trash2, StickyNote, ClipboardPaste,
 } from "lucide-react";
 import type { Program, ProgramSummary } from "@/lib/library-types";
 import TrialChip from "@/components/dashboard/TrialChip";
@@ -14,7 +14,7 @@ import {
   setProgramDay, updateProgram, type WorkoutOption, type WorkoutPreview,
 } from "@/lib/programs-api";
 
-interface DayEntry { workoutId: string; workoutName: string; }
+interface DayEntry { workoutId: string; workoutName: string; notes?: string | null; }
 
 export default function ProgramPlannerView({
   program: initialProgram, onBack, onEditInfo, onAssign,
@@ -37,6 +37,7 @@ export default function ProgramPlannerView({
   const [options, setOptions] = useState<WorkoutOption[]>([]);
   const [copied, setCopied] = useState<DayEntry | null>(null);   // active copy → click a date to paste
   const [confirmDay, setConfirmDay] = useState<number | null>(null); // day pending delete confirmation
+  const [notesFor, setNotesFor] = useState<number | null>(null);     // day whose note is being edited
 
   useEffect(() => { setProgram(initialProgram); setDays(buildDays(initialProgram)); }, [initialProgram]);
 
@@ -94,7 +95,7 @@ export default function ProgramPlannerView({
     });
     setToastInfo(true);
     try {
-      await setProgramDay(program.id, targetDay, src.workoutId);
+      await setProgramDay(program.id, targetDay, src.workoutId, src.notes);
       if (!copy) await clearProgramDay(program.id, sourceDay);
     } catch {
       toast.error("Failed to move workout");
@@ -123,6 +124,25 @@ export default function ProgramPlannerView({
     }
   };
 
+  // setProgramDay replaces the day row, so the workout id must be sent with
+  // the notes — otherwise saving a note would clear the day.
+  const saveNotes = async (day: number, notes: string) => {
+    const entry = days.get(day);
+    if (!entry) return;
+    const trimmed = notes.trim();
+    const value = trimmed.length > 0 ? trimmed : null;
+    const prev = entry.notes;
+    setNotesFor(null);
+    setDays((d) => new Map(d).set(day, { ...entry, notes: value }));
+    try {
+      await setProgramDay(program.id, day, entry.workoutId, value);
+      toast.success(value ? "Note saved" : "Note removed");
+    } catch {
+      toast.error("Failed to save note");
+      setDays((d) => new Map(d).set(day, { ...entry, notes: prev }));
+    }
+  };
+
   const copyWorkout = (entry: DayEntry) => {
     setCopied(entry);
     toast("Workout copied, Click on the date to paste workout", { icon: "📋", duration: 5000 });
@@ -134,7 +154,7 @@ export default function ProgramPlannerView({
     setCopied(null);
     setDays((prev) => new Map(prev).set(day, entry));
     try {
-      await setProgramDay(program.id, day, entry.workoutId);
+      await setProgramDay(program.id, day, entry.workoutId, entry.notes);
     } catch {
       toast.error("Failed to paste workout");
       refresh();
@@ -240,7 +260,8 @@ export default function ProgramPlannerView({
             pasteMode={copied !== null}
             onPaste={pasteWorkout}
             onCopy={(day) => { const e = days.get(day); if (e) copyWorkout(e); }}
-            onDelete={(day) => setConfirmDay(day)} />
+            onDelete={(day) => setConfirmDay(day)}
+            onNotes={(day) => setNotesFor(day)} />
         ))}
       </div>
 
@@ -271,6 +292,15 @@ export default function ProgramPlannerView({
         <WorkoutPickerModal day={pickFor} options={options} onClose={() => setPickFor(null)} onPick={pickWorkout} />
       )}
 
+      {notesFor !== null && (
+        <DayNotesModal
+          day={notesFor}
+          initial={days.get(notesFor)?.notes ?? ""}
+          onClose={() => setNotesFor(null)}
+          onSave={(text) => saveNotes(notesFor, text)}
+        />
+      )}
+
       {confirmDay !== null && (
         <ConfirmDeleteDialog
           onCancel={() => setConfirmDay(null)}
@@ -284,14 +314,14 @@ export default function ProgramPlannerView({
 function buildDays(p: Program): Map<number, DayEntry> {
   const m = new Map<number, DayEntry>();
   for (const d of p.days ?? []) {
-    if (d.workoutId) m.set(d.dayNumber, { workoutId: d.workoutId, workoutName: d.workoutName || "Workout" });
+    if (d.workoutId) m.set(d.dayNumber, { workoutId: d.workoutId, workoutName: d.workoutName || "Workout", notes: d.notes });
   }
   return m;
 }
 
 function WeekRow({
   weekIdx, days, previews, weekView, onDragStart, onDragEnd, onDrop, onPick,
-  pasteMode, onPaste, onCopy, onDelete,
+  pasteMode, onPaste, onCopy, onDelete, onNotes,
 }: {
   weekIdx: number; days: Map<number, DayEntry>; previews: Map<string, WorkoutPreview>; weekView: 1 | 2 | 4;
   onDragStart: (day: number) => void; onDragEnd: () => void;
@@ -299,6 +329,7 @@ function WeekRow({
   onPick: (day: number) => void;
   pasteMode: boolean; onPaste: (day: number) => void;
   onCopy: (day: number) => void; onDelete: (day: number) => void;
+  onNotes: (day: number) => void;
 }) {
   const weekNum = weekIdx + 1;
   const dayStart = weekIdx * 7 + 1;
@@ -318,7 +349,8 @@ function WeekRow({
             minH={cellMinH} weekView={weekView} onDragStart={onDragStart} onDragEnd={onDragEnd}
             onDrop={(shift) => onDrop(day, shift)} onPick={() => onPick(day)}
             pasteMode={pasteMode} onPaste={() => onPaste(day)}
-            onCopy={() => onCopy(day)} onDelete={() => onDelete(day)} />
+            onCopy={() => onCopy(day)} onDelete={() => onDelete(day)}
+            onNotes={() => onNotes(day)} />
         );
       })}
     </div>
@@ -327,13 +359,13 @@ function WeekRow({
 
 function DayCell({
   day, entry, preview, minH, weekView, onDragStart, onDragEnd, onDrop, onPick,
-  pasteMode, onPaste, onCopy, onDelete,
+  pasteMode, onPaste, onCopy, onDelete, onNotes,
 }: {
   day: number; entry?: DayEntry; preview?: WorkoutPreview; minH: number; weekView: 1 | 2 | 4;
   onDragStart: (day: number) => void; onDragEnd: () => void;
   onDrop: (shift: boolean) => void; onPick: () => void;
   pasteMode: boolean; onPaste: () => void;
-  onCopy: () => void; onDelete: () => void;
+  onCopy: () => void; onDelete: () => void; onNotes: () => void;
 }) {
   const [over, setOver] = useState(false);
   const [hover, setHover] = useState(false);
@@ -363,7 +395,7 @@ function DayCell({
       {entry && (
         <WorkoutCard entry={entry} preview={preview} weekView={weekView}
           onDragStart={() => onDragStart(day)} onDragEnd={onDragEnd}
-          onCopy={onCopy} onDelete={onDelete} />
+          onCopy={onCopy} onDelete={onDelete} onNotes={onNotes} />
       )}
 
       {/* Paste affordance — shown on hover while a workout is on the clipboard */}
@@ -390,11 +422,11 @@ function DayCell({
 }
 
 function WorkoutCard({
-  entry, preview, weekView, onDragStart, onDragEnd, onCopy, onDelete,
+  entry, preview, weekView, onDragStart, onDragEnd, onCopy, onDelete, onNotes,
 }: {
   entry: DayEntry; preview?: WorkoutPreview; weekView: 1 | 2 | 4;
   onDragStart: () => void; onDragEnd: () => void;
-  onCopy: () => void; onDelete: () => void;
+  onCopy: () => void; onDelete: () => void; onNotes: () => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [tip, setTip] = useState(false);
@@ -423,6 +455,12 @@ function WorkoutCard({
           font: "700 10.5px var(--font-sans)", color: "#2563EB", letterSpacing: "0.04em",
           overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
         }}>{(entry.workoutName || "WORKOUT").toUpperCase()}</span>
+        {entry.notes && (
+          <span title={entry.notes} aria-label="Has a note"
+            style={{ display: "inline-flex", flexShrink: 0, marginLeft: 4, marginRight: "auto" }}>
+            <StickyNote size={11} style={{ color: "var(--fg4)" }} />
+          </span>
+        )}
         <div style={{ position: "relative" }}>
           <button
             aria-label="More options"
@@ -450,9 +488,8 @@ function WorkoutCard({
               background: "#fff", border: "1px solid var(--border)", borderRadius: 8,
               boxShadow: "var(--shadow-xl)", padding: 4, display: "flex", flexDirection: "column",
             }}>
-              <MenuItem icon={<BookmarkPlus size={14} />} label="Save to Library" disabled
-                title="Not available yet — saving a day as a reusable template needs backend support"
-                onClick={() => {}} />
+              <MenuItem icon={<StickyNote size={14} />} label={entry.notes ? "Edit note" : "Add note"}
+                onClick={() => { setMenuOpen(false); onNotes(); }} />
               <MenuItem icon={<Copy size={14} />} label="Copy"
                 onClick={() => { setMenuOpen(false); onCopy(); }} />
               <MenuItem icon={<Trash2 size={14} />} label="Delete" danger
@@ -529,6 +566,68 @@ function WorkoutPickerModal({
               {o.name}
             </button>
           ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Per-day coaching note. `ProgramDay.notes` has existed since the Programs
+ * build; this is the affordance that was never added, so notes could be stored
+ * but never written.
+ */
+function DayNotesModal({ day, initial, onClose, onSave }: {
+  day: number; initial: string; onClose: () => void; onSave: (text: string) => void;
+}) {
+  const [text, setText] = useState(initial);
+  const ref = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    ref.current?.focus();
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <div onClick={onClose} style={{
+      position: "fixed", inset: 0, zIndex: 80, background: "rgba(15,23,42,.45)",
+      display: "flex", alignItems: "center", justifyContent: "center", padding: 24,
+    }}>
+      <div onClick={(e) => e.stopPropagation()} role="dialog" aria-label={`Note for day ${day}`} style={{
+        width: 460, maxWidth: "100%", background: "#fff", borderRadius: 14,
+        boxShadow: "0 30px 80px rgba(15,23,42,.32)", padding: "20px 22px",
+      }}>
+        <h2 style={{
+          font: "700 16px var(--font-display-xl)", margin: "0 0 4px",
+          letterSpacing: "-0.02em", color: "var(--fg1)",
+        }}>Note for day {day}</h2>
+        <p style={{ fontSize: 12, color: "var(--fg3)", margin: "0 0 12px" }}>
+          Shown with this day in the program. Clear it to remove the note.
+        </p>
+        <textarea
+          ref={ref}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          rows={4}
+          placeholder="e.g. Keep RPE 7 — deload if shoulder flares"
+          aria-label="Note text"
+          style={{
+            width: "100%", padding: "10px 12px", border: "1px solid var(--border)",
+            borderRadius: 8, fontSize: 13, color: "var(--fg1)", outline: "none",
+            fontFamily: "var(--font-sans)", resize: "vertical",
+          }} />
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 14 }}>
+          <button onClick={onClose} style={{
+            padding: "9px 16px", borderRadius: 8, border: "1px solid var(--border)",
+            background: "#fff", fontSize: 12.5, color: "var(--fg2)", cursor: "pointer",
+          }}>Cancel</button>
+          <button onClick={() => onSave(text)} style={{
+            padding: "9px 18px", borderRadius: 8, border: "none",
+            background: "var(--brand-primary)", color: "#fff",
+            fontSize: 12.5, fontWeight: 600, cursor: "pointer",
+          }}>Save</button>
         </div>
       </div>
     </div>
