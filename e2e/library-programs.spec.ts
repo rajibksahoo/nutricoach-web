@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { ProgramsPage } from "./pages/ProgramsPage";
-import { seedProgram, ensureClientName, uniqueName } from "./helpers/api";
+import { seedProgram, ensureClientName, uniqueName, freshCoachToken, signInAs } from "./helpers/api";
 
 // Library → Programs: create / read / update / delete + assign to a client.
 test.describe("Library · Programs", () => {
@@ -107,5 +107,37 @@ test.describe("Library · Programs", () => {
     await programs.openAssign();
     await expect(programs.pickerRow(clientName)).toBeEnabled();
     await expect(programs.assignedHeader()).toHaveCount(0);
+  });
+});
+
+/**
+ * The trial chip is rendered from two different sources: the dashboard reads
+ * `/coach/dashboard/overview` (server-computed) while the Programs views use
+ * `useSubscription` over `/billing/status` (client-computed). They must agree
+ * — they previously disagreed by a day, because the hook rounded up where the
+ * backend truncates.
+ *
+ * Uses a *fresh* coach on purpose: the shared E2E coach's trial expired long
+ * ago, so both a floored and a rounded-up count clamp to 0 and the test would
+ * pass whatever the hook did.
+ */
+test.describe("trial chip", () => {
+  test.use({ storageState: { cookies: [], origins: [] } });
+
+  test("reads the same on the dashboard and on Programs", async ({ page }) => {
+    await signInAs(page, await freshCoachToken(page));
+    const chip = /\d+ days left|Trial ends today/i;
+
+    await page.goto("/dashboard");
+    await expect(page.getByText(chip).first()).toBeVisible();
+    const onDashboard = (await page.getByText(chip).first().textContent())?.trim();
+
+    await new ProgramsPage(page).goto();
+    await expect(page.getByText(chip).first()).toBeVisible();
+    const onPrograms = (await page.getByText(chip).first().textContent())?.trim();
+
+    // A fresh coach is mid-trial, so this is a real number, not a clamped 0.
+    expect(onDashboard).toMatch(/\d+ days left/);
+    expect(onPrograms).toBe(onDashboard);
   });
 });

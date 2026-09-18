@@ -1,21 +1,21 @@
 "use client";
 
 import * as React from "react";
-import api from "@/lib/api";
+import { getBillingStatus } from "@/lib/billing-api";
 import type { SubscriptionInfo } from "@/lib/dashboard-api";
 
-interface BillingStatus {
-  tier: string;
-  status: string;
-  trialEndsAt: string | null;
-}
-interface ApiEnvelope<T> { success: boolean; message?: string; data: T }
-
-function daysUntil(iso: string | null): number | null {
+/**
+ * Whole days from now until `iso`, floored and clamped at zero.
+ *
+ * Must match `DashboardOverviewService`, which uses `ChronoUnit.DAYS.between`
+ * (truncating). Rounding up here instead would make the dashboard and the
+ * Programs views disagree by a day for the same coach.
+ */
+function daysUntil(iso: string | null | undefined): number | null {
   if (!iso) return null;
   const ms = new Date(iso).getTime() - Date.now();
   if (Number.isNaN(ms)) return null;
-  return Math.max(0, Math.ceil(ms / 86_400_000));
+  return Math.max(0, Math.floor(ms / 86_400_000));
 }
 
 /**
@@ -31,15 +31,16 @@ export function useSubscription(): SubscriptionInfo | null {
 
   React.useEffect(() => {
     let cancelled = false;
-    api.get<ApiEnvelope<BillingStatus>>("/api/v1/billing/status")
-      .then((r) => {
+    getBillingStatus()
+      .then((d) => {
         if (cancelled) return;
-        const d = r.data.data;
+        const trialEndsAt = d.trialEndsAt ?? null;
         setSub({
-          tier: d.tier,
-          status: d.status,
-          trialEndsAt: d.trialEndsAt ?? null,
-          daysLeftInTrial: daysUntil(d.trialEndsAt ?? null),
+          tier: d.tier ?? "",
+          status: d.status ?? "",
+          // Only a live trial has a countdown, matching the backend.
+          daysLeftInTrial: d.status === "TRIAL" ? daysUntil(trialEndsAt) : null,
+          trialEndsAt,
         });
       })
       .catch(() => { /* a plan chip is not worth a toast */ });
