@@ -23,13 +23,36 @@ function relativeTime(iso: string): string {
   return `${Math.floor(days / 365)}y ago`;
 }
 
-const GRID = "1fr 90px 200px 110px 80px 110px 120px";
+// Program | Tags | Equipment | Live Sync | Weeks | Most recent | actions.
+//
+// The fixed columns are deliberately tight. Beside the Library section pane
+// this list only gets ~940px, so every pixel spent here comes out of the
+// program name — the old widths left it ~144px including the cover tile, which
+// wrapped "8-Week Hypertrophy" over three lines. That was invisible while Tags
+// and Equipment were always a dash; real values made it obvious. The data cells
+// also truncate, so a long value can never spill into the name again.
+const GRID = "1fr 120px 150px 80px 60px 90px 84px";
 
 const iconBtn: React.CSSProperties = {
   width: 28, height: 28, padding: 0, border: "none", borderRadius: 6,
   background: "transparent", cursor: "pointer",
   display: "flex", alignItems: "center", justifyContent: "center", color: "var(--fg3)",
 };
+
+const listCell: React.CSSProperties = {
+  color: "var(--fg4)", fontSize: 12,
+  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+};
+
+/**
+ * Render a narrow list cell: the first two entries, plus a count of whatever is
+ * left. The full set is in the cell's title attribute.
+ */
+function summarise(values: string[] | null | undefined): string {
+  if (!values || values.length === 0) return "—";
+  const shown = values.slice(0, 2).join(", ");
+  return values.length > 2 ? `${shown} +${values.length - 2}` : shown;
+}
 
 export default function ProgramListView({
   programs, onOpen, onCreate, onEdit, onAssign, onDelete,
@@ -118,7 +141,7 @@ export default function ProgramListView({
         boxShadow: "var(--shadow-sm)", overflow: "hidden",
       }}>
         <div style={{
-          display: "grid", gridTemplateColumns: GRID, alignItems: "center", gap: 14,
+          display: "grid", gridTemplateColumns: GRID, alignItems: "center", gap: 12,
           padding: "11px 18px", borderBottom: "1px solid var(--border-subtle)", background: "#fff",
           fontSize: 10.5, fontWeight: 600, color: "var(--fg3)", textTransform: "uppercase", letterSpacing: "0.06em",
         }}>
@@ -175,7 +198,7 @@ function ProgramRow({
   return (
     <div onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)} onClick={() => onOpen(p)}
       style={{
-        display: "grid", gridTemplateColumns: GRID, alignItems: "center", gap: 14,
+        display: "grid", gridTemplateColumns: GRID, alignItems: "center", gap: 12,
         padding: "16px 18px", borderBottom: last ? "none" : "1px solid var(--border-subtle)",
         background: hov ? "var(--bg)" : "#fff", cursor: "pointer", transition: "background 100ms",
       }}>
@@ -195,10 +218,12 @@ function ProgramRow({
           }}>{p.description || "—"}</div>
         </div>
       </div>
-      <span style={{ color: "var(--fg4)", fontSize: 12 }}>
-        {p.tags && p.tags.length > 0 ? p.tags.slice(0, 2).join(", ") : "—"}
+      <span style={{ ...listCell }} title={p.tags?.join(", ")}>
+        {summarise(p.tags)}
       </span>
-      <span style={{ color: "var(--fg4)", fontSize: 12 }}>—</span>
+      <span style={{ ...listCell }} title={p.equipment?.join(", ")}>
+        {summarise(p.equipment)}
+      </span>
       <span style={{ color: "var(--fg4)", fontSize: 12, textAlign: "center" }}>—</span>
       <span style={{ color: "var(--fg2)", fontWeight: 600, fontSize: 13, fontVariantNumeric: "tabular-nums" }}>{weeks}w</span>
       <span style={{ color: "var(--fg3)", fontSize: 12 }}>{relativeTime(p.updatedAt)}</span>

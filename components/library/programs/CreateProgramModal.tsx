@@ -22,6 +22,7 @@ export interface ProgramFormPayload {
   weeks: number;
   modality: string;
   experienceLevel: string;
+  tags: string[];
   coverFile: File | null;
 }
 
@@ -72,6 +73,7 @@ export default function CreateProgramModal({
   const [weeks, setWeeks] = useState(1);
   const [modality, setModality] = useState("");
   const [experience, setExperience] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
   const [cover, setCover] = useState<{ name: string; url: string } | null>(null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [dragging, setDragging] = useState(false);
@@ -85,10 +87,11 @@ export default function CreateProgramModal({
       setWeeks(initial.weeks || Math.max(1, Math.ceil(initial.durationDays / 7)) || 1);
       setModality(initial.modality || "");
       setExperience(initial.experienceLevel || "");
+      setTags(initial.tags ?? []);
       setCover(initial.coverImageUrl ? { name: "Current cover", url: initial.coverImageUrl } : null);
     } else {
       setName(""); setDescription(""); setWeeks(1);
-      setModality(""); setExperience(""); setCover(null);
+      setModality(""); setExperience(""); setTags([]); setCover(null);
     }
     setCoverFile(null);
   }, [open, isEdit, initial]);
@@ -170,6 +173,10 @@ export default function CreateProgramModal({
               placeholder="Select Experience Level" options={EXPERIENCE_LEVELS} />
           </Field>
 
+          <Field label="Tags">
+            <TagsInput value={tags} onChange={setTags} />
+          </Field>
+
           <Field label="Cover Image (Optional)">
             <div
               onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
@@ -231,7 +238,7 @@ export default function CreateProgramModal({
             <span style={{ fontSize: 12, color: "var(--fg4)" }}>You can plan workouts after creating.</span>
           )}
           <button type="button" disabled={!canSubmit}
-            onClick={() => onSubmit({ name, description, weeks, modality, experienceLevel: experience, coverFile })}
+            onClick={() => onSubmit({ name, description, weeks, modality, experienceLevel: experience, tags, coverFile })}
             style={{
               background: canSubmit ? "var(--brand-primary)" : "var(--bg-subtle)",
               color: canSubmit ? "#fff" : "var(--fg4)",
@@ -244,6 +251,73 @@ export default function CreateProgramModal({
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Chip-style tag entry. Enter or comma commits the draft; Backspace on an empty
+ * field removes the last chip. Tags are stored as a plain string list on the
+ * program, so this normalises whitespace and rejects duplicates rather than
+ * letting "Strength" and "strength " both through.
+ */
+function TagsInput({ value, onChange }: { value: string[]; onChange: (next: string[]) => void }) {
+  const [draft, setDraft] = useState("");
+
+  const commit = (raw: string) => {
+    const tag = raw.trim().replace(/\s+/g, " ");
+    if (!tag) return;
+    if (value.some((t) => t.toLowerCase() === tag.toLowerCase())) { setDraft(""); return; }
+    onChange([...value, tag]);
+    setDraft("");
+  };
+
+  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" || e.key === ",") {
+      // The modal closes on Escape and submits on Enter elsewhere; keep both here.
+      e.preventDefault();
+      commit(draft);
+    } else if (e.key === "Backspace" && draft === "" && value.length > 0) {
+      onChange(value.slice(0, -1));
+    }
+  };
+
+  return (
+    <div style={{
+      ...modalInput, display: "flex", flexWrap: "wrap", alignItems: "center", gap: 6,
+      padding: "7px 8px", minHeight: 40,
+    }}>
+      {value.map((tag) => (
+        <span key={tag} style={{
+          display: "inline-flex", alignItems: "center", gap: 5,
+          padding: "3px 6px 3px 9px", borderRadius: 99,
+          background: "var(--bg-subtle)", border: "1px solid var(--border)",
+          fontSize: 12, color: "var(--fg2)",
+        }}>
+          {tag}
+          <button type="button" aria-label={`Remove ${tag}`}
+            onClick={() => onChange(value.filter((t) => t !== tag))}
+            style={{
+              display: "inline-flex", alignItems: "center", justifyContent: "center",
+              width: 16, height: 16, padding: 0, border: "none", borderRadius: 99,
+              background: "transparent", color: "var(--fg4)", cursor: "pointer",
+            }}>
+            <X size={11} />
+          </button>
+        </span>
+      ))}
+      <input
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={onKeyDown}
+        onBlur={() => commit(draft)}
+        placeholder={value.length === 0 ? "Add a tag and press Enter" : ""}
+        aria-label="Add a tag"
+        style={{
+          flex: 1, minWidth: 120, border: "none", outline: "none",
+          fontSize: 13, background: "transparent", color: "var(--fg1)",
+          fontFamily: "var(--font-sans)", padding: "3px 2px",
+        }} />
     </div>
   );
 }

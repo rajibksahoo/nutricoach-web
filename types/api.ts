@@ -1598,6 +1598,7 @@ export interface components {
             modality?: string;
             experienceLevel?: string;
             tags?: string[];
+            equipment?: string[];
             coverImageUrl?: string;
             coverGradient?: string;
             /** Format: date-time */
@@ -1957,6 +1958,7 @@ export interface components {
             clientId?: string;
             /** Format: uuid */
             workoutId?: string;
+            workoutName?: string;
             /** Format: date */
             date?: string;
             notes?: string;

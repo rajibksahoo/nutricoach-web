@@ -69,6 +69,7 @@ export default function ProgramsLibrary() {
         weeks: payload.weeks,
         modality: payload.modality || null,
         experienceLevel: payload.experienceLevel || null,
+        tags: payload.tags,
       };
       if (modalMode === "edit" && editTarget) {
         await updateProgram(editTarget.id, body);

@@ -54,6 +54,7 @@ export default function ProgramCalendarPage() {
         weeks: payload.weeks,
         modality: payload.modality || null,
         experienceLevel: payload.experienceLevel || null,
+        tags: payload.tags,
       };
       const updated = await updateProgram(id, body);
       if (payload.coverFile) await uploadProgramCover(id, payload.coverFile);
