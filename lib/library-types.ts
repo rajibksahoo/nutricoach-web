@@ -71,6 +71,8 @@ export interface ProgramSummary {
   tags?: string[] | null;
   /** Derived server-side from the exercises in the program's workouts. */
   equipment?: string[] | null;
+  /** A reusable blueprint the coach starts new programs from. */
+  isTemplate?: boolean;
   coverImageUrl?: string | null;
   coverGradient?: string | null;
   createdAt: string;

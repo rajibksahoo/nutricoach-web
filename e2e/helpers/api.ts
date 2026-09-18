@@ -5,10 +5,16 @@ export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080
 
 /**
  * A valid, unique Indian mobile number (matches the app's /^[6-9]\d{9}$/).
- * Timestamp-derived so re-runs don't collide on the backend's unique-phone rule.
+ *
+ * Timestamp *plus* randomness: a pure millisecond timestamp collides when
+ * parallel workers mint a coach in the same millisecond, and two concurrent
+ * demo-logins for one phone race on the unique-phone constraint. That surfaced
+ * as an occasional "demo-login failed: 500" once the suite grew past ~60 tests.
  */
 export function uniquePhone(): string {
-  return "9" + String(Date.now()).slice(-9);
+  const stamp = String(Date.now()).slice(-6);
+  const rand = String(Math.floor(Math.random() * 1000)).padStart(3, "0");
+  return "9" + stamp + rand;
 }
 
 /** A unique, human-readable name so parallel runs/re-runs never collide. */

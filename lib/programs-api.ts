@@ -11,8 +11,27 @@ export interface ProgramPayload {
   tags?: string[];
 }
 
-export async function listPrograms(): Promise<ProgramSummary[]> {
-  const { data } = await api.get<ApiEnvelope<ProgramSummary[]>>("/api/v1/library/programs");
+/**
+ * The coach's programs. `templates` picks a side of the is_template flag:
+ * the library lists real programs, the picker lists blueprints.
+ */
+export async function listPrograms(templates?: boolean): Promise<ProgramSummary[]> {
+  const { data } = await api.get<ApiEnvelope<ProgramSummary[]>>("/api/v1/library/programs",
+    templates === undefined ? undefined : { params: { templates } });
+  return data.data;
+}
+
+/** Promote a program to a reusable template, or demote it back. */
+export async function setProgramTemplate(id: string, isTemplate: boolean): Promise<ProgramSummary> {
+  const { data } = await api.put<ApiEnvelope<ProgramSummary>>(
+    `/api/v1/library/programs/${id}/template`, { isTemplate });
+  return data.data;
+}
+
+/** Start a new program from an existing one, copying its days. */
+export async function instantiateProgram(id: string, name?: string): Promise<ProgramSummary> {
+  const { data } = await api.post<ApiEnvelope<ProgramSummary>>(
+    `/api/v1/library/programs/${id}/instantiate`, { name: name ?? null });
   return data.data;
 }
 

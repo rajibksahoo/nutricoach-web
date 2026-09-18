@@ -132,6 +132,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/library/programs/{id}/template": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Mark a program as a reusable template, or demote it */
+        put: operations["setTemplate"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/library/programs/{id}/days/{dayNumber}": {
         parameters: {
             query?: never;
@@ -542,11 +559,34 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List all programs for the current coach */
+        /**
+         * List programs for the current coach
+         * @description templates=false (default) lists real programs, templates=true lists reusable templates; omit for both
+         */
         get: operations["list_3"];
         put?: never;
         /** Create a program */
         post: operations["create_2"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/library/programs/{id}/instantiate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start a new program from an existing one
+         * @description Deep-copies the program and its days. The copy is never itself a template.
+         */
+        post: operations["instantiate_1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1182,6 +1222,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/clients/{clientId}/progress/photos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get every progress photo for a client
+         * @description All photos across the client's progress logs, newest log first, each with a pre-signed download URL (valid 60 min)
+         */
+        get: operations["getPhotos"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/clients/{clientId}/progress/chart": {
         parameters: {
             query?: never;
@@ -1599,12 +1659,16 @@ export interface components {
             experienceLevel?: string;
             tags?: string[];
             equipment?: string[];
+            isTemplate?: boolean;
             coverImageUrl?: string;
             coverGradient?: string;
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
             updatedAt?: string;
+        };
+        SetProgramTemplateRequest: {
+            isTemplate: boolean;
         };
         SetProgramDayRequest: {
             /** Format: uuid */
@@ -2022,6 +2086,9 @@ export interface components {
             modality?: string;
             experienceLevel?: string;
             tags?: string[];
+        };
+        InstantiateProgramRequest: {
+            name?: string;
         };
         ProgramCoverUploadRequest: {
             contentType: string;
@@ -2606,6 +2673,24 @@ export interface components {
             /** Format: date-time */
             createdAt?: string;
         };
+        ApiResponseListClientPhotoResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["ClientPhotoResponse"][];
+            errorCode?: string;
+        };
+        ClientPhotoResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            progressLogId?: string;
+            /** Format: date */
+            loggedDate?: string;
+            photoType?: string;
+            downloadUrl?: string;
+            /** Format: date-time */
+            createdAt?: string;
+        };
     };
     responses: never;
     parameters: never;
@@ -2995,6 +3080,32 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseVoid"];
+                };
+            };
+        };
+    };
+    setTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetProgramTemplateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseProgramSummaryResponse"];
                 };
             };
         };
@@ -3798,7 +3909,9 @@ export interface operations {
     };
     list_3: {
         parameters: {
-            query?: never;
+            query?: {
+                templates?: boolean;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3826,6 +3939,32 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["CreateProgramRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseProgramSummaryResponse"];
+                };
+            };
+        };
+    };
+    instantiate_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["InstantiateProgramRequest"];
             };
         };
         responses: {
@@ -4781,6 +4920,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseDashboardOverviewResponse"];
+                };
+            };
+        };
+    };
+    getPhotos: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListClientPhotoResponse"];
                 };
             };
         };
