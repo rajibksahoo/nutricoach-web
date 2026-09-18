@@ -8,6 +8,7 @@ import { saveClientAuth } from "@/lib/client-auth";
 import Button from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Leaf } from "lucide-react";
+import { IS_DEV_MODE } from "@/lib/dev-mode";
 
 function ClientOtpForm() {
   const router = useRouter();
@@ -15,7 +16,7 @@ function ClientOtpForm() {
   const phone = searchParams.get("phone") ?? "";
   const coachId = searchParams.get("coach") ?? "";
 
-  const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === "true";
+  const isDevMode = IS_DEV_MODE;
   const DEV_OTP = "111111";
 
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);

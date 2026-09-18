@@ -46,14 +46,21 @@ function initialsFromName(name: string): string {
   return (parts[0]![0]! + parts[parts.length - 1]![0]!).toUpperCase();
 }
 
-// Real tier from the stored coach record — this line used to read
-// "Coach · Pro" for everyone, including trial accounts.
+// Real plan from the stored coach record — this line used to read
+// "Coach · Pro" for everyone, including trial accounts. Note trial-ness is a
+// *status*, not a tier (SubscriptionTier has no TRIAL member), so status wins.
 const TIER_LABELS: Record<string, string> = {
-  TRIAL: "Trial",
   STARTER: "Starter",
   PROFESSIONAL: "Professional",
   ENTERPRISE: "Enterprise",
 };
+
+function planLabel(coach: { subscriptionStatus?: string; subscriptionTier?: string } | null): string {
+  if (!coach) return "Coach";
+  if (coach.subscriptionStatus === "TRIAL") return "Coach · Trial";
+  const tier = coach.subscriptionTier ? TIER_LABELS[coach.subscriptionTier] : null;
+  return tier ? `Coach · ${tier}` : "Coach";
+}
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -158,9 +165,7 @@ export default function Sidebar() {
           <div className="text-[12.5px] font-medium text-white truncate">
             {coach?.name ?? "Coach"}
           </div>
-          <div className="text-[10.5px] text-slate-500 truncate">
-            {coach?.subscriptionTier ? `Coach · ${TIER_LABELS[coach.subscriptionTier] ?? "Coach"}` : "Coach"}
-          </div>
+          <div className="text-[10.5px] text-slate-500 truncate">{planLabel(coach)}</div>
         </div>
         <button
           onClick={handleLogout}

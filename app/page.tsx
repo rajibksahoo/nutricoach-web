@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { PLANS, formatRupees } from "@/lib/plans";
+import { LegalFooter } from "@/components/legal/LegalShell";
 import {
   Leaf,
   Users,
@@ -16,13 +18,6 @@ interface Feature {
   icon: React.ReactNode;
   title: string;
   description: string;
-}
-
-interface PricingPlan {
-  name: string;
-  price: string;
-  features: string[];
-  popular?: boolean;
 }
 
 // ── Data ─────────────────────────────────────────────────────────────────────
@@ -66,40 +61,6 @@ const FEATURES: Feature[] = [
   },
 ];
 
-const PLANS: PricingPlan[] = [
-  {
-    name: "Starter",
-    price: "₹999",
-    features: [
-      "Up to 25 clients",
-      "Meal plan builder",
-      "WhatsApp sharing",
-      "Email support",
-    ],
-  },
-  {
-    name: "Professional",
-    price: "₹2,499",
-    popular: true,
-    features: [
-      "Up to 100 clients",
-      "AI meal plan generation",
-      "Progress photos",
-      "Priority support",
-    ],
-  },
-  {
-    name: "Enterprise",
-    price: "₹4,999",
-    features: [
-      "Unlimited clients",
-      "Everything in Professional",
-      "Dedicated account manager",
-      "Custom branding",
-    ],
-  },
-];
-
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default function LandingPage() {
@@ -118,7 +79,7 @@ export default function LandingPage() {
           {/* Nav links */}
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
             <a href="#features" className="hover:text-slate-900 transition-colors">Features</a>
-            <a href="#pricing" className="hover:text-slate-900 transition-colors">Pricing</a>
+            <Link href="/pricing" className="hover:text-slate-900 transition-colors">Pricing</Link>
             <Link href="/login" className="hover:text-slate-900 transition-colors">Login</Link>
           </nav>
 
@@ -205,7 +166,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {PLANS.map((plan) => (
               <div
-                key={plan.name}
+                key={plan.tier}
                 className={`relative rounded-2xl border bg-white p-8 flex flex-col ${
                   plan.popular
                     ? "border-indigo-400 ring-2 ring-indigo-400 shadow-lg"
@@ -221,11 +182,12 @@ export default function LandingPage() {
                 )}
 
                 <div className="mb-6">
-                  <p className="font-semibold text-slate-900 mb-1">{plan.name}</p>
+                  <p className="font-semibold text-slate-900 mb-1">{plan.label}</p>
                   <p className="text-4xl font-extrabold text-slate-900">
-                    {plan.price}
+                    {formatRupees(plan.priceRupees)}
                     <span className="text-base font-normal text-slate-400">/mo</span>
                   </p>
+                  <p className="text-xs text-slate-400 mt-1">Plus 18% GST</p>
                 </div>
 
                 <ul className="space-y-3 flex-1 mb-8">
@@ -254,9 +216,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Footer ─────────────────────────────────────────────────────── */}
-      <footer className="py-8 px-6 border-t border-slate-100 text-center text-sm text-slate-400">
-        © 2026 NutriCoach · Built for Indian nutrition professionals
-      </footer>
+      <LegalFooter />
     </div>
   );
 }

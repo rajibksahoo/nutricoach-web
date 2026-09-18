@@ -112,6 +112,7 @@ function splitTags(value: string): string[] {
   return value.split(",").map((s) => s.trim()).filter(Boolean);
 }
 import ErrorState from "@/components/ui/ErrorState";
+import { IS_DEV_MODE } from "@/lib/dev-mode";
 
 
 // ─── Settings tab ─────────────────────────────────────────────────────────────
@@ -247,7 +248,7 @@ export default function ClientSettingsTab({
       <div className="flex items-center justify-end gap-2">
         {!editing ? (
           <>
-            {process.env.NEXT_PUBLIC_DEV_MODE === "true" && coachId && (
+            {IS_DEV_MODE && coachId && (
               <a
                 href={`/portal/login?coach=${coachId}&phone=${client.phone}`}
                 target="_blank"

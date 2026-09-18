@@ -13,7 +13,8 @@ test("coach can log in via OTP", async ({ page }) => {
   await login.requestOtp(uniquePhone());
   await login.enterOtp("111111"); // dev-mode bypass OTP
   await login.submitOtp();
-  await expect(page).toHaveURL(/.*dashboard/);
+  // A fresh phone is a brand-new coach, so login lands on the setup flow.
+  await expect(page).toHaveURL(/.*onboarding/);
 });
 
 test("invalid OTP is rejected", async ({ page }) => {
