@@ -244,6 +244,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/clients/{clientId}/check-ins/{checkInId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Edit a check-in
+         * @description Partial update. Use coachNotes to reply to a check-in the client submitted — it could previously only be set at creation.
+         */
+        put: operations["update_5"];
+        post?: never;
+        /**
+         * Remove a check-in
+         * @description Soft delete; it disappears from history, the activity feed and the overdue calculation
+         */
+        delete: operations["delete_5"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/portal/workouts/complete": {
         parameters: {
             query?: never;
@@ -1949,6 +1973,32 @@ export interface components {
             /** Format: date-time */
             updatedAt?: string;
         };
+        UpdateCheckInRequest: {
+            /** Format: int32 */
+            adherencePercent?: number;
+            clientNotes?: string;
+            coachNotes?: string;
+        };
+        ApiResponseCheckInResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["CheckInResponse"];
+            errorCode?: string;
+        };
+        CheckInResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            clientId?: string;
+            /** Format: uuid */
+            mealPlanId?: string;
+            /** Format: date */
+            checkInDate?: string;
+            /** Format: int32 */
+            adherencePercent?: number;
+            clientNotes?: string;
+            coachNotes?: string;
+        };
         CompleteWorkoutRequest: {
             /** Format: uuid */
             workoutId: string;
@@ -2041,26 +2091,6 @@ export interface components {
             checkInDate: string;
             /** Format: uuid */
             mealPlanId: string;
-            /** Format: int32 */
-            adherencePercent?: number;
-            clientNotes?: string;
-            coachNotes?: string;
-        };
-        ApiResponseCheckInResponse: {
-            success?: boolean;
-            message?: string;
-            data?: components["schemas"]["CheckInResponse"];
-            errorCode?: string;
-        };
-        CheckInResponse: {
-            /** Format: uuid */
-            id?: string;
-            /** Format: uuid */
-            clientId?: string;
-            /** Format: uuid */
-            mealPlanId?: string;
-            /** Format: date */
-            checkInDate?: string;
             /** Format: int32 */
             adherencePercent?: number;
             clientNotes?: string;
@@ -3546,6 +3576,56 @@ export interface operations {
             path: {
                 clientId: string;
                 noteId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseVoid"];
+                };
+            };
+        };
+    };
+    update_5: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+                checkInId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateCheckInRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseCheckInResponse"];
+                };
+            };
+        };
+    };
+    delete_5: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+                checkInId: string;
             };
             cookie?: never;
         };

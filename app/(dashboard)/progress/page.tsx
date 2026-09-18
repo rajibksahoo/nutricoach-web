@@ -31,7 +31,11 @@ interface CheckIn {
   id: string;
   checkInDate: string;
   adherencePercent: number;
-  notes: string | null;
+  /** What the client wrote. The old local type called this `notes`, which the
+   *  API never returns, so it silently rendered nothing. */
+  clientNotes: string | null;
+  /** The coach's reply, shown to the client in their portal. */
+  coachNotes: string | null;
 }
 
 interface Photo {
@@ -50,6 +54,7 @@ export default function ProgressPage() {
   const [tab, setTab] = useState<Tab>("Progress Logs");
   const [logs, setLogs] = useState<ProgressLog[]>([]);
   const [checkIns, setCheckIns] = useState<CheckIn[]>([]);
+  const [reloadKey, setReloadKey] = useState(0);
   const [loadingClients, setLoadingClients] = useState(true);
   const [loadingData, setLoadingData] = useState(false);
   const [showLogForm, setShowLogForm] = useState(false);
@@ -85,7 +90,7 @@ export default function ProgressPage() {
       })
       .catch(() => toast.error("Failed to load data"))
       .finally(() => setLoadingData(false));
-  }, [selectedClient, tab]);
+  }, [selectedClient, tab, reloadKey]);
 
   useEffect(() => {
     if (tab !== "Chart" || !selectedClient) return;
@@ -217,7 +222,11 @@ export default function ProgressPage() {
             ) : tab === "Progress Logs" ? (
               <ProgressLogList logs={logs} />
             ) : tab === "Check-ins" ? (
-              <CheckInList checkIns={checkIns} />
+              <CheckInList
+                checkIns={checkIns}
+                clientId={selectedClient?.id ?? ""}
+                onChanged={() => setReloadKey((k) => k + 1)}
+              />
             ) : (
               <PhotosPanel
                 clientId={selectedClient!.id}
@@ -456,12 +465,16 @@ function ProgressLogList({ logs }: { logs: ProgressLog[] }) {
 
 /* ── Check-in List ─────────────────────────────────────────────── */
 
-function CheckInList({ checkIns }: { checkIns: CheckIn[] }) {
+function CheckInList({ checkIns, clientId, onChanged }: {
+  checkIns: CheckIn[];
+  clientId: string;
+  onChanged: () => void;
+}) {
   if (checkIns.length === 0) {
     return (
       <Card>
         <CardContent className="text-center py-12 text-slate-400 text-sm">
-          No check-ins yet. Click "Add Check-in" to record one.
+          No check-ins yet. Click &quot;Add Check-in&quot; to record one.
         </CardContent>
       </Card>
     );
@@ -470,22 +483,119 @@ function CheckInList({ checkIns }: { checkIns: CheckIn[] }) {
   return (
     <div className="space-y-2">
       {checkIns.map((ci) => (
-        <Card key={ci.id}>
-          <CardContent className="flex items-center justify-between py-3.5">
-            <div className="flex items-center gap-3">
-              <div className="p-1.5 bg-indigo-50 rounded-lg">
-                <CheckSquare className="w-4 h-4 text-indigo-600" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-slate-900">{formatDate(ci.checkInDate)}</p>
-                {ci.notes && <p className="text-xs text-slate-400 mt-0.5">{ci.notes}</p>}
-              </div>
-            </div>
-            <AdherenceBadge value={ci.adherencePercent} />
-          </CardContent>
-        </Card>
+        <CheckInCard key={ci.id} checkIn={ci} clientId={clientId} onChanged={onChanged} />
       ))}
     </div>
+  );
+}
+
+/**
+ * One check-in, with the coach's reply.
+ *
+ * Replying is the point: a client can submit a check-in from their portal, and
+ * until now `coachNotes` could only be set when the coach created one — so a
+ * client-submitted check-in was a message into a void. The portal has always
+ * rendered the reply.
+ */
+function CheckInCard({ checkIn: ci, clientId, onChanged }: {
+  checkIn: CheckIn;
+  clientId: string;
+  onChanged: () => void;
+}) {
+  const [replying, setReplying] = useState(false);
+  const [text, setText] = useState(ci.coachNotes ?? "");
+  const [busy, setBusy] = useState(false);
+
+  async function saveReply() {
+    setBusy(true);
+    try {
+      await api.put(`/api/v1/clients/${clientId}/check-ins/${ci.id}`, {
+        coachNotes: text.trim(),
+      });
+      toast.success("Reply saved");
+      setReplying(false);
+      onChanged();
+    } catch (e: any) {
+      toast.error(e.response?.data?.message ?? "Couldn't save the reply");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function remove() {
+    if (!confirm(`Remove the check-in from ${formatDate(ci.checkInDate)}?`)) return;
+    try {
+      await api.delete(`/api/v1/clients/${clientId}/check-ins/${ci.id}`);
+      toast.success("Check-in removed");
+      onChanged();
+    } catch (e: any) {
+      toast.error(e.response?.data?.message ?? "Couldn't remove the check-in");
+    }
+  }
+
+  return (
+    <Card>
+      <CardContent className="py-3.5 space-y-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-1.5 bg-indigo-50 rounded-lg">
+              <CheckSquare className="w-4 h-4 text-indigo-600" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-slate-900">{formatDate(ci.checkInDate)}</p>
+              {ci.clientNotes && (
+                <p className="text-xs text-slate-500 mt-0.5">{ci.clientNotes}</p>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <AdherenceBadge value={ci.adherencePercent} />
+            <button
+              onClick={remove}
+              aria-label={`Remove check-in from ${formatDate(ci.checkInDate)}`}
+              className="p-1.5 rounded-md text-slate-400 hover:bg-slate-50 hover:text-slate-600"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+
+        {replying ? (
+          <div className="pl-11 space-y-2">
+            <textarea
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              rows={2}
+              autoFocus
+              aria-label="Reply to this check-in"
+              placeholder="Your client sees this in their portal"
+              className="w-full px-2.5 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+            <div className="flex justify-end gap-2">
+              <Button size="sm" variant="secondary" onClick={() => { setText(ci.coachNotes ?? ""); setReplying(false); }}>
+                Cancel
+              </Button>
+              <Button size="sm" onClick={saveReply} loading={busy}>Save reply</Button>
+            </div>
+          </div>
+        ) : ci.coachNotes ? (
+          <div className="pl-11 flex items-start justify-between gap-2">
+            <p className="text-xs text-indigo-700 bg-indigo-50 rounded-md px-2.5 py-1.5 flex-1">
+              <span className="font-medium">You:</span> {ci.coachNotes}
+            </p>
+            <button onClick={() => setReplying(true)} className="text-xs text-slate-400 hover:text-slate-600 shrink-0 pt-1.5">
+              Edit
+            </button>
+          </div>
+        ) : (
+          <div className="pl-11">
+            <button onClick={() => setReplying(true)} className="text-xs text-indigo-600 hover:text-indigo-700 font-medium">
+              Reply to this check-in
+            </button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
