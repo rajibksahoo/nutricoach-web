@@ -1,6 +1,6 @@
 # NutriCoach Web — Design System
 
-> **Source of truth:** the Claude Design bundle at `nutricoach-workout-builder/` (extracted locally at `C:\Users\rajib\AppData\Local\Temp\design\nutricoach-workout-builder\`). Tokens below mirror that bundle's `colors_and_type.css`. When the bundle and this file disagree, the bundle wins — update this file.
+> **Source of truth:** this file. It was derived from the Claude Design bundle's `colors_and_type.css`, but that bundle lived in a temp directory and is no longer on disk - so the tokens here are what new work follows.
 >
 > Brand migration is **complete** as of `feat/design-polish` — every screen consumes the indigo + teal token set. Earlier "legacy" notes referring to emerald are kept here for historical context only.
 
@@ -157,7 +157,7 @@ Anti-aliasing: `-webkit-font-smoothing: antialiased` globally.
 1. Dashboard — `LayoutDashboard`
 2. Clients — `Users`
 3. Meal plans — `Utensils`
-4. Library — `BookOpen` (active prefix matches `/library` and `/workout-builder`)
+4. Library — `BookOpen` (active prefix matches `/library`)
 5. Progress — `TrendingUp`
 6. Messaging — `MessageCircle` (badge = unread count)
 7. Billing — `CreditCard`
