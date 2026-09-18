@@ -12,11 +12,9 @@ import {
 } from "lucide-react";
 import api from "@/lib/api";
 import { cn } from "@/lib/utils";
-import {
-  WORKOUT_TEMPLATES,
-  TEMPLATE_THUMB_COLOR,
-  type WorkoutTemplate,
-} from "@/lib/library-categories";
+import { TEMPLATE_THUMB_COLOR } from "@/lib/library-categories";
+import { listWorkoutTemplates, instantiateTemplate } from "@/lib/workout-builder-api";
+import type { WorkoutTemplate } from "@/lib/workout-types";
 import type { ApiEnvelope, WorkoutSummary, WorkoutSectionType } from "@/lib/library-types";
 
 type Step = "chooser" | "template" | "blank";
@@ -182,34 +180,54 @@ function TemplatePickerCard({
   onBack: () => void;
   onCreated: (id: string) => void;
 }) {
+  // Templates come from the server. They used to come from a hardcoded array
+  // that only *looked* like the real catalogue: selecting one created an empty
+  // workout with just the name and description, silently discarding the
+  // sections and exercises shown in the preview.
+  const [templates, setTemplates] = useState<WorkoutTemplate[] | null>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
   const [q, setQ] = useState("");
-  const [pickedId, setPickedId] = useState<string>(WORKOUT_TEMPLATES[0]?.id ?? "");
+  const [pickedId, setPickedId] = useState<string>("");
   const [creating, setCreating] = useState(false);
 
+  useEffect(() => {
+    let cancelled = false;
+    listWorkoutTemplates()
+      .then((rows) => {
+        if (cancelled) return;
+        setTemplates(rows);
+        setPickedId(rows[0]?.id ?? "");
+      })
+      .catch((e) => {
+        console.error(e);
+        if (cancelled) return;
+        setLoadFailed(true);
+        setTemplates([]);
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  const rows = templates ?? [];
   const filtered = useMemo(
     () =>
-      WORKOUT_TEMPLATES.filter((t) =>
+      rows.filter((t) =>
         !q ||
         t.name.toLowerCase().includes(q.toLowerCase()) ||
         t.description.toLowerCase().includes(q.toLowerCase()),
       ),
-    [q],
+    [rows, q],
   );
-  const picked =
-    WORKOUT_TEMPLATES.find((t) => t.id === pickedId) ?? filtered[0] ?? null;
+  const picked = rows.find((t) => t.id === pickedId) ?? filtered[0] ?? null;
 
   function handleSelect() {
     if (!picked) return;
     setCreating(true);
-    api
-      .post<ApiEnvelope<WorkoutSummary>>("/api/v1/library/workouts", {
-        name: picked.name,
-        description: picked.description,
-        estimatedDurationMinutes: null,
-      })
-      .then((r) => {
+    // instantiate copies the template's sections and exercises into the coach's
+    // library, creating any exercises they don't have yet.
+    instantiateTemplate(picked.id)
+      .then((w) => {
         toast.success("Workout created from template");
-        onCreated(r.data.data.id);
+        onCreated(w.id);
       })
       .catch((err) =>
         toast.error(err.response?.data?.message ?? "Failed to create workout"),
@@ -279,7 +297,7 @@ function TemplatePickerCard({
               padding: "6px 8px",
             }}
           >
-            Most popular ({filtered.length})
+            Most popular {templates === null ? "" : `(${filtered.length})`}
           </span>
         </div>
 
@@ -313,12 +331,24 @@ function TemplatePickerCard({
               </button>
             );
           })}
-          {filtered.length === 0 && (
+          {templates === null && (
             <div
               className="text-center text-slate-400"
               style={{ padding: "30px 16px", fontSize: 12 }}
             >
-              No templates match.
+              Loading templates…
+            </div>
+          )}
+          {templates !== null && filtered.length === 0 && (
+            <div
+              className="text-center text-slate-400"
+              style={{ padding: "30px 16px", fontSize: 12 }}
+            >
+              {loadFailed
+                ? "Couldn't load templates. Start from blank instead."
+                : rows.length === 0
+                  ? "No templates available."
+                  : "No templates match."}
             </div>
           )}
         </div>
