@@ -232,6 +232,17 @@ Two-column screen: a 280px white sub-pane (search + alphabetical list) on the le
 - Implemented in `components/messages/InboxScreen.tsx`. Static `INBOX_THREADS` fixture; client metadata (name, avatarTone, notes, updates) is enriched from `components/clients/data.ts` so the right pane lights up with real client context when both screens are loaded together.
 - Both `/clients` and `/messages` are added to the dashboard's `fullBleed` path list so the screens fill the main column without the centered wrapper.
 
+### Meal Plans & Progress — sub-pane + right column
+
+`/meal-plans` and `/progress` follow the Clients shape: `display: grid; gridTemplateColumns: "280px 1fr"`, `min-height: 100vh`, `background: var(--bg)`.
+
+- **Client rail** — `components/coach/ClientRail.tsx`, shared by both screens (Clients keeps its own, which also carries search/sort). 280px, `var(--surface)`, right border, eyebrow + 22px Inter Display XL title, rows with a 36px `ClientAvatar` + name + phone, selected row tinted `--brand-primary-50` with the name in brand colour, footer showing the client count.
+- **Header band** — `components/coach/ScreenHeader.tsx`: `padding: 24px 28px 18px` (`24px 28px 0` when it hosts a tab strip), `border-bottom: 1px solid var(--border)` over `var(--surface)`; 10px uppercase eyebrow, 22px `h1`, optional subtitle, right-aligned actions.
+- **Body** — `SCREEN_BODY` in `components/coach/chrome.tsx`: `padding: 20px 28px 60px; display: grid; gap: 20`.
+- **Tabs** — Progress uses `UnderlineTabs` (same indigo bottom-border idiom as the Clients detail header), replacing the old `bg-slate-100` pill group. The meal-plan builder uses the same treatment for its day tabs, with a dashed `Add Day` pill trailing the strip.
+- **Detail** — `/meal-plans/{id}` has no rail; it opens with a `BackBar` ("Back to meal plans", `padding: 10px 22px`, matching `library/workouts/[id]`) above the header band.
+- `/meal-plans` (with its `[id]` route) and `/progress` are in the `fullBleed` list.
+
 ### Auth pages
 
 Centered card, no sidebar. White card, `--radius-xl`, `--shadow-sm`, `max-w-sm mx-auto`, `padding: var(--space-8)` over `--bg`.
