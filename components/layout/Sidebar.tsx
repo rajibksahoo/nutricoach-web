@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { clearAuth, getCoach } from "@/lib/auth";
+import { resetAnalytics } from "@/lib/analytics";
 import type { CoachUser } from "@/lib/auth";
 import { listConversations } from "@/lib/messaging-api";
 import { cn } from "@/lib/utils";
@@ -86,6 +87,7 @@ export default function Sidebar() {
 
   function handleLogout() {
     clearAuth();
+    resetAnalytics();
     router.push("/login");
   }
 

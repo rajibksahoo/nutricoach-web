@@ -1,4 +1,5 @@
 import api from "@/lib/api";
+import { track } from "@/lib/analytics";
 
 // ─── Backend types ─────────────────────────────────────────────────────
 // Mirror MessageController's DTO shapes from the Spring Boot module.
@@ -44,6 +45,8 @@ export async function sendMessage(clientId: string, content: string): Promise<Ba
     `/api/v1/messages/clients/${clientId}`,
     { content },
   );
+  // Length only. What a coach wrote to a client is never analytics data.
+  track("message_sent", { length: content.length });
   return r.data.data;
 }
 

@@ -9,6 +9,7 @@ import Spinner from "@/components/ui/Spinner";
 import ErrorState from "@/components/ui/ErrorState";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { PLANS, formatRupees, tierRank } from "@/lib/plans";
+import { track } from "@/lib/analytics";
 import {
   getBillingStatus, subscribe, cancelSubscription, pollUntilActive,
   RAZORPAY_KEY_ID, type BillingStatus,
@@ -58,6 +59,7 @@ export default function BillingPage() {
     }
 
     setBusyTier(tier);
+    track("checkout_started", { tier });
     let status: BillingStatus;
     try {
       status = await subscribe(tier);
@@ -94,10 +96,14 @@ export default function BillingPage() {
         // Razorpay captured the payment; our webhook flips the tier.
         setAwaitingPayment(true);
         setBusyTier(null);
+        // Fired here, not on the Razorpay handler alone: the webhook is the
+        // source of truth for activation, so "paid" and "active" are different
+        // events and conflating them would overcount revenue.
         pollUntilActive(previous)
           .then((next) => {
             if (next) {
               setData(next);
+              track("subscription_activated", { tier });
               toast.success("Payment received, your plan is active");
             } else {
               toast.success("Payment received. Activation can take a minute, refresh shortly.");
