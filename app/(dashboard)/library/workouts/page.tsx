@@ -6,7 +6,6 @@ import toast from "react-hot-toast";
 import {
   Plus,
   Search,
-  SlidersHorizontal,
   Tag as TagIcon,
   ClipboardList,
   Activity,
@@ -22,7 +21,6 @@ import {
   Send,
   Trash2,
   X,
-  Sparkles,
 } from "lucide-react";
 import api from "@/lib/api";
 import Spinner from "@/components/ui/Spinner";
@@ -245,24 +243,6 @@ export default function WorkoutsPage() {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => toast("Tag browser coming soon")}
-            className="inline-flex items-center gap-1.5 px-3 py-[7px] text-[12.5px] font-medium text-slate-700 bg-white border border-slate-200 rounded-md hover:bg-slate-50"
-          >
-            <TagIcon className="w-3.5 h-3.5" />
-            Tags
-          </button>
-          <button
-            type="button"
-            onClick={() => toast("NutriCoach AI coming soon")}
-            className="inline-flex items-center gap-1.5 px-3 py-[7px] text-[12.5px] font-semibold rounded-md shadow-sm text-amber-900 border border-amber-500"
-            style={{ background: "linear-gradient(135deg, #FCD34D 0%, #F59E0B 100%)" }}
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            NutriCoach AI
-          </button>
-          <div className="w-px h-5 bg-slate-200 mx-0.5" />
-          <button
-            type="button"
             onClick={() => setShowModal(true)}
             className="inline-flex items-center gap-1.5 px-3 py-[7px] text-[12.5px] font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 shadow-sm"
           >
@@ -288,15 +268,6 @@ export default function WorkoutsPage() {
             style={{ padding: "7px 12px 7px 32px", fontSize: 12.5 }}
           />
         </div>
-        <button
-          type="button"
-          onClick={() => toast("More filters coming soon")}
-          className="inline-flex items-center gap-1.5 text-slate-700 bg-white border border-slate-200 rounded-md hover:bg-slate-50"
-          style={{ padding: "5px 9px", fontSize: 12, fontWeight: 500 }}
-        >
-          <SlidersHorizontal className="w-3 h-3" />
-          Filter
-        </button>
         <div className="ml-auto text-[11.5px] text-slate-500">
           {filtered.length.toLocaleString()} of {rows.length.toLocaleString()} workouts
         </div>
@@ -583,15 +554,6 @@ export default function WorkoutsPage() {
           >
             <Copy className="w-3 h-3" />
             Duplicate
-          </button>
-          <button
-            type="button"
-            onClick={() => toast("Tag coming soon")}
-            className="inline-flex items-center gap-1 text-slate-200 hover:text-white"
-            style={{ fontSize: 12, fontWeight: 500 }}
-          >
-            <TagIcon className="w-3 h-3" />
-            Tag
           </button>
           <button
             type="button"

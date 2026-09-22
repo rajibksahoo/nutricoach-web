@@ -5,10 +5,10 @@ import {
   Leaf,
   Users,
   UtensilsCrossed,
-  MessageCircle,
-  Sparkles,
   TrendingUp,
-  CreditCard,
+  Dumbbell,
+  CalendarRange,
+  Smartphone,
   Check,
 } from "lucide-react";
 
@@ -22,42 +22,53 @@ interface Feature {
 
 // ── Data ─────────────────────────────────────────────────────────────────────
 
+/**
+ * The launch persona is the fitness coach, so these lead with what is actually
+ * deep in the product — the exercise library, the workout builder and the
+ * multi-week program planner — rather than the nutrition surface the copy used
+ * to promise. Meal plans stay, reframed as the thing that sets this apart from
+ * a pure training tool, which is true and is the honest order.
+ *
+ * Every card must describe something a coach can do today. The old "Razorpay
+ * Billing" card read as "collect fees from your clients", which the product
+ * does not do — subscriptions are coach-tier only.
+ */
 const FEATURES: Feature[] = [
   {
     icon: <Users className="w-6 h-6 text-indigo-600" />,
     title: "Client Management",
     description:
-      "Track all your clients in one place with detailed health profiles, goal tracking, and status filters.",
+      "Track every client in one place with health profiles, goals, notes and status filters.",
   },
   {
-    icon: <UtensilsCrossed className="w-6 h-6 text-indigo-600" />,
-    title: "Meal Plan Builder",
+    icon: <Dumbbell className="w-6 h-6 text-indigo-600" />,
+    title: "Workout Builder",
     description:
-      "Create detailed 7-day Indian meal plans with nutrition auto-calculation for every item.",
+      "Build a library of exercises and assemble them into workouts with sections, sets and reps.",
   },
   {
-    icon: <MessageCircle className="w-6 h-6 text-indigo-600" />,
-    title: "WhatsApp Sharing",
+    icon: <CalendarRange className="w-6 h-6 text-indigo-600" />,
+    title: "Multi-Week Programs",
     description:
-      "Share meal plans directly to your clients' WhatsApp with one click.",
-  },
-  {
-    icon: <Sparkles className="w-6 h-6 text-indigo-600" />,
-    title: "AI Generation",
-    description:
-      "Generate personalized Indian meal plans instantly using GPT-4o.",
+      "Plan 1, 2 or 4-week programs on a drag-and-drop calendar and assign them to clients in one click.",
   },
   {
     icon: <TrendingUp className="w-6 h-6 text-indigo-600" />,
     title: "Progress Tracking",
     description:
-      "Log measurements, photos, and adherence scores. Chart your clients' progress over time.",
+      "Log measurements, photos and check-ins. Chart weight and body fat over time, per client.",
   },
   {
-    icon: <CreditCard className="w-6 h-6 text-indigo-600" />,
-    title: "Razorpay Billing",
+    icon: <UtensilsCrossed className="w-6 h-6 text-indigo-600" />,
+    title: "Meal Plans Too",
     description:
-      "Accept payments in ₹ via UPI and cards. Automated GST invoicing included.",
+      "Build 7-day Indian meal plans alongside training — or generate one with AI on the Professional plan.",
+  },
+  {
+    icon: <Smartphone className="w-6 h-6 text-indigo-600" />,
+    title: "Your Clients' App",
+    description:
+      "Clients get their own login to see workouts, log check-ins and message you — plus WhatsApp reminders.",
   },
 ];
 
@@ -97,12 +108,14 @@ export default function LandingPage() {
       <section className="py-24 px-6 text-center bg-gradient-to-b from-indigo-50/60 to-white">
         <div className="max-w-3xl mx-auto">
           <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 leading-tight tracking-tight">
-            The nutrition platform built for{" "}
-            <span className="text-indigo-600">Indian coaches</span>
+            Everything an Indian{" "}
+            <span className="text-indigo-600">fitness coach</span> needs to run
+            their practice
           </h1>
           <p className="mt-5 text-lg text-slate-500 leading-relaxed">
-            Manage clients, create personalized meal plans, and grow your
-            practice — all in one place.
+            Build workouts and multi-week programs, track every client&apos;s
+            progress, and message them where they already are — with meal plans
+            built in when you need them.
           </p>
 
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -133,7 +146,7 @@ export default function LandingPage() {
             Everything you need to run your practice
           </h2>
           <p className="text-center text-slate-500 mb-12 text-base">
-            Built specifically for the Indian nutrition coaching market.
+            Built specifically for coaches and personal trainers in India.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">

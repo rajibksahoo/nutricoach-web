@@ -5,8 +5,6 @@ import toast from "react-hot-toast";
 import {
   Plus,
   Search,
-  SlidersHorizontal,
-  Tag as TagIcon,
   Trash2,
   Pencil,
   Copy,
@@ -18,7 +16,6 @@ import {
   Dumbbell,
   HeartPulse,
   Clock,
-  MoreHorizontal,
   type LucideIcon,
 } from "lucide-react";
 import api from "@/lib/api";
@@ -30,12 +27,13 @@ import { CATEGORIES, getCategory, normalizeExercise, type CategoryKey } from "@/
 
 const PAGE_SIZE = 25;
 
-const MUSCLE_QUICK = [
-  "Full body", "Shoulders", "Lower back", "Hip & groin",
-  "Quads", "Hamstrings", "Lower leg", "Glutes",
-];
-const MUSCLE_MORE = [
-  "Chest", "Mid back", "Upper back", "Biceps", "Triceps", "Core",
+// One list. This used to be a short "quick" set plus a "+6 more" chip that
+// only raised a toast, so Chest, Biceps and Core were unreachable filters. The
+// row already scrolls horizontally, so showing all of them costs nothing.
+const MUSCLES = [
+  "Full body", "Shoulders", "Chest", "Upper back", "Mid back", "Lower back",
+  "Core", "Biceps", "Triceps", "Hip & groin", "Quads", "Hamstrings",
+  "Lower leg", "Glutes",
 ];
 
 function rowIconFor(ex: Exercise): LucideIcon {
@@ -205,24 +203,6 @@ export default function ExercisesPage() {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => toast("Tag browser coming soon")}
-            className="inline-flex items-center gap-1.5 px-3 py-[7px] text-[12.5px] font-medium text-slate-700 bg-white border border-slate-200 rounded-md hover:bg-slate-50"
-          >
-            <TagIcon className="w-3.5 h-3.5" />
-            Tags
-          </button>
-          <button
-            type="button"
-            onClick={() => toast("NutriCoach AI coming soon")}
-            className="inline-flex items-center gap-1.5 px-3 py-[7px] text-[12.5px] font-semibold rounded-md shadow-sm text-amber-900 border border-amber-500"
-            style={{ background: "linear-gradient(135deg, #FCD34D 0%, #F59E0B 100%)" }}
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            NutriCoach AI
-          </button>
-          <div className="w-px h-5 bg-slate-200 mx-0.5" />
-          <button
-            type="button"
             onClick={() => { setEditing(null); setShowModal(true); }}
             className="inline-flex items-center gap-1.5 px-3 py-[7px] text-[12.5px] font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 shadow-sm"
           >
@@ -252,15 +232,6 @@ export default function ExercisesPage() {
               ⌘K
             </kbd>
           </div>
-          <button
-            type="button"
-            onClick={() => toast("More filters coming soon")}
-            className="inline-flex items-center gap-1.5 text-slate-700 bg-white border border-slate-200 rounded-md hover:bg-slate-50"
-            style={{ padding: "5px 9px", fontSize: 12, fontWeight: 500 }}
-          >
-            <SlidersHorizontal className="w-3 h-3" />
-            More filters
-          </button>
           <label className="inline-flex items-center gap-1.5 text-[12px] text-slate-600 cursor-pointer ml-1">
             <input
               type="checkbox"
@@ -307,18 +278,13 @@ export default function ExercisesPage() {
               All
             </Chip>
           </div>
-          {MUSCLE_QUICK.map((m) => (
+          {MUSCLES.map((m) => (
             <div key={m} className="shrink-0">
               <Chip active={activeMuscle === m} onClick={() => setActiveMuscle(m)}>
                 {m}
               </Chip>
             </div>
           ))}
-          <div className="shrink-0">
-            <Chip onClick={() => toast("More muscle filters coming soon")}>
-              +{MUSCLE_MORE.length} more <ChevronDown className="w-3 h-3" />
-            </Chip>
-          </div>
         </div>
       </div>
 
@@ -453,13 +419,6 @@ export default function ExercisesPage() {
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
-                          <button
-                            onClick={() => toast("Row actions coming soon")}
-                            className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded"
-                            title="More"
-                          >
-                            <MoreHorizontal className="w-4 h-4" />
-                          </button>
                         </div>
                       </Td>
                     </tr>
@@ -507,22 +466,6 @@ export default function ExercisesPage() {
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 px-3.5 py-2 rounded-xl bg-slate-900 text-white shadow-lg">
           <span className="text-[12.5px] font-medium">{selected.size} selected</span>
           <span className="w-px h-4 bg-slate-700" />
-          <button
-            type="button"
-            onClick={() => toast("Add to workout coming soon")}
-            className="inline-flex items-center gap-1.5 px-2 py-1 text-[12px] font-medium text-slate-100 hover:bg-slate-800 rounded"
-          >
-            <Plus className="w-3 h-3" />
-            Add to workout
-          </button>
-          <button
-            type="button"
-            onClick={() => toast("Bulk tag coming soon")}
-            className="inline-flex items-center gap-1.5 px-2 py-1 text-[12px] font-medium text-slate-100 hover:bg-slate-800 rounded"
-          >
-            <TagIcon className="w-3 h-3" />
-            Tag
-          </button>
           <button
             type="button"
             onClick={() => handleDelete(Array.from(selected))}

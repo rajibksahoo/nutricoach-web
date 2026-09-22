@@ -13,14 +13,10 @@ import {
   Dumbbell,
   GripVertical,
   Heart,
-  MoreHorizontal,
   Move,
   Pencil,
   Plus,
   Search,
-  Send,
-  Sparkles,
-  Tag as TagIcon,
   Target,
   Trash2,
   X,
@@ -325,11 +321,6 @@ export default function WorkoutEditorPage() {
           <ArrowLeft className="w-3.5 h-3.5" />
           Back to workouts
         </button>
-        <div className="flex items-center gap-1.5">
-          <IconBtn title="Tags" Icon={TagIcon} onClick={() => toast("Tag browser coming soon")} />
-          <IconBtn title="Share" Icon={Send} onClick={() => toast("Share coming soon")} />
-          <IconBtn title="More" Icon={MoreHorizontal} onClick={() => toast("More coming soon")} />
-        </div>
       </div>
 
       {/* Two-column body */}
@@ -608,15 +599,6 @@ export default function WorkoutEditorPage() {
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => toast("AI suggestions coming soon")}
-                className="inline-flex items-center gap-1.5 px-3 py-[7px] text-[12.5px] font-semibold rounded-md shadow-sm text-amber-900 border border-amber-500"
-                style={{ background: "linear-gradient(135deg, #FCD34D 0%, #F59E0B 100%)" }}
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                Suggest with AI
-              </button>
-              <button
-                type="button"
                 onClick={() => router.push("/library/workouts")}
                 className="bg-white border border-slate-200 text-slate-700 rounded-md hover:bg-slate-50"
                 style={{ padding: "7px 14px", fontSize: 12.5, fontWeight: 500 }}
@@ -641,27 +623,6 @@ interface AddExercisePayload {
   restSeconds: number | null;
   weight: string | null;
   notes: string | null;
-}
-
-function IconBtn({
-  Icon,
-  title,
-  onClick,
-}: {
-  Icon: LucideIcon;
-  title: string;
-  onClick?: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      title={title}
-      onClick={onClick}
-      className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded"
-    >
-      <Icon className="w-3.5 h-3.5" />
-    </button>
-  );
 }
 
 function EmptyResult() {

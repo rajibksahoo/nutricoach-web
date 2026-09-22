@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import {
-  ChevronLeft, ChevronRight, Calendar, Plus, SlidersHorizontal, ArrowRight,
+  ChevronLeft, ChevronRight, Calendar, Plus, ArrowRight,
   Pencil, X, MoreHorizontal, Search, Copy, Trash2, StickyNote, ClipboardPaste,
 } from "lucide-react";
 import type { Program, ProgramSummary } from "@/lib/library-types";
@@ -218,11 +218,6 @@ export default function ProgramPlannerView({
 
         <div style={{ flex: 1 }} />
 
-        <button onClick={() => toast("Master Planner coming soon")} style={{
-          background: "linear-gradient(135deg,#8B5CF6 0%, #7C3AED 100%)", color: "#fff", border: "none",
-          padding: "8px 16px", borderRadius: 8, fontSize: 12.5, fontWeight: 600, cursor: "pointer",
-          display: "inline-flex", alignItems: "center", gap: 7,
-        }}><SlidersHorizontal size={13} />Master Planner</button>
         <button onClick={() => onAssign(summary)} style={{
           background: "var(--brand-primary)", color: "#fff", border: "none",
           padding: "8px 16px", borderRadius: 8, fontSize: 12.5, fontWeight: 600, cursor: "pointer",
