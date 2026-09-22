@@ -93,6 +93,23 @@ test.describe("client detail · Progress Photos", () => {
       .toBeGreaterThan(0);
   });
 
+  test("a photo that never answers shows a loading state, not a blank tile", async ({ page }) => {
+    const client = await openClient(page);
+    await seedPhoto(page, client.id, "2026-09-15", "FRONT");
+
+    // Never settle the request: no response, no failure. This is the case a
+    // hijacked-DNS host produces in the wild, and the one `onError` cannot
+    // catch — the tile used to sit blank forever waiting for an event that was
+    // never coming.
+    await page.route("**/local-dummy-download-url.example.com/**", () => { /* hang */ });
+
+    await page.goto(`/clients/${client.id}`);
+
+    await expect(page.getByLabel("Loading photo").first()).toBeVisible();
+    // Still loading, so it must not have given up and shown the placeholder.
+    await expect(page.getByText("front")).toHaveCount(0);
+  });
+
   test("View All lists every photo grouped by log date", async ({ page }) => {
     const client = await openClient(page);
     const log = await seedPhoto(page, client.id, "2026-09-15", "FRONT");
