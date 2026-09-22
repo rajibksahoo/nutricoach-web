@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { isClientAuthenticated } from "@/lib/client-auth";
+import { firstEnabledPath, isPathEnabled } from "@/lib/features";
 import ClientNav from "@/components/layout/ClientNav";
 
 const PUBLIC_PATHS = ["/portal/login", "/portal/otp"];
@@ -13,10 +14,13 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
   const isPublic = PUBLIC_PATHS.includes(pathname);
 
   useEffect(() => {
-    if (!isPublic && !isClientAuthenticated()) {
+    if (isPublic) return; // login/otp are never gated
+    if (!isClientAuthenticated()) {
       router.push("/portal/login");
+      return;
     }
-  }, [isPublic, router]);
+    if (!isPathEnabled(pathname)) router.replace(firstEnabledPath("portal"));
+  }, [isPublic, router, pathname]);
 
   if (isPublic) return <>{children}</>;
 

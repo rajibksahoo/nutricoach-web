@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { isEnabled, type SectionKey } from "@/lib/features";
 
 type Item = {
   href: string;
@@ -14,20 +15,15 @@ type Group = {
   title: string;
   items: Item[];
   /**
-   * Whether this group is part of the launched product. The launch persona is
-   * the fitness coach, and every item under Nutrition, Habits and Forms is a
-   * "coming soon" stub — seven dead links in a row reads as an abandoned
-   * product, where simply not showing them reads as focus.
-   *
-   * The routes still exist and still render their stub, so nothing 404s; they
-   * are just no longer advertised. Flip a group to `true` when its pages are
-   * real, and it comes back.
+   * Which switch in `lib/features.ts` decides whether this group is shown.
+   * This used to be a `launched` boolean declared here; it moved so that every
+   * section in the product is toggled from one file.
    *
    * Note this is the *library* Nutrition group, not meal plans as a whole —
    * the per-client meal plan builder lives at /meal-plans in the main sidebar
-   * and is untouched. What is missing is the reusable template layer.
+   * and has its own switch.
    */
-  launched: boolean;
+  section: SectionKey;
 };
 
 // Mirrors navGroups in the design's library.jsx — Fitness / Nutrition /
@@ -35,7 +31,7 @@ type Group = {
 const GROUPS: Group[] = [
   {
     title: "Fitness",
-    launched: true,
+    section: "libraryFitness",
     items: [
       { href: "/library/exercises", label: "Exercises" },
       { href: "/library/workouts",  label: "Workouts"  },
@@ -45,7 +41,7 @@ const GROUPS: Group[] = [
   },
   {
     title: "Nutrition",
-    launched: false,
+    section: "libraryNutrition",
     items: [
       { href: "/library/meal-plans",   label: "Meal Plan Templates" },
       { href: "/library/recipes",      label: "Recipes" },
@@ -55,7 +51,7 @@ const GROUPS: Group[] = [
   },
   {
     title: "Habits",
-    launched: false,
+    section: "libraryHabits",
     items: [
       { href: "/library/tasks",         label: "Tasks" },
       { href: "/library/metric-groups", label: "Metric Groups" },
@@ -63,7 +59,7 @@ const GROUPS: Group[] = [
   },
   {
     title: "Forms",
-    launched: false,
+    section: "libraryForms",
     items: [
       { href: "/library/forms", label: "Forms & Questionnaires" },
     ],
@@ -97,7 +93,7 @@ export default function LibrarySidebar() {
         </h2>
       </div>
 
-      {GROUPS.filter((g) => g.launched).map((g, i) => (
+      {GROUPS.filter((g) => isEnabled(g.section)).map((g, i) => (
         <div key={g.title} style={{ padding: "4px 10px", marginTop: i === 0 ? 0 : 10 }}>
           <div
             style={{
