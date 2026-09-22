@@ -8,6 +8,7 @@ import { resetAnalytics } from "@/lib/analytics";
 import type { CoachUser } from "@/lib/auth";
 import { listConversations } from "@/lib/messaging-api";
 import { cn } from "@/lib/utils";
+import { isEnabled, type SectionKey } from "@/lib/features";
 import {
   LayoutDashboard,
   Users,
@@ -27,18 +28,23 @@ type NavItem = {
   icon: React.ComponentType<{ className?: string }>;
   /** Renders the live unread-message count fetched below. */
   showsUnread?: boolean;
+  /** Switch in `lib/features.ts` deciding whether this item is shown. */
+  section: SectionKey;
 };
 
 const navItems: NavItem[] = [
-  { href: "/dashboard",  label: "Dashboard",  icon: LayoutDashboard },
-  { href: "/clients",    label: "Clients",    icon: Users },
-  { href: "/meal-plans", label: "Meal plans", icon: Utensils },
-  { href: "/library",    label: "Library",    icon: BookOpen },
-  { href: "/progress",   label: "Progress",   icon: TrendingUp },
-  { href: "/messages",   label: "Messaging",  icon: MessageCircle, showsUnread: true },
-  { href: "/billing",    label: "Billing",    icon: CreditCard },
-  { href: "/profile",    label: "Profile",    icon: UserCircle },
+  { href: "/dashboard",  label: "Dashboard",  icon: LayoutDashboard, section: "dashboard" },
+  { href: "/clients",    label: "Clients",    icon: Users,           section: "clients"   },
+  { href: "/meal-plans", label: "Meal plans", icon: Utensils,        section: "mealPlans" },
+  { href: "/library",    label: "Library",    icon: BookOpen,        section: "library"   },
+  { href: "/progress",   label: "Progress",   icon: TrendingUp,      section: "progress"  },
+  { href: "/messages",   label: "Messaging",  icon: MessageCircle,   section: "messaging", showsUnread: true },
+  { href: "/billing",    label: "Billing",    icon: CreditCard,      section: "billing"   },
+  { href: "/profile",    label: "Profile",    icon: UserCircle,      section: "profile"   },
 ];
+
+/** Computed once: the config is a static import, not runtime state. */
+const VISIBLE_NAV = navItems.filter((item) => isEnabled(item.section));
 
 function initialsFromName(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -121,7 +127,7 @@ export default function Sidebar() {
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto px-2 py-2.5 flex flex-col gap-px">
-        {navItems.map(({ href, label, icon: Icon, showsUnread }) => {
+        {VISIBLE_NAV.map(({ href, label, icon: Icon, showsUnread }) => {
           const active = pathname.startsWith(href);
           const badge = showsUnread ? unread : 0;
           return (

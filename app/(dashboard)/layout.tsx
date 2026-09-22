@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { isAuthenticated } from "@/lib/auth";
+import { firstEnabledPath, isPathEnabled } from "@/lib/features";
 import Sidebar from "@/components/layout/Sidebar";
 import UpgradePrompt from "@/components/ui/UpgradePrompt";
 
@@ -11,8 +12,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
 
   useEffect(() => {
-    if (!isAuthenticated()) router.push("/login");
-  }, [router]);
+    if (!isAuthenticated()) {
+      router.push("/login");
+      return;
+    }
+    // A section switched off in `lib/features.ts` must not be reachable by URL
+    // either — otherwise an old bookmark or a shared link still opens it.
+    // `replace`, not `push`, so Back does not bounce straight into it again.
+    if (!isPathEnabled(pathname)) router.replace(firstEnabledPath("coach"));
+  }, [router, pathname]);
 
   // Sections that own their own chrome (two-pane layout, sticky headers) sit flush against the primary sidebar.
   const fullBleed =

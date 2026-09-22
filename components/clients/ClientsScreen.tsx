@@ -14,6 +14,7 @@ import {
   listClients, getClientChart, listClientPhotos, getClientTrainingStats,
   toClientDetail, STATUS_MAP, type ClientTrainingStats,
 } from "@/lib/clients-api";
+import { isEnabled, type SectionKey } from "@/lib/features";
 import ClientAvatar from "@/components/ui/ClientAvatar";
 import StatusPill from "@/components/ui/StatusPill";
 import Spark from "@/components/ui/Spark";
@@ -142,8 +143,26 @@ const subAddBtnStyle: React.CSSProperties = {
 };
 
 // ─── Detail header (avatar + tabs) ─────────────────────────────────────
-const DETAIL_TABS = ["Overview", "Training", "Tasks", "Metrics", "Food Journal", "Meal Plan", "Settings"] as const;
-type DetailTab = typeof DETAIL_TABS[number];
+const ALL_DETAIL_TABS = [
+  "Overview", "Training", "Tasks", "Metrics", "Food Journal", "Meal Plan", "Settings",
+] as const;
+type DetailTab = typeof ALL_DETAIL_TABS[number];
+
+/**
+ * Tabs that are not built yet render a "PLANNED" placeholder, so each one is
+ * switched from `lib/features.ts` like every other section. A tab with no entry
+ * here is always shown.
+ */
+const TAB_SECTIONS: Partial<Record<DetailTab, SectionKey>> = {
+  "Tasks": "clientTabTasks",
+  "Food Journal": "clientTabFoodJournal",
+  "Meal Plan": "clientTabMealPlan",
+};
+
+const DETAIL_TABS: readonly DetailTab[] = ALL_DETAIL_TABS.filter((t) => {
+  const section = TAB_SECTIONS[t];
+  return section === undefined || isEnabled(section);
+});
 
 function ClientDetailHeader({ client, tab, onTab }: { client: ClientDetail; tab: DetailTab; onTab: (t: DetailTab) => void }) {
   return (

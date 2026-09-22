@@ -3,17 +3,28 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { clearClientAuth, getClientUser } from "@/lib/client-auth";
+import { isEnabled, type SectionKey } from "@/lib/features";
 import { Leaf, Home, UtensilsCrossed, Dumbbell, TrendingUp, ClipboardList, User, LogOut, MessageCircle } from "lucide-react";
 
-const NAV = [
-  { href: "/portal/home",      label: "Home",       icon: Home          },
-  { href: "/portal/meal-plans",label: "Meal Plans",  icon: UtensilsCrossed },
-  { href: "/portal/workouts",  label: "Workouts",    icon: Dumbbell      },
-  { href: "/portal/progress",  label: "Progress",    icon: TrendingUp    },
-  { href: "/portal/check-ins", label: "Check-ins",   icon: ClipboardList },
-  { href: "/portal/chat",      label: "Chat",        icon: MessageCircle },
-  { href: "/portal/profile",   label: "Profile",     icon: User          },
+type NavItem = {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  /** Switch in `lib/features.ts` deciding whether this tab is shown. */
+  section: SectionKey;
+};
+
+const NAV: NavItem[] = [
+  { href: "/portal/home",      label: "Home",        icon: Home,            section: "portalHome"      },
+  { href: "/portal/meal-plans",label: "Meal Plans",  icon: UtensilsCrossed, section: "portalMealPlans" },
+  { href: "/portal/workouts",  label: "Workouts",    icon: Dumbbell,        section: "portalWorkouts"  },
+  { href: "/portal/progress",  label: "Progress",    icon: TrendingUp,      section: "portalProgress"  },
+  { href: "/portal/check-ins", label: "Check-ins",   icon: ClipboardList,   section: "portalCheckIns"  },
+  { href: "/portal/chat",      label: "Chat",        icon: MessageCircle,   section: "portalChat"      },
+  { href: "/portal/profile",   label: "Profile",     icon: User,            section: "portalProfile"   },
 ];
+
+const VISIBLE_NAV = NAV.filter((item) => isEnabled(item.section));
 
 export default function ClientNav() {
   const pathname = usePathname();
@@ -46,7 +57,7 @@ export default function ClientNav() {
 
       {/* Bottom nav tabs */}
       <nav className="max-w-2xl mx-auto px-4 flex border-t border-slate-100">
-        {NAV.map(({ href, label, icon: Icon }) => {
+        {VISIBLE_NAV.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + "/");
           return (
             <Link
