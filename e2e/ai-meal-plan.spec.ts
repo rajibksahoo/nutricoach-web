@@ -67,4 +67,36 @@ test.describe("AI meal plan generation", () => {
     // model's own macros, so the coach is told which numbers to check.
     await expect(page.getByText("unverified").first()).toBeVisible({ timeout: 15_000 });
   });
+
+  /**
+   * The paid-tier gate. A Starter coach cannot be minted through the UI —
+   * billing state only moves via Razorpay — so this stubs the 402 that
+   * `SubscriptionGate.requireAiMealPlans` returns and checks the modal turns
+   * into an upgrade prompt instead of a red error. The rule itself is pinned
+   * server-side in `AiJobIntegrationTest`.
+   */
+  test("a 402 turns the modal into an upgrade prompt", async ({ page }) => {
+    await signInAs(page, await freshCoachToken(page));
+    await page.goto("/dashboard");
+    const client = await seedClient(page, uniqueName("E2E AI Locked"));
+
+    await page.route("**/api/v1/ai/meal-plans/generate", (route) =>
+      route.fulfill({
+        status: 402,
+        contentType: "application/json",
+        body: JSON.stringify({
+          success: false,
+          message: "AI meal plan generation is available on the Professional plan and above.",
+        }),
+      }),
+    );
+
+    await page.goto("/meal-plans");
+    await page.getByText(client.name).first().click();
+    await page.getByRole("button", { name: /AI Generate/i }).click();
+    await page.getByRole("button", { name: /Generate Meal Plan/i }).click();
+
+    await expect(page.getByText(/part of the\s+Professional\s+plan/i)).toBeVisible();
+    await expect(page.getByRole("button", { name: /Upgrade to Professional/i })).toBeVisible();
+  });
 });

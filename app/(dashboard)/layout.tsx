@@ -20,7 +20,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     // /clients and /clients/{id} are the same two-pane screen; /clients/new is a form.
     (pathname.startsWith("/clients") && pathname !== "/clients/new") ||
     pathname === "/messages" ||
-    pathname === "/dashboard";
+    pathname === "/dashboard" ||
+    // /meal-plans and /meal-plans/{id} are the list + its detail builder.
+    pathname.startsWith("/meal-plans") ||
+    pathname === "/progress";
 
   return (
     <div className="flex h-full">
