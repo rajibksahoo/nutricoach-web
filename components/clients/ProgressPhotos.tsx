@@ -9,12 +9,27 @@ import type { ClientPhoto } from "./data";
  * behind View All.
  *
  * Every URL here is a pre-signed S3 link that expires after 60 minutes, and in
- * local dev `S3Service` hands back a dummy host that never resolves at all — so
- * a broken image is a normal state, not an error, and each tile falls back to a
- * labelled placeholder rather than a browser's broken-image glyph.
+ * local dev `S3Service` hands back a dummy host — so a broken image is a normal
+ * state, not an error, and each tile falls back to a labelled placeholder
+ * rather than a browser's broken-image glyph.
  */
 
 const CARD_THUMBNAILS = 3;
+
+/**
+ * How long a photo may stall before we give up and show the placeholder.
+ *
+ * `onError` alone is not enough: a request that is never answered fires neither
+ * `onload` nor `onerror`, so the tile sat blank forever. That is not
+ * hypothetical — a host that accepts the connection and then goes quiet does
+ * exactly this, and a pre-signed URL can also expire mid-flight.
+ *
+ * Generous on purpose. A coach on a slow Indian mobile connection pulling a
+ * multi-megabyte photo should get the photo, not a placeholder; the pending
+ * state below already means they are never looking at a blank box while they
+ * wait. This is the final give-up, not the loading budget.
+ */
+const STALL_TIMEOUT_MS = 20_000;
 
 function fmtDay(iso: string) {
   return new Date(iso + "T00:00:00").toLocaleDateString(undefined, {
@@ -28,16 +43,41 @@ function fmtFullDay(iso: string) {
   });
 }
 
-/** A thumbnail that degrades to a placeholder when the URL will not load. */
+/**
+ * A thumbnail with three states: pending, loaded, failed.
+ *
+ * Pending renders a pulsing placeholder rather than an empty frame, so a slow
+ * photo reads as loading instead of broken. Failed covers both a real error and
+ * a request that simply never answers — see {@link STALL_TIMEOUT_MS}.
+ */
 function PhotoTile({ photo }: { photo: ClientPhoto }) {
-  const [failed, setFailed] = React.useState(false);
+  const [state, setState] = React.useState<"pending" | "loaded" | "failed">("pending");
+  const imgRef = React.useRef<HTMLImageElement>(null);
+
+  React.useEffect(() => {
+    setState("pending");
+
+    // A cached image can finish before React attaches onLoad/onError, which
+    // would otherwise leave the tile pending until the stall timeout.
+    const img = imgRef.current;
+    if (img?.complete) {
+      setState(img.naturalWidth > 0 ? "loaded" : "failed");
+      return;
+    }
+
+    const timer = setTimeout(
+      () => setState((current) => (current === "pending" ? "failed" : current)),
+      STALL_TIMEOUT_MS,
+    );
+    return () => clearTimeout(timer);
+  }, [photo.downloadUrl]);
 
   const frame: React.CSSProperties = {
     aspectRatio: "3 / 4", width: "100%", borderRadius: 8,
     overflow: "hidden", display: "block",
   };
 
-  if (failed) {
+  if (state === "failed") {
     return (
       <div style={{
         ...frame,
@@ -50,12 +90,35 @@ function PhotoTile({ photo }: { photo: ClientPhoto }) {
   }
 
   return (
-    <img
-      src={photo.downloadUrl}
-      alt={`${photo.photoType.toLowerCase()} photo from ${fmtFullDay(photo.loggedDate)}`}
-      onError={() => setFailed(true)}
-      style={{ ...frame, objectFit: "cover", border: "1px solid var(--border)" }}
-    />
+    <div style={{ ...frame, position: "relative" }}>
+      <img
+        ref={imgRef}
+        src={photo.downloadUrl}
+        alt={`${photo.photoType.toLowerCase()} photo from ${fmtFullDay(photo.loggedDate)}`}
+        onLoad={() => setState("loaded")}
+        onError={() => setState("failed")}
+        // Hidden from assistive tech until it has actually loaded, so the
+        // pending placeholder below is the only thing announced.
+        aria-hidden={state !== "loaded"}
+        style={{
+          width: "100%", height: "100%", objectFit: "cover",
+          border: "1px solid var(--border)", borderRadius: 8,
+          display: "block", opacity: state === "loaded" ? 1 : 0,
+        }}
+      />
+      {state === "pending" && (
+        <div
+          role="img"
+          aria-label="Loading photo"
+          style={{
+            position: "absolute", inset: 0, borderRadius: 8,
+            background: "linear-gradient(135deg, #F1F5F9 0%, #E2E8F0 100%)",
+            border: "1px solid var(--border)",
+            animation: "dashPulse 1.4s ease-in-out infinite",
+          }}
+        />
+      )}
+    </div>
   );
 }
 

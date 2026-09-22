@@ -6,11 +6,20 @@ import {
 /**
  * The Progress Photos card on client detail.
  *
- * Photos are stored as S3 keys and served as pre-signed URLs. Locally those URLs
- * point at a dummy host that never resolves, so these specs assert the grid,
- * labels, ordering and View All modal — plus that a dead URL degrades to the
- * placeholder rather than a broken-image icon. Whether a real photo renders is
- * a production check; see P6 in PROGRESS.md.
+ * Photos are stored as S3 keys and served as pre-signed URLs. Locally `S3Service`
+ * hands back `local-dummy-download-url.example.com`, so these specs assert the
+ * grid, labels, ordering and View All modal — plus that a dead URL degrades to
+ * the placeholder rather than a broken-image icon. Whether a real photo renders
+ * is a production check; see P6 in PROGRESS.md.
+ *
+ * That dummy host is **not** a reliable way to produce a failed image. It is a
+ * subdomain of a real domain, and plenty of resolvers (most Indian consumer
+ * ISPs among them) hijack NXDOMAIN and answer with a live ad-server IP. That
+ * host accepts the connection and then never responds, so the request hangs
+ * and `onError` never fires — the placeholder spec then failed on those
+ * networks and passed on networks with honest NXDOMAIN. It was testing the
+ * tester's DNS, not our fallback. The failure is now produced by aborting the
+ * request, which is what the spec meant all along.
  */
 test.describe("client detail · Progress Photos", () => {
   test.use({ storageState: { cookies: [], origins: [] } });
@@ -65,13 +74,40 @@ test.describe("client detail · Progress Photos", () => {
     const client = await openClient(page);
     await seedPhoto(page, client.id, "2026-09-15", "FRONT");
 
+    // Fail the image ourselves rather than hoping the network fails it for us.
+    // See the note at the top of this file: the dummy host can resolve.
+    let photoRequests = 0;
+    await page.route("**/local-dummy-download-url.example.com/**", (route) => {
+      photoRequests += 1;
+      return route.abort("failed");
+    });
+
     await page.goto(`/clients/${client.id}`);
 
-    // Local pre-signed URLs point at a host that never resolves, so onError
-    // fires and the tile falls back to its labelled placeholder. The wait is
-    // generous on purpose: this is waiting on a DNS failure, whose timing
-    // varies enough to flake at the default 5s.
-    await expect(page.getByText("front").first()).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText("front").first()).toBeVisible();
+
+    // Guards the route pattern itself: if the presign host ever changes, the
+    // abort silently stops matching and this spec would hang on a real request
+    // again. Better to fail saying the photo was never requested.
+    expect(photoRequests, "the photo URL was never requested — has the presign host changed?")
+      .toBeGreaterThan(0);
+  });
+
+  test("a photo that never answers shows a loading state, not a blank tile", async ({ page }) => {
+    const client = await openClient(page);
+    await seedPhoto(page, client.id, "2026-09-15", "FRONT");
+
+    // Never settle the request: no response, no failure. This is the case a
+    // hijacked-DNS host produces in the wild, and the one `onError` cannot
+    // catch — the tile used to sit blank forever waiting for an event that was
+    // never coming.
+    await page.route("**/local-dummy-download-url.example.com/**", () => { /* hang */ });
+
+    await page.goto(`/clients/${client.id}`);
+
+    await expect(page.getByLabel("Loading photo").first()).toBeVisible();
+    // Still loading, so it must not have given up and shown the placeholder.
+    await expect(page.getByText("front")).toHaveCount(0);
   });
 
   test("View All lists every photo grouped by log date", async ({ page }) => {
