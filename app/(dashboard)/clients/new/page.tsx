@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import api from "@/lib/api";
+import { track } from "@/lib/analytics";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
@@ -131,6 +132,7 @@ export default function NewClientPage() {
         ...(toList(form.allergies).length && { allergies: toList(form.allergies) }),
       };
       const res = await api.post("/api/v1/clients", payload);
+      track("client_added", { viaOnboarding: false });
       toast.success("Client added!");
       router.push(`/clients/${res.data.data.id}`);
     } catch (err: any) {

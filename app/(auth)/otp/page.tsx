@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 import api from "@/lib/api";
 import { saveAuth } from "@/lib/auth";
+import { identifyCoach, track } from "@/lib/analytics";
 import Button from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { IS_DEV_MODE } from "@/lib/dev-mode";
@@ -62,6 +63,11 @@ function OtpForm() {
       } = res.data.data;
 
       saveAuth(token, { id: coachId, phone: coachPhone, name, subscriptionTier, subscriptionStatus });
+
+      // UUID only — the phone is the login credential and never leaves the app.
+      identifyCoach(coachId);
+      if (isNewCoach) track("signed_up");
+
       toast.success("Login successful!");
       // First-time coaches get the setup flow; the backend already tells us
       // via isNewCoach. A coach with no name set yet is also treated as new,

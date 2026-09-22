@@ -12,11 +12,13 @@
     "test:e2e:headed": "playwright test --headed"
   },
   "dependencies": {
+    "@sentry/nextjs": "^10.75.2",
     "axios": "^1.13.6",
     "clsx": "^2.1.1",
     "js-cookie": "^3.0.5",
     "lucide-react": "^0.577.0",
     "next": "16.2.1",
+    "posthog-js": "^1.434.8",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-hot-toast": "^2.6.0"

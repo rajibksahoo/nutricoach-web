@@ -1,4 +1,5 @@
 import api from "./api";
+import { track } from "@/lib/analytics";
 import type {
   CategoryKey, LibraryExercise, SavedWorkout, WorkoutSection,
   SectionExercise, SectionType, WorkoutTemplate, ThumbCat, Client,
@@ -195,6 +196,7 @@ export async function createWorkout(w: Pick<SavedWorkout, "name" | "description"
   const { data } = await api.post<ApiResp<ApiWorkoutSummary>>("/api/v1/library/workouts", {
     name: w.name, description: w.description, tags: w.tags ?? [],
   });
+  track("workout_created");
   return mapWorkoutFromSummary(data.data);
 }
 

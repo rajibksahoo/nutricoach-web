@@ -1,4 +1,5 @@
 import api from "./api";
+import { track } from "@/lib/analytics";
 import type { ApiEnvelope, Program, ProgramSummary } from "./library-types";
 
 // ── Program CRUD ──────────────────────────────────────────────────────────────
@@ -42,6 +43,7 @@ export async function getProgram(id: string): Promise<Program> {
 
 export async function createProgram(payload: ProgramPayload): Promise<ProgramSummary> {
   const { data } = await api.post<ApiEnvelope<ProgramSummary>>("/api/v1/library/programs", payload);
+  track("program_created", { weeks: payload.weeks ?? 0 });
   return data.data;
 }
 

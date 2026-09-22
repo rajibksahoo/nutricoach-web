@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { ArrowRight, Check, Loader2 } from "lucide-react";
 import api from "@/lib/api";
 import { getCoach, saveAuth, getToken } from "@/lib/auth";
+import { track } from "@/lib/analytics";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { Card, CardContent } from "@/components/ui/Card";
@@ -56,7 +57,13 @@ export default function OnboardingPage() {
     return () => { cancelled = true; };
   }, []);
 
-  function finish() {
+  /**
+   * `completed` separates a coach who actually added a first client from one
+   * who skipped out. Both land on the dashboard, and without the flag the
+   * funnel would read them as the same outcome — which is the whole question.
+   */
+  function finish(completed: boolean) {
+    track("onboarding_finished", { completed });
     toast.success("You're all set");
     router.push("/dashboard");
   }
@@ -94,7 +101,10 @@ export default function OnboardingPage() {
     setErrors(e);
     if (Object.keys(e).length) return;
 
-    if (await saveProfile({ name: name.trim(), email: email.trim() || null })) setStep(2);
+    if (await saveProfile({ name: name.trim(), email: email.trim() || null })) {
+      track("onboarding_step_completed", { step: 1 });
+      setStep(2);
+    }
   }
 
   async function submitStep2() {
@@ -107,7 +117,10 @@ export default function OnboardingPage() {
     if (await saveProfile({
       businessName: businessName.trim() || null,
       gstin: gst || null,
-    })) setStep(3);
+    })) {
+      track("onboarding_step_completed", { step: 2, gstinSet: !!gst });
+      setStep(3);
+    }
   }
 
   async function submitStep3() {
@@ -123,8 +136,10 @@ export default function OnboardingPage() {
         name: clientName.trim(),
         phone: clientPhone.trim(),
       });
+      track("onboarding_step_completed", { step: 3 });
+      track("client_added", { viaOnboarding: true });
       toast.success("First client added");
-      finish();
+      finish(true);
     } catch (err) {
       const msg = (err as { response?: { data?: { message?: string } } }).response?.data?.message;
       toast.error(msg ?? "Couldn't add the client");
@@ -172,7 +187,7 @@ export default function OnboardingPage() {
                 onNext={submitStep1}
                 nextLabel="Continue"
                 saving={saving}
-                onSkip={() => setStep(2)}
+                onSkip={() => { track("onboarding_step_skipped", { step: 1 }); setStep(2); }}
               />
             </StepBody>
           )}
@@ -206,7 +221,7 @@ export default function OnboardingPage() {
                 onNext={submitStep2}
                 nextLabel="Continue"
                 saving={saving}
-                onSkip={() => setStep(3)}
+                onSkip={() => { track("onboarding_step_skipped", { step: 2 }); setStep(3); }}
                 onBack={() => setStep(1)}
               />
             </StepBody>
@@ -237,7 +252,7 @@ export default function OnboardingPage() {
                 onNext={submitStep3}
                 nextLabel="Add client & finish"
                 saving={saving}
-                onSkip={finish}
+                onSkip={() => finish(false)}
                 skipLabel="I'll do this later"
                 onBack={() => setStep(2)}
               />
