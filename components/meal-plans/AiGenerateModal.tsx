@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import toast from "react-hot-toast";
 import api from "@/lib/api";
+import { useSubscription } from "@/lib/use-subscription";
+import { AI_MIN_PLAN, canUseAiMealPlans, formatRupees } from "@/lib/plans";
 import Button from "@/components/ui/Button";
 import Spinner from "@/components/ui/Spinner";
 import { Sparkles, X } from "lucide-react";
@@ -21,7 +24,17 @@ export default function AiGenerateModal({ client, onClose, onGenerated }: {
 }) {
   const [status, setStatus] = useState<AiJobStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Set when the backend answers 402. The hook below usually spares the coach
+  // the round trip, but `SubscriptionGate` is the only authority — if the hook
+  // failed to load, or a subscription lapsed mid-session, this is what catches it.
+  const [locked, setLocked] = useState(false);
   const cancelledRef = useRef(false);
+
+  const sub = useSubscription();
+  // `sub` is null until loaded and stays null on failure; don't lock the UI on
+  // a fetch we never got, let the 402 do it.
+  const lockedUpFront = sub !== null && !canUseAiMealPlans(sub.tier, sub.status);
+  const isLocked = locked || lockedUpFront;
 
   useEffect(() => {
     cancelledRef.current = false;
@@ -39,10 +52,13 @@ export default function AiGenerateModal({ client, onClose, onGenerated }: {
       await pollJob(job.id);
     } catch (e: unknown) {
       if (cancelledRef.current) return;
-      const msg =
-        (e as { response?: { data?: { message?: string } } })?.response?.data?.message ??
-        "Failed to start AI generation";
-      setError(msg);
+      const res = (e as { response?: { status?: number; data?: { message?: string } } })?.response;
+      if (res?.status === 402) {
+        setLocked(true);
+        setStatus(null);
+        return;
+      }
+      setError(res?.data?.message ?? "Failed to start AI generation");
       setStatus("FAILED");
     }
   }
@@ -131,6 +147,19 @@ export default function AiGenerateModal({ client, onClose, onGenerated }: {
           preferences, goal, and activity level. This takes 30–60 seconds.
         </p>
 
+        {isLocked && (
+          <div style={{
+            background: "#F5F3FF", border: "1px solid #EDE9FE",
+            borderRadius: 12, padding: "12px 16px",
+            fontSize: 11.5, color: "var(--fg2)", lineHeight: 1.65,
+          }}>
+            AI meal plan generation is part of the{" "}
+            <strong style={{ color: "var(--fg1)" }}>{AI_MIN_PLAN.label}</strong> plan
+            ({formatRupees(AI_MIN_PLAN.priceRupees)}/month). You can still build a plan by hand
+            on any plan.
+          </div>
+        )}
+
         {isWorking && (
           <div style={{
             display: "flex", alignItems: "center", gap: 8,
@@ -153,10 +182,16 @@ export default function AiGenerateModal({ client, onClose, onGenerated }: {
           </div>
         )}
 
-        <Button className="w-full" onClick={startGenerate} loading={isWorking} disabled={isWorking}>
-          <Sparkles className="w-4 h-4 mr-2" />
-          {error ? "Try Again" : "Generate Meal Plan"}
-        </Button>
+        {isLocked ? (
+          <Link href="/billing" style={{ textDecoration: "none" }}>
+            <Button className="w-full">Upgrade to {AI_MIN_PLAN.label}</Button>
+          </Link>
+        ) : (
+          <Button className="w-full" onClick={startGenerate} loading={isWorking} disabled={isWorking}>
+            <Sparkles className="w-4 h-4 mr-2" />
+            {error ? "Try Again" : "Generate Meal Plan"}
+          </Button>
+        )}
       </div>
     </div>
   );
